@@ -13,4 +13,4 @@ yarn-error.log
 /package-lock.json
 .problems
 .roadmap
-.env
+/.env
