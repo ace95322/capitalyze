@@ -230,7 +230,7 @@
           </v-col>
           <v-col
             cols="12"
-            sm="6"
+            sm="4"
             v-if="uploader === 'admin' || uploader === 'artist'"
           >
             <v-switch
@@ -240,12 +240,22 @@
           </v-col>
           <v-col
             cols="12"
-            sm="6"
+            sm="4"
             v-if="uploader === 'admin' || uploader === 'artist'"
           >
             <v-switch
               v-model="editedSong.isExplicit"
               :label="$t('Explicit')"
+            ></v-switch>
+          </v-col>
+          <v-col
+            cols="12"
+            sm="4"
+            v-if="uploader === 'admin' || uploader === 'artist'"
+          >
+            <v-switch
+              v-model="editedSong.is_only_for_subscriber"
+              :label="$t('Only for Subscribe user')"
             ></v-switch>
           </v-col>
         </v-row>
@@ -281,14 +291,18 @@
               "
               :disabled="!$store.getters.getSettings.enableBilling"
               v-model="editedSong.isProduct"
-              @change="editedSong.isProduct ? (editedSong.playSample = true, editedSong.sampleSeconds = 5)  : (editedSong.playSample = false, editedSong.sampleSeconds = 5) "
+              @change="
+                editedSong.isProduct
+                  ? ((editedSong.playSample = true),
+                    (editedSong.sampleSeconds = 5))
+                  : ((editedSong.playSample = false),
+                    (editedSong.sampleSeconds = 5))
+              "
             ></v-switch>
           </v-col>
           <v-col cols="12" v-if="editedSong.isProduct">
             <v-switch
-              :label="
-                $t('Play sample only')
-              "
+              :label="$t('Play sample only')"
               v-model="editedSong.playSample"
             ></v-switch>
             <v-spacer></v-spacer>
@@ -456,8 +470,8 @@ export default {
       });
     }
     // remove the YouTube link option if the Youtube Plugin was disabled
-    if( !this.$store.getters.getSettings.youtubePlugin ) {
-      this.sourceFormats.splice(2, 1)
+    if (!this.$store.getters.getSettings.youtubePlugin) {
+      this.sourceFormats.splice(2, 1);
     }
   },
   data() {
@@ -753,7 +767,10 @@ export default {
       }
 
       if (this.editedSong.playSample) {
-        formData.append("playSample", this.editedSong.playSample == true ? 1 : 0);
+        formData.append(
+          "playSample",
+          this.editedSong.playSample == true ? 1 : 0
+        );
       }
 
       if (this.editedSong.sampleSeconds) {
@@ -775,7 +792,11 @@ export default {
       } else {
         formData.append("isExplicit", 0);
       }
-
+      if (this.editedSong.is_only_for_subscriber) {
+        formData.append("is_only_for_subscriber", 1);
+      } else {
+        formData.append("is_only_for_subscriber", 0);
+      }
       if (this.editedSong.artists.length) {
         formData.append("artists", JSON.stringify(this.editedSong.artists));
       }

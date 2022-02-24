@@ -29,23 +29,25 @@ class VideoResource extends JsonResource
             'source_format' => $this->source_format,
             'file_name' => $this->file_name,
             'source' =>  $this->source_format === 'file' ||  $this->source_format === 'video_url' ? FileManager::asset_path($this->source) :  json_decode($this->source),
-            'cover' => FileManager::asset_path($this->cover), 
+            'cover' => FileManager::asset_path($this->cover),
             'genres' => $this->genres,
             'public' => $this->public == "0"? false: true,
             // new update V2.1
             'isProduct' => $this->isProduct == "0" ? false : true,
             'isExclusive' => $this->isExclusive == "0" ? false : true,
             'isExplicit' => $this->isExplicit == "0" ? false : true,
-            // 
-            'nb_likes' => $this->likes->count(),            
-            'nb_plays' => $this->plays->count(),           
-            'nb_downloads' => $this->download_count,    
+            //V3.5
+            'is_only_for_subscriber' => $this->is_only_for_subscriber == "0" ? false : true,
+            //
+            'nb_likes' => $this->likes->count(),
+            'nb_plays' => $this->plays->count(),
+            'nb_downloads' => $this->download_count,
             // links
-            'spotify_link' => $this->spotify_link,    
-            'youtube_link' => $this->youtube_link,    
-            'soundcloud_link' => $this->soundcloud_link,    
-            'itunes_link' => $this->itunes_link,    
-            'deezer_link' => $this->deezer_link,    
+            'spotify_link' => $this->spotify_link,
+            'youtube_link' => $this->youtube_link,
+            'soundcloud_link' => $this->soundcloud_link,
+            'itunes_link' => $this->itunes_link,
+            'deezer_link' => $this->deezer_link,
             //
             $this->mergeWhen($this->album_id,[
                 'album' => $this->album()->select('title','id')->first()

@@ -89,16 +89,22 @@
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col cols="12" sm="6">
+                    <v-col cols="12" sm="4">
                         <v-switch
                             v-model="editedAlbum.isExclusive"
                             :label="$t('Exclusive')"
                         ></v-switch>
                     </v-col>
-                    <v-col cols="12" sm="6">
+                    <v-col cols="12" sm="4">
                         <v-switch
                             v-model="editedAlbum.isExplicit"
                             :label="$t('Explicit')"
+                        ></v-switch>
+                    </v-col>
+                    <v-col cols="12" sm="4">
+                        <v-switch
+                            v-model="editedAlbum.is_only_for_subscriber"
+                            :label="$t('Only For Subscriber User')"
                         ></v-switch>
                     </v-col>
                 </v-row>
@@ -981,6 +987,11 @@ export default {
             } else {
                 formData.append("isExplicit", 0);
             }
+            if (this.editedAlbum.is_only_for_subscriber) {
+                formData.append("is_only_for_subscriber", 1);
+            } else {
+                formData.append("is_only_for_subscriber", 0);
+            }
             if (this.editedAlbum.isProduct) {
                 formData.append("isProduct", 1);
                 if (!this.licenses.length) {
@@ -992,7 +1003,7 @@ export default {
                         text: this.$t("Please add atleast one license/price")
                     });
                 }
-                   
+
                 else {formData.append("licenses", JSON.stringify(this.licenses));}
             } else {
                 formData.append("isProduct", 0);

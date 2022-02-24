@@ -230,7 +230,7 @@
           </v-col>
           <v-col
             cols="12"
-            sm="6"
+            sm="4"
             v-if="uploader === 'admin' || uploader === 'artist'"
           >
             <v-switch
@@ -240,12 +240,22 @@
           </v-col>
           <v-col
             cols="12"
-            sm="6"
+            sm="4"
             v-if="uploader === 'admin' || uploader === 'artist'"
           >
             <v-switch
               v-model="editedVideo.isExplicit"
               :label="$t('Explicit')"
+            ></v-switch>
+          </v-col>
+          <v-col
+            cols="12"
+            sm="4"
+            v-if="uploader === 'admin' || uploader === 'artist'"
+          >
+            <v-switch
+              v-model="editedVideo.is_only_for_subscriber"
+              :label="$t('Only for subscriber user')"
             ></v-switch>
           </v-col>
         </v-row>
@@ -751,6 +761,12 @@ export default {
       } else {
         formData.append("isExplicit", 0);
       }
+      if (this.editedVideo.is_only_for_subscriber) {
+        formData.append("is_only_for_subscriber", 1);
+      } else {
+        formData.append("is_only_for_subscriber", 0);
+      }
+
 
       if (this.editedVideo.artists.length) {
         formData.append("artists", JSON.stringify(this.editedVideo.artists));

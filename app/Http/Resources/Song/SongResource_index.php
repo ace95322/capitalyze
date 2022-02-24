@@ -19,10 +19,10 @@ class SongResource_index extends JsonResource
     {
         return [
             'source' => '/api/stream/song/' . $this->id,
-            'cover' => Media::get($this, 'cover'), 
+            'cover' => Media::get($this, 'cover'),
             'thumbnail' => Media::getConversion($this, 'cover', 'thumbnail'),
-            'hls' => $this->hls,        
-            // 'nb_plays' => $this->plays_counter,     
+            'hls' => $this->hls,
+            // 'nb_plays' => $this->plays_counter,
             'type' => 'song',
             'origin' => 'local',
             'id' => $this->id,
@@ -41,21 +41,23 @@ class SongResource_index extends JsonResource
             'isProduct' => $this->isProduct == "0" ? false : true,
             'isExclusive' => $this->isExclusive == "0" ? false : true,
             'isExplicit' => $this->isExplicit == "0" ? false : true,
-            // 
-            'nb_likes' => $this->likes->count(),            
-            'nb_plays' => $this->plays->count(),           
-            'nb_downloads' => $this->download_count,    
+            //V3.5
+            'is_only_for_subscriber' => $this->is_only_for_subscriber == "0" ? false : true,
+            //
+            'nb_likes' => $this->likes->count(),
+            'nb_plays' => $this->plays->count(),
+            'nb_downloads' => $this->download_count,
             // links
-            'spotify_link' => $this->spotify_link,    
-            'youtube_link' => $this->youtube_link,    
-            'soundcloud_link' => $this->soundcloud_link,    
-            'itunes_link' => $this->itunes_link,    
-            'deezer_link' => $this->deezer_link,    
+            'spotify_link' => $this->spotify_link,
+            'youtube_link' => $this->youtube_link,
+            'soundcloud_link' => $this->soundcloud_link,
+            'itunes_link' => $this->itunes_link,
+            'deezer_link' => $this->deezer_link,
             // new update V3.5
 
-            'sampleSeconds' => $this->sampleSeconds,    
-            'playSample' => $this->playSample == "0" ? false : true,   
-            
+            'sampleSeconds' => $this->sampleSeconds,
+            'playSample' => $this->playSample == "0" ? false : true,
+
             $this->mergeWhen($this->album_id,[
                 'album' => $this->album()->select('title','id')->first()
             ]),

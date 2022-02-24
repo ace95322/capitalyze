@@ -63,6 +63,7 @@ class RadioStationController extends Controller
             'highlight' => $request->highlight,
             'proxy' => $request->proxy,
             'interval' => intval($request->interval),
+            'is_only_for_subscriber' => $request->is_only_for_subscriber, // V3.5
         ]);
 
         if ($file = $request->file('cover')) {
@@ -140,7 +141,8 @@ class RadioStationController extends Controller
         $radioStation->highlight =  $request->highlight;
         $radioStation->proxy =  $request->proxy;
         $radioStation->interval =  intval($request->interval);
-
+        // V3.5
+        $radioStation->is_only_for_subscriber =  $request->is_only_for_subscriber;
         $radioStation->save();
         return response()->json(['message' => 'SUCCESS'], 200);
     }

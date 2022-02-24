@@ -93,6 +93,9 @@ class AlbumController extends Controller
         $album->isProduct  =  $request->isProduct;
         $album->isExclusive  =  $request->isExclusive;
         $album->isExplicit  =  $request->isExplicit;
+
+        // V 3.5
+        $album->is_only_for_subscriber  =  $request->is_only_for_subscriber;
         //
 
         // links
@@ -232,6 +235,9 @@ class AlbumController extends Controller
         $album->isProduct  =  $request->isProduct;
         $album->isExclusive  =  $request->isExclusive;
         $album->isExplicit  =  $request->isExplicit;
+
+        // V 3.5
+        $album->is_only_for_subscriber  =  $request->is_only_for_subscriber;
         //
         // links
         $album->spotify_link = $request->spotify_link;

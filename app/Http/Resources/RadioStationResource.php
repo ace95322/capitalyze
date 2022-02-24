@@ -23,7 +23,7 @@ class RadioStationResource extends JsonResource
             'type' => 'radio-station',
             'id' => $this->id,
             'name' => $this->name,
-            'cover' => Media::get($this, 'cover'), 
+            'cover' => Media::get($this, 'cover'),
             'thumbnail' => Media::getConversion($this, 'cover', 'thumbnail'),
             'streamEndpoint' => $this->streamEndpoint,
             'highlight' => $this->highlight == "0" ? false : true,
@@ -39,6 +39,7 @@ class RadioStationResource extends JsonResource
             // 'stats' => $this->statsSource === 'server' ? $this->getStats(): '',
             'statsEndpoint' => $this->statsEndpoint,
             'interval' => $this->interval,
+            'is_only_for_subscriber' => $this->is_only_for_subscriber,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

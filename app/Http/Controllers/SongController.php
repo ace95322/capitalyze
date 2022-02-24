@@ -134,6 +134,9 @@ class SongController extends Controller
         $song->isExplicit  =  $request->isExplicit;
         //
 
+        //V3.5
+        $song->is_only_for_subscriber  =  $request->is_only_for_subscriber;
+
         // links
         $song->spotify_link = $request->spotify_link;
         $song->youtube_link = $request->youtube_link;
@@ -388,6 +391,9 @@ class SongController extends Controller
         $song->isExclusive  =  $request->isExclusive;
         $song->isExplicit  =  $request->isExplicit;
         //
+
+        //V3.5
+        $song->is_only_for_subscriber  =  $request->is_only_for_subscriber;
         // links
         $song->spotify_link = $request->spotify_link;
         $song->youtube_link = $request->youtube_link;

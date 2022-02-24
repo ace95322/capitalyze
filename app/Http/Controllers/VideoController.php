@@ -208,6 +208,9 @@ class VideoController extends Controller
         $video->isExplicit  =  $request->isExplicit;
         //
 
+        //V3.5
+        $video->is_only_for_subscriber  =  $request->is_only_for_subscriber;
+
         // links
         $video->spotify_link = $request->spotify_link;
         $video->youtube_link = $request->youtube_link;
@@ -400,6 +403,9 @@ class VideoController extends Controller
         $video->isProduct  =  $request->isProduct;
         $video->isExclusive  =  $request->isExclusive;
         $video->isExplicit  =  $request->isExplicit;
+
+        //V3.5
+        $video->is_only_for_subscriber  =  $request->is_only_for_subscriber;
         //
         // links
         $video->spotify_link = $request->spotify_link;

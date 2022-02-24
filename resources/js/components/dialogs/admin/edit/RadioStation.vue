@@ -48,6 +48,14 @@
                         <v-container>
                             <v-row>
                                 <v-col>
+                                    <v-switch
+                                        v-model="editedRadioStation.is_only_for_subscriber"
+                                        :label="$t('Only For Subscriber User')"
+                                    ></v-switch>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col>
                                     <div class="card-bb-header">
                                         <div class="header">
                                             <div class="title">
@@ -316,6 +324,11 @@ export default {
             );
             formData.append("proxy", this.editedRadioStation.proxy ? 1 : 0);
             formData.append("interval", this.editedRadioStation.interval);
+            if (this.editedRadioStation.is_only_for_subscriber) {
+                formData.append("is_only_for_subscriber", 1);
+            } else {
+                formData.append("is_only_for_subscriber", 0);
+            }
 
             if (
                 this.editedRadioStation.cover &&
