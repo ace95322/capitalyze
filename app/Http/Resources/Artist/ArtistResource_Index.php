@@ -34,13 +34,14 @@ class ArtistResource_index extends JsonResource
             'address' => $this->address,
             'country' => $this->country,
             'type' => 'artist',
+            'content_owner_type' => $this->content_owner_type,
 
             // links
-            'spotify_link' => $this->spotify_link,    
-            'youtube_link' => $this->youtube_link,    
-            'soundcloud_link' => $this->soundcloud_link,    
-            'itunes_link' => $this->itunes_link,    
-            'deezer_link' => $this->deezer_link,    
+            'spotify_link' => $this->spotify_link,
+            'youtube_link' => $this->youtube_link,
+            'soundcloud_link' => $this->soundcloud_link,
+            'itunes_link' => $this->itunes_link,
+            'deezer_link' => $this->deezer_link,
             //
 
             $this->mergeWhen(auth()->user() && auth()->user()->isAdmin(), [

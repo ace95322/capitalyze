@@ -61,6 +61,12 @@
                                     v-model="artist.phone"
                                     hint="+xxxxxxxxxx"
                                 ></v-text-field>
+                                <v-select
+                                    :label="$t('Type')"
+                                    :items="content_owner_types"
+                                    v-model="artist.content_owner_type"
+
+                                ></v-select>
                             </v-col>
                             <v-col cols="12">
                                 <edit-external-links
@@ -97,13 +103,17 @@ export default {
     created() {
         axios
             .get("/api/artist")
-            .then(res => (this.artist = res.data))
+            .then(res => {
+                this.artist = res.data;
+            })
             .catch(e => (this.artist = {}));
     },
     data() {
         return {
             artist: null,
-            loading: false
+            loading: false,
+            content_owner_types: [ 'Artist' ,  'TV', 'Label', 'Film', 'Radio', 'Advertisement'
+            ],
         };
     },
     methods: {
@@ -117,6 +127,11 @@ export default {
             formData.append("firstname", this.artist.firstname);
             formData.append("lastname", this.artist.lastname);
             formData.append("displayname", this.artist.displayname);
+            formData.append("email", this.artist.email);
+            formData.append("country", this.artist.country);
+            formData.append("phone", this.artist.phone);
+            formData.append("address", this.artist.address);
+            formData.append("content_owner_type", this.artist.content_owner_type || "");
 
             //external links
             formData.append("spotify_link", this.artist.spotify_link || "");

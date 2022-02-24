@@ -205,7 +205,8 @@ class ArtistController extends Controller
                 'country' => 'required',
                 'email' => 'required|email|unique:artists,email,' . $id,
                 'phone' => 'required',
-                'address' => 'required'
+                'address' => 'required',
+                'content_owner_type' => Rule::in(['Artist', 'Label', 'TV','Film','Radio', 'Advertisement'])
             ]);
 
             $artist = Artist::find($id);
@@ -222,6 +223,7 @@ class ArtistController extends Controller
             $artist->address = $request->address;
             $artist->email = $request->email;
             $artist->country = $request->country;
+            $artist->content_owner_type = $request->content_owner_type;
 
             // links
             $artist->spotify_link = $request->spotify_link;

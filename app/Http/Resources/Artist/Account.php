@@ -36,6 +36,7 @@ class Account extends JsonResource
             'itunes_link' => $this->itunes_link,
             'deezer_link' => $this->deezer_link,
             'funds' => $this->funds,
+            'content_owner_type' => $this->content_owner_type,
             'royalties' => $this->royalties()->select(DB::RAW("COUNT('id') as total_royalties"), 'price')->groupBy('price')->get(),
             'sales' => $this->sales(),
             'payouts' => $this->payouts()->orderBy('created_at', 'desc')->get(),

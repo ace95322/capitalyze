@@ -32,14 +32,15 @@ class ArtistResource extends JsonResource
             'phone' => $this->phone,
             'address' => $this->address,
             'country' => $this->country,
+            'content_owner_type' => $this->content_owner_type,
             'type' => 'artist',
 
             // links
-            'spotify_link' => $this->spotify_link,    
-            'youtube_link' => $this->youtube_link,    
-            'soundcloud_link' => $this->soundcloud_link,    
-            'itunes_link' => $this->itunes_link,    
-            'deezer_link' => $this->deezer_link,    
+            'spotify_link' => $this->spotify_link,
+            'youtube_link' => $this->youtube_link,
+            'soundcloud_link' => $this->soundcloud_link,
+            'itunes_link' => $this->itunes_link,
+            'deezer_link' => $this->deezer_link,
             //
 
             $this->mergeWhen(\Auth::user() && \Auth::user()->isAdmin(), [
