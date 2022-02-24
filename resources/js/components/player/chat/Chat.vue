@@ -113,7 +113,7 @@ export default {
     },
     computed: {
         isThereASession() {
-            return this.friends.some(friend => friend.session);
+            return this.friends && this.friends.length && this.friends.some(friend => friend.session);
         }
     },
     async created() {

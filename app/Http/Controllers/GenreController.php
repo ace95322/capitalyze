@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\GenreExport;
 use App\Genre;
-use App\Http\Resources\SongResource;
+use App\Helpers\Media;
+use App\Http\Resources\Genre\GenreResource_index;
+use App\Http\Resources\Song\SongResource_basictoplay;
 use App\Http\Resources\VideoResource;
-use App\Http\Resources\GenreResource;
 use Illuminate\Http\Request;
-
-use FileManager;
+use Maatwebsite\Excel\Facades\Excel;
 
 class GenreController extends Controller
 {
@@ -19,7 +20,7 @@ class GenreController extends Controller
      */
     public function index()
     {
-        return GenreResource::collection(Genre::all());
+        return GenreResource_index::collection(Genre::all());
     }
     /**
      * Display the specified resource.
@@ -29,7 +30,7 @@ class GenreController extends Controller
     public function show($id)
     {
         if ($genre = Genre::find($id)) {
-            return new GenreResource($genre);
+            return new GenreResource_index($genre);
         } else {
             return response()->json(['message' => 'NOT_FOUND'], 404);
         }
@@ -41,19 +42,8 @@ class GenreController extends Controller
      */
     public function songs($genre_id)
     {
-        return SongResource::collection(Genre::find($genre_id)->songs);
+        return SongResource_basictoplay::collection(Genre::find($genre_id)->songs);
     }
-
-    /**
-     * Get all the genre videos.
-     * @param  $genre_id
-     * @return \Illuminate\Http\Response
-     */
-    public function videos($genre_id)
-    {
-        return VidoeResource::collection(Genre::find($genre_id)->videos);
-    }
-
     /**
      * Matches the genre based on the given keyword (search).
      *
@@ -63,7 +53,7 @@ class GenreController extends Controller
     public function matchGenres()
     {
         $keyword = request()->query('query');
-        return  GenreResource::collection(Genre::where('slug', 'like', '%' . \Str::slug($keyword) . '%')->get());
+        return  GenreResource_index::collection(Genre::where('slug', 'like', '%' . \Str::slug($keyword) . '%')->get());
     }
     /**
      * store the specified resource.
@@ -78,17 +68,21 @@ class GenreController extends Controller
             'slug' => 'unique:genres'
         ]);
 
-        $cover = FileManager::store($request, '/covers/genres/', 'cover');
-
-        if (isset($request->icon)) {
-            $icon = FileManager::store($request, '/icons/genres/', 'icon');
-        }
-        Genre::create([
+        $genre = Genre::create([
             'name' => $request->name,
-            'cover' => $cover,
             'slug' => $request->slug,
             'icon' => isset($icon) ? $icon : null
         ]);
+
+        if ($file = $request->file('cover')) {
+            Media::updateImage($genre, $file, 'cover', 200);
+        } else {
+            Media::setDefault($genre, 'defaults/images/genre_cover.png', 'cover');
+        }
+
+        if ($file = $request->file('icon')) {
+            Media::updateImageAsIs($genre, $file, 'icon');
+        }
 
         return response()->json(['message' => 'SUCCESS'], 200);
     }
@@ -107,16 +101,15 @@ class GenreController extends Controller
         ]);
         $genre = Genre::find($id);
 
-        if (isset($request->cover) && $request->file('cover')) {
-            $genre->cover = FileManager::update($request->file('cover'), $genre->cover, '/covers/genres/');
+        if ($cover = $request->file('cover')) {
+            Media::updateCover($genre, $cover);
         }
 
-        if ($request->file('icon')) {
-            $genre->icon  = FileManager::update($request->file('icon'), $genre->icon, '/icons/genres/');
-        } else if (!isset($request->icon)) {
-            FileManager::delete($genre->icon);
-            $genre->icon = null;
+        if ($icon = $request->file('icon')) {
+            Media::delete($genre, 'icon');
+            Media::updateImageAsIs($genre, $icon, 'icon');
         }
+
         $genre->name = $request->name;
         $genre->slug = $request->slug;
         $genre->save();
@@ -134,4 +127,26 @@ class GenreController extends Controller
         $genre->delete();
         return response()->json(null, 202);
     }
+
+    /**
+     * Get all the genre videos.
+     * @param  $genre_id
+     * @return \Illuminate\Http\Response
+     */
+    public function videos($genre_id)
+    {
+        return VideoResource::collection(Genre::find($genre_id)->videos);
+    }
+
+    /**
+     * Export CSV
+     *
+     * @return void
+     */
+    public function exportCSV(Request $request)
+    {
+        $export = new GenreExport($request->get('start_date', null),  $request->get('end_date', null));
+        return Excel::download($export, 'Genre.csv');
+    }
 }
+

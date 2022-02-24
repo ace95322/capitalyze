@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\FEException;
+use App\Exports\PlaylistExport;
+use App\Helpers\Media;
+use App\Http\Resources\Playlist\PlaylistResource_basic;
 use App\Playlist;
-use FileManager;
-use App\Http\Resources\PlaylistResource;
 use Illuminate\Http\Request;
 use App\Traits\Search;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PlaylistController extends Controller
 {
@@ -22,7 +24,7 @@ class PlaylistController extends Controller
     {
         $keyword = request()->query('query');
 
-        return PlaylistResource::collection(Playlist::where('title', 'like', '%' . $keyword . '%')->get());
+        return PlaylistResource_basic::collection(Playlist::where('title', 'like', '%' . $keyword . '%')->get());
     }
     /**
      * Get all the playlists.
@@ -31,7 +33,7 @@ class PlaylistController extends Controller
      */
     public function index()
     {
-        return PlaylistResource::collection(\App\Playlist::orderBy('created_at', 'desc')->get());
+        return PlaylistResource_basic::collection(\App\Playlist::orderBy('created_at', 'desc')->get());
     }
     /**
      * Display the specified resource (fetch the data for the frontend).
@@ -87,7 +89,7 @@ class PlaylistController extends Controller
             throw new FEException(__('Song already exists on this playlist.'),'',500);
         }
 
-        
+
     }
     /**
      * store the specified resource.
@@ -100,19 +102,43 @@ class PlaylistController extends Controller
         $request->validate([
             'title' => 'required|max:255',
         ]);
-        $user = \Auth::user();
-
-        $cover = FileManager::store($request, '/covers/playlists/', 'cover');
+        $user = auth()->user();
 
         $playlist = Playlist::create([
             'title' => $request->title,
             'created_by' => $request->created_by,
             'user_id' => $user->id,
-            'public' => $request->public,
-            'cover' => $cover,
+            'public' => $request->public
         ]);
 
+        if ($file = $request->file('cover')) {
+            Media::updateImage($playlist, $file, 'cover', 200);
+        } else {
+            Media::setDefault($playlist, 'defaults/images/playlist_cover.png', 'cover');
+        }
+
         return response()->json(['id' => $playlist->id], 201);
+    }
+
+    public function addTracksToPlaylist(Request $request)
+    {
+        $tracks = $request->tracks;
+        $playlists = $request->playlists;
+        $array =[];
+        foreach ($playlists as $playlist_id) {
+            $playlist = Playlist::find($playlist_id);
+            foreach ($tracks as $track) {
+                $exists = DB::table("playlist_song")->where("playlist_id",  $playlist->id)->where("song_id", $track['id'])->count();
+                if( !$exists ) {
+                    DB::table("playlist_song")->insert([
+                        'playlist_id' => $playlist->id,
+                        'song_origin' => 'local',
+                        'song_id' => $track['id']
+                    ]);
+                }
+            }
+        }
+        return response()->json(null, 200);
     }
     /**
      * Update the specified resource.
@@ -126,11 +152,11 @@ class PlaylistController extends Controller
         $request->validate([
             'title' => 'required|max:255',
         ]);
-        
+
         $playlist = Playlist::find($request->playlist_id);
 
-        if ($request->file('cover')) {
-            $playlist->cover = FileManager::update($request->file('cover'), $playlist->cover, '/covers/playlists/');
+        if ($file = $request->file('cover')) {
+            Media::updateImage($playlist, $file, 'cover', 200);
         }
 
         $playlist->title = $request->title;
@@ -180,5 +206,15 @@ class PlaylistController extends Controller
         $playlist = Playlist::find($id);
         $playlist->delete();
         return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
+    /**
+     * Export CSV
+     *
+     * @return void
+     */
+    public function exportCSV(Request $request){
+        $export = new PlaylistExport($request->get('start_date', null),  $request->get('end_date', null));
+        return Excel::download($export, 'Playlist.csv');
     }
 }

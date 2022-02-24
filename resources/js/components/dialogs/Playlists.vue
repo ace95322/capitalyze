@@ -116,11 +116,11 @@ export default {
                           id: playlist.id,
                           cover: playlist.cover,
                           title: playlist.title,
-                          checked: playlist.songs.some(
+                          checked: playlist.songs ? playlist.songs.some(
                               song =>
                                   song.id ==
                                   this.$store.getters.getAddSongToPlaylist
-                          )
+                          ) : false
                       };
                   })
                 : null;

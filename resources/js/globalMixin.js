@@ -5,7 +5,6 @@ import router from "./router.js";
 import ColorManager from "./colorManager.js";
 import helpers from "./helpers.js";
 
-
 export default Vue.mixin({
     computed: {
         /**
@@ -15,15 +14,23 @@ export default Vue.mixin({
             return store.getters.getUser.permissions;
         },
         userPlan() {
-            return store.getters.getUser.plan
+            return store.getters.getUser.plan;
         },
         isUpgradable() {
-            var plans_length = store.getters.getPlans && store.getters.getPlans ? store.getters.getPlans.length : 0;
-            var is_current_plan_upgradable = store.getters.getUser.plan && store.getters.getUser.plan.upgradable;
-            return plans_length > 1 && (is_current_plan_upgradable || !this.userPlan);
+            var plans_length =
+                store.getters.getPlans && store.getters.getPlans
+                    ? store.getters.getPlans.length
+                    : 0;
+            var is_current_plan_upgradable =
+                store.getters.getUser.plan &&
+                store.getters.getUser.plan.upgradable;
+            return (
+                plans_length > 1 &&
+                (is_current_plan_upgradable || !this.userPlan)
+            );
         },
         defaultLocale() {
-            return document.documentElement.lang
+            return document.documentElement.lang;
         }
     },
     methods: {
@@ -46,9 +53,9 @@ export default Vue.mixin({
                 );
             }
         },
-        price(amount){
-            if( isNaN(amount) ) return 0;
-            return parseFloat((amount/100).toFixed(2));
+        price(amount) {
+            if (isNaN(amount)) return 0;
+            return parseFloat((amount / 100).toFixed(2));
         },
         /**
          * This function replaces the variables of the SEO settings
@@ -65,10 +72,7 @@ export default Vue.mixin({
                 );
             let title = titleTemplate
                 .replace("%site_name", store.getters.getSettings.appName)
-                .replace(
-                    "%artist_name",
-                    this.getMainArtist(item)
-                )
+                .replace("%artist_name", this.getMainArtist(item))
                 .replace(
                     "%user_name",
                     item.name ? item.name : item.user ? item.user.name : ""
@@ -100,9 +104,11 @@ export default Vue.mixin({
             );
         },
         slug(Text) {
-            return Text.toLowerCase()
-                .replace(/ /g, "-")
-                .replace(/[^\w-]+/g, "") || Text;
+            return (
+                Text.toLowerCase()
+                    .replace(/ /g, "-")
+                    .replace(/[^\w-]+/g, "") || Text
+            );
         },
         /**
          * Updates the colors of the application.
@@ -156,13 +162,77 @@ export default Vue.mixin({
         },
         changeTheme() {
             this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
-            localStorage.setItem('dark-theme', this.$vuetify.theme.dark)
+            localStorage.setItem("dark-theme", this.$vuetify.theme.dark);
         },
         isSubTo(plan_id) {
-            return store.getters.getUser && store.getters.getUser.plan && store.getters.getUser.plan.id === plan_id
+            return (
+                store.getters.getUser &&
+                store.getters.getUser.plan &&
+                store.getters.getUser.plan.id === plan_id
+            );
         },
         planCurrencySymbol(plan) {
-            return plan.currency_symbol ? plan.currency_symbol :  plan.currency.symbol ?  plan.currency.symbol : (plan.currency.value || plan.currency)
+            return plan.currency_symbol
+                ? plan.currency_symbol
+                : plan.currency.symbol
+                ? plan.currency.symbol
+                : plan.currency.value || plan.currency;
+        },
+        isCurrentlyPlaying(item) {
+            if (item.type === "radio-station") {
+                var type = "radioStation";
+            } else {
+                var type = item.type;
+            }
+            return (
+                this.$store.getters.getCurrentlyPlayingType &&
+                this.$store.getters.getCurrentlyPlayingType.type ===
+                    type &&
+                this.$store.getters.getCurrentlyPlayingType.id == item.id &&
+                this.$store.getters.getCurrentlyPlayingType.status == "play"
+            );
+        },
+        isCurrentlyPaused(item) {
+            if (item.type === "radio-station") {
+                var type = "radioStation";
+            } else {
+                var type = item.type;
+            }
+            return (
+                this.$store.getters.getCurrentlyPlayingType &&
+                this.$store.getters.getCurrentlyPlayingType.type ===
+                type &&
+                this.$store.getters.getCurrentlyPlayingType.id == item.id &&
+                this.$store.getters.getCurrentlyPlayingType.status == "pause"
+            );
+        },
+        
+        pause() {
+            this.$store.commit("setCurrentlyPlayingTypeStatus", "pause");
+            this.$store.commit("setPlayerStatus", "pause");
+        },
+        play(item, reset = true) {
+            if (this.isCurrentlyPaused(item)) {
+                console.log('yes')
+                this.$store.commit("setCurrentlyPlayingTypeStatus", "play");
+                this.$store.commit("setPlayerStatus", "play");
+            } else {
+                if (item.type === "radio-station") {
+                    var type = "radioStation";
+                } else {
+                    var type = item.type;
+                }
+                this.$store.dispatch(
+                    "play" + type[0].toUpperCase() + type.substr(1),
+                    { item, reset }
+                );
+                this.$store.commit("setCurrentlyPlayingType", {
+                    type: type,
+                    id: item.id,
+                    status: "play"
+                });
+                this.$store.commit("setPlayerStatus", "play");
+            }
         },
         /**
          * Logout the user.
@@ -203,7 +273,7 @@ export default Vue.mixin({
         getArtists(artists) {
             if (artists) {
                 if (artists.length) {
-                    return artists.map( artist => artist.displayname).join(", ")
+                    return artists.map(artist => artist.displayname).join(", ");
                 } else {
                     return "";
                 }
@@ -215,7 +285,11 @@ export default Vue.mixin({
          * @param {*} artists
          */
         getMainArtist(item) {
-            return  item.artist ? (item.artist.name ? item.artist.name : item.artist.displayname) : ''
+            return item.artist
+                ? item.artist.name
+                    ? item.artist.name
+                    : item.artist.displayname
+                : "";
         },
         async copyToClipboard(text) {
             try {
@@ -224,14 +298,14 @@ export default Vue.mixin({
                     group: "foo",
                     type: "success",
                     title: this.$t("Copied"),
-                    text: this.$t('URL copied to clipboard.')
+                    text: this.$t("URL copied to clipboard.")
                 });
             } catch (err) {
                 this.$notify({
                     group: "foo",
                     type: "info",
                     title: this.$t("Oops!"),
-                    text: this.$t('You need to copy the URL manually.')
+                    text: this.$t("You need to copy the URL manually.")
                 });
             }
         },
@@ -303,7 +377,7 @@ export default Vue.mixin({
             }, 2000);
         },
         parseJSON(string) {
-            if( typeof string !== 'number' && typeof string == 'string' ) {
+            if (typeof string !== "number" && typeof string == "string") {
                 try {
                     JSON.parse(string);
                 } catch (e) {
@@ -318,7 +392,7 @@ export default Vue.mixin({
             return {
                 code: this.parseJSON(parsedAd.code),
                 position: parsedAd.position
-            }
+            };
         },
         moment,
         loginOrCancel: helpers.loginOrCancel

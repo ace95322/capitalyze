@@ -3,15 +3,14 @@
 namespace App\Http\Controllers;
 
 
-use App\Http\Resources\SongResource;
-use App\Http\Resources\AlbumResource;
-use App\Http\Resources\PodcastResource;
-use App\Http\Resources\PlaylistResource;
-use App\Http\Resources\ArtistResource;
 use App\Artist;
+use App\Http\Resources\Album\AlbumResource_basic;
+use App\Http\Resources\Artist\ArtistResource_basic;
+use App\Http\Resources\Playlist\PlaylistResource_basic;
+use App\Http\Resources\Podcast\PodcastResource_basic;
 use App\Http\Resources\RadioStationResource;
-use App\Http\Resources\Song\OnlyBasic;
-use App\Http\Resources\Song\OnlyBasicToPlay;
+use App\Http\Resources\Song\SongResource_basic;
+use App\Http\Resources\Song\SongResource_basictoplay;
 use App\Sale;
 use App\Setting;
 use Carbon\Carbon;
@@ -95,7 +94,7 @@ class AnalyticsController extends Controller
         $artist = Artist::where('user_id', auth()->id())->first();
 
         $stats =  new \stdClass();
-        $stats->popular_songs =  OnlyBasic::collection($artist->ownSongs()->withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());;
+        $stats->popular_songs =  SongResource_basic::collection($artist->ownSongs()->withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());;
         $stats->plays = $this->getArtistPlays('lw');
         if( Setting::get('enable_selling') ) {
             $stats->sales = $artist->sales(5);
@@ -143,12 +142,12 @@ class AnalyticsController extends Controller
             $stats->nb_sales_this_month = \App\Sale::whereMonth('created_at', Carbon::now()->month)->count();
         }
 
-        $stats->populars->songs = OnlyBasicToPlay::collection(\App\Song::withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());
-        $stats->populars->albums = AlbumResource::collection(\App\Album::withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());
+        $stats->populars->songs = SongResource_basictoplay::collection(\App\Song::withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());
+        $stats->populars->albums = AlbumResource_basic::collection(\App\Album::withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());
         $stats->populars->radioStations = RadioStationResource::collection(\App\RadioStation::withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());
-        $stats->populars->playlists = PlaylistResource::collection(\App\Playlist::withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());
-        $stats->populars->artists = ArtistResource::collection(\App\Artist::withCount('followers')->orderBy('followers_count', 'desc')->take(5)->get());
-        $stats->populars->podcasts = PodcastResource::collection(\App\Podcast::withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());
+        $stats->populars->playlists = PlaylistResource_basic::collection(\App\Playlist::withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());
+        $stats->populars->artists = ArtistResource_basic::collection(\App\Artist::withCount('followers')->orderBy('followers_count', 'desc')->take(5)->get());
+        $stats->populars->podcasts = PodcastResource_basic::collection(\App\Podcast::withCount('plays')->orderBy('plays_count', 'desc')->take(5)->get());
 
         $stats->nb_users = \App\User::count();
         $stats->nb_users_this_month = \App\User::whereMonth('created_at', Carbon::now()->month)->count();

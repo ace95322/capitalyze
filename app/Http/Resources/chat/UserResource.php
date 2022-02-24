@@ -4,10 +4,8 @@ namespace App\Http\Resources\chat;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Session;
-use Auth;
-
-use App\Helpers\FileManager;
 use App\Helpers\Functions;
+use App\Helpers\Media;
 
 class UserResource extends JsonResource
 {
@@ -24,7 +22,8 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'badge' => $this->badge(),
-            'avatar' =>  FileManager::asset_path($this->avatar),
+            'avatar' => Media::get($this, 'avatar'), 
+            'thumbnail' => Media::getConversion($this, 'avatar', 'thumbnail'),
             'is_playing' => Functions::getWhatIsHePlaying($this->is_playing),
             'online' => false,
             'session' => $this->session_details($this->id)
@@ -33,7 +32,7 @@ class UserResource extends JsonResource
 
     private function session_details($id)
     {
-        $session = Session::whereIn('user1_id', [Auth::user()->id, $id])->whereIn('user2_id', [Auth::user()->id, $id])->with(['messages'=>function($query){ return $query->orderBy('created_at','desc')->first(); }])->first();
+        $session = Session::whereIn('user1_id', [auth()->user()->id, $id])->whereIn('user2_id', [auth()->user()->id, $id])->with(['messages'=>function($query){ return $query->orderBy('created_at','desc')->first(); }])->first();
         return new SessionResource($session);
     }
 }

@@ -44,13 +44,26 @@
       <div class="buttons">
         <div class="btn-container">
           <v-btn
-            class="primary"
+            color="primary"
             rounded
             small
-            :disabled="!playlist.songs.length"
-            @click="$store.dispatch('playPlaylist', { playlist })"
-            >{{ $t("Play") }}</v-btn
+            @click="pause"
+            v-if="isCurrentlyPlaying(playlist)"
           >
+            <v-icon left>$vuetify.icons.pause</v-icon>
+            {{ $t("Pause") }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            rounded
+            small
+            @click="play(playlist, true)"
+            :disabled="loading"
+            v-else
+          >
+            <v-icon left>$vuetify.icons.play</v-icon>
+            {{ $t("Play") }}
+          </v-btn>
         </div>
         <div
           class="btn-container"

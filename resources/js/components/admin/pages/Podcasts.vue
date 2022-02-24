@@ -16,6 +16,14 @@
         >
           <v-icon>$vuetify.icons.plus</v-icon> {{ $t("New") }}
         </v-btn>
+        <v-btn
+            class="mx-2"
+            dark
+            small
+            color="primary"
+            @click="exportCSV()"
+        >{{ $t("Export CSV") }}
+        </v-btn>
         <v-spacer></v-spacer>
         <v-spacer></v-spacer>
         <div class="admin-search-bar">
@@ -239,6 +247,35 @@ export default {
         this.editingPodcast = this.podcasts[0];
         this.editDialog = true;
       });
+    },
+    exportCSV() {
+        var url = '/api/admin/podcasts/export?';
+        // if(this.start_date){
+        //     url += 'start_date='+ this.start_date;
+        // }
+        // if(this.end_date){
+        //     url += 'end_date='+ this.end_date;
+        // }
+        axios({
+            url: url,
+            method: 'GET',
+        }).then((response) => {
+            var fileURL = URL.createObjectURL(new Blob([response.data], {
+                type: 'text/csv'
+            }));
+            var fileLink = document.createElement('a');
+            fileLink.href = fileURL;
+            fileLink.setAttribute('download', 'Podcast.csv');
+            document.body.appendChild(fileLink);
+            fileLink.click();
+
+            this.$notify({
+                group: "foo",
+                type: "success",
+                title: this.$t("Export"),
+                text: this.$t("Podcast data") + " " + this.$t("Exported") + "."
+            });
+        }).catch(() => {});
     },
   },
 };

@@ -23,24 +23,38 @@
             </div>
             <div
               class="featured-card"
+              :class="{ hovered: isCurrentlyPlaying(item) }"
               v-else-if="item && item.type !== 'genre'"
               :key="item.id"
             >
               <div class="body">
-                <div class="cover-layer absolute fill"  @click="item.type !== 'radio-station'? $router.push({ name: item.type, params: { id: item.id } }) : ''"></div>
+                <div
+                  class="cover-layer absolute fill"
+                  @click="
+                    item.type !== 'radio-station'
+                      ? $router.push({
+                          name: item.type,
+                          params: { id: item.id },
+                        })
+                      : ''
+                  "
+                ></div>
                 <div class="cover">
                   <v-img class="img" :src="item.cover">
                     <div
                       class="dark-layer"
-                      v-if="$store.getters.isCurrentlyPlaying(item)"
+                      v-if="isCurrentlyPlaying(item)"
                     >
-                      <div class="icon icon-inside-cover absolute fill">
-                        <div class="epico_music-is-playing-container">
-                          <span></span>
-                          <span></span>
-                          <span></span>
-                        </div>
-                      </div>
+                    <div class="play-button"  :class="{ 'force-appearence' : isCurrentlyPlaying(item) }">
+                      <v-btn
+                        icon
+                        color="white"
+                        class="btn"
+                        @click="!isOnEditPage ? pause() : ''"
+                      >
+                        <v-icon size="45">$vuetify.icons.pause-circle</v-icon>
+                      </v-btn>
+                    </div>
                     </div>
                     <div class="dark-layer play" v-else>
                       <div class="play-button">
@@ -66,7 +80,6 @@
                 <div class="right-side">
                   <div
                     class="card-title max-1-lines"
-                   
                     v-text="
                       item.type == 'radio-station' ? item.name : item.title
                     "
@@ -200,27 +213,12 @@ export default {
           this.isContentLoading = false;
           this.$emit("content", this.contents);
         });
-    },
-    async play(item) {
-      const params = {};
-      params[item.type] = item;
-      params.reset = true;
-      if (item.type !== "radio-station") {
-        this.$store.dispatch(
-          "play" + item.type[0].toUpperCase() + item.type.substr(1),
-          params
-        );
-      } else {
-        this.$store.dispatch("playRadioStation", {
-          radioStation: item,
-        });
-      }
-    },
+    }
   },
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .featured-section > .section-body {
   display: flex;
   flex-wrap: wrap;
@@ -354,6 +352,17 @@ export default {
       }
     }
   }
+
+  .hovered { 
+      .play-button {
+        .btn {
+          opacity: 1 !important;
+        }
+      }
+      .cover-layer {
+        opacity: 0.27 !important;
+      }
+}
 }
 
 .featured-card-placeholder {
@@ -379,4 +388,6 @@ export default {
 .top-0 {
   top: 0;
 }
+
+
 </style>

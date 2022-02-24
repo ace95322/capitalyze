@@ -165,6 +165,11 @@ module.exports = {
                             title: "V3.3",
                             path: "/changelog/3.3",
                             collapsable: false
+                        },
+                        {
+                            title: "V3.5",
+                            path: "/changelog/3.5",
+                            collapsable: false
                         }
                     ]
                 },

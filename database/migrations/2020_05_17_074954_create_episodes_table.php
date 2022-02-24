@@ -22,6 +22,7 @@ class CreateEpisodesTable extends Migration
             $table->string('duration')->nullable();
             $table->text('description')->nullable();
             $table->integer('podcast_id');
+            $table->boolean('hls')->default(0);
             $table->bigInteger('file_size')->nullable();
             $table->string('file_name')->nullable();
             $table->timestamps();

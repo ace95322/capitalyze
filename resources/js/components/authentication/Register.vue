@@ -148,7 +148,7 @@
             </div>
             <div class="signup-button-con text-center mt-4">
               <v-btn
-                @click="$router.push({ name: 'login' })"
+                @click="goLogin"
                 :color="success ? 'success' : 'primary'"
                 :outlined="!success"
                 >{{ $t("Login to your account") }}</v-btn
@@ -170,7 +170,7 @@
 
 <script>
 import authentificationTemplate from "../templates/Authentication";
-// import { VFBLoginScope as VFacebookLoginScope } from "vue-facebook-login-component";
+import { VFBLoginScope as VFacebookLoginScope } from "vue-facebook-login-component";
 export default {
   metaInfo: {
     title:
@@ -179,7 +179,7 @@ export default {
   },
   components: {
     authentificationTemplate,
-    // VFacebookLoginScope
+    VFacebookLoginScope
   },
   data() {
     return {
@@ -200,6 +200,9 @@ export default {
     };
   },
   methods: {
+    goLogin(){
+      location.replace('/login');
+    },
     register() {
       this.error = "";
       this.loading = true;
@@ -231,21 +234,21 @@ export default {
       }
     },
     // upcoming feature
-    // logInWithFacebook(res) {
-    //   axios
-    //     .get(
-    //       `https://graph.facebook.com/me?fields=name,email,picture&access_token=${res.authResponse.accessToken}`
-    //     )
-    //     .then((result) => {
-    //       let profile = {
-    //         email: result.data.email,
-    //         avatar: result.data.picture.data.url,
-    //         name: result.data.name,
-    //         id: result.data.id,
-    //       };
-    //       this.$store.dispatch("login", { driver: "facebook", profile });
-    //     });
-    // },
+    logInWithFacebook(res) {
+      axios
+        .get(
+          `https://graph.facebook.com/me?fields=name,email,picture&access_token=${res.authResponse.accessToken}`
+        )
+        .then((result) => {
+          let profile = {
+            email: result.data.email,
+            avatar: result.data.picture.data.url,
+            name: result.data.name,
+            id: result.data.id,
+          };
+          this.$store.dispatch("login", { driver: "facebook", profile });
+        });
+    },
     handleSdkInit({ scope }) {
       this.$store.commit("setFbLogoutFunction", scope.logout);
     },

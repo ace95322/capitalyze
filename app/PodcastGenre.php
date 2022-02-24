@@ -4,13 +4,20 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PodcastGenre extends Model
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media as MM;
+
+class PodcastGenre extends Model implements HasMedia
 {
+    use InteractsWithMedia;
     /**
     * the attributes that are mass assignable.
     * @var array
-    */ 
+    */
     protected $guarded = [];
+
+    protected $table = 'podcast_genres';
 
     public function podcasts()
     {
@@ -21,7 +28,17 @@ class PodcastGenre extends Model
         parent::boot();
         self::deleting(function($model) {
             // delete the podcast genre data after deletion
-            \App\Helpers\FileManager::delete($model->cover);
         });
+    }
+
+    public function registerMediaConversions(MM $media = null): void
+    {
+        if( Setting::get('optimize_images') ) {
+            $this->addMediaConversion('thumbnail')
+            ->width(80)
+            ->height(80)
+            ->performOnCollections('cover')
+            ->nonQueued();
+        }
     }
 }

@@ -15,13 +15,13 @@
             <div class="epico_audio-info epico_audio-info-u500h">
                 <div
                     class="plus-container"
-                    v-if="!isPodcastEpisode && !isCurrentAudioAStream"
                 >
                     <song-menu
                         :item="currentAudio"
                         icon="plus"
                         :isOnPlayer="true"
                         :closeOnContentClick="true"
+                        :disabled="currentAudio.campaign"
                         @close="$store.commit('setSongMenu', null)"
                     ></song-menu>
                 </div>
@@ -93,16 +93,14 @@
                             :title="currentAudio.title"
                         >
                             <router-link
-                                v-if="!isPodcastEpisode"
                                 :title="currentAudio.title"
                                 :to="{
-                                    name: 'song',
+                                    name: currentAudio.type,
                                     params: { id: currentAudio.id }
                                 }"
                                 class="router-link"
                                 >{{ currentAudio.title }}</router-link
                             >
-                            <template v-else>{{ currentAudio.title }}</template>
                         </div>
                         <div
                             class="audio-artists max-1-lines"
@@ -145,7 +143,7 @@
                     <template
                         v-if="
                             !isCurrentAudioAStream &&
-                                !$store.getters.getSettings.disableRegistration && currentAudio.type !== 'episode'
+                                !$store.getters.getSettings.disableRegistration && currentAudio.type !== 'episode' && !currentAudio.campaign
                         "
                     >
                         <v-btn
@@ -179,7 +177,7 @@
                         class="epico_progressbar epico_progressbar-u500h"
                         id="progress-bar"
                         v-if="!isCurrentAudioAStream"
-                        @click="$emit('updateProgress', $event)"
+                        @click=" !currentAudio.campaign ? $emit('updateProgress', $event) : ''"
                     >
                         <div
                             class="epico_progressbar-inner"
@@ -234,6 +232,7 @@
                             @click="$emit('loopAudio')"
                             :class="{ activeButton: buttons.loop }"
                             v-if="!isPodcastEpisode"
+                            :disabled="currentAudio.campaign|| currentAudio.campaign"
                             :title="$t('Loop')"
                         >
                             <v-icon
@@ -246,7 +245,7 @@
                         <button
                             v-else
                             class="random-button"
-                            :disabled="playlist.length <= 1"
+                            :disabled="playlist.length <= 1 || currentAudio.campaign"
                             @click="$emit('shuffleAudio')"
                             :class="{ activeButton: buttons.shuffle }"
                             :title="$t('Shuffle')"
@@ -266,7 +265,7 @@
                             @click="$emit('goPrevious')"
                             v-if="!isPodcastEpisode"
                             :title="$t('Previous')"
-                            :disabled="!playlist[currentAudio.index - 1]"
+                            :disabled="!playlist[currentAudio.index - 1] || currentAudio.campaign "
                         >
                             <v-icon color="textContMedium"
                                 >$vuetify.icons.skip-previous</v-icon
@@ -276,6 +275,7 @@
                             v-else
                             :title="$t('Rewind')"
                             class="epico_previous-button epico_rewind-button"
+                            :disabled="currentAudio.campaign"
                             @click="$emit('rewindAudio', -10)"
                         >
                             <v-icon color="textContMedium"
@@ -298,9 +298,10 @@
                         <template v-else>
                             <button
                                 class="play-button"
+                                :disabled="currentAudio.campaign"
                                 @click="$emit('playPause')"
                                 :title="$t('Play') + '/' + $t('Pause')"
-                                v-if="!currentAudio.isPlaying"
+                                v-if="!currentAudio.isPlaying && !currentAudio.campaign"
                             >
                                 <v-icon
                                     size="54"
@@ -336,7 +337,7 @@
                             class="next-button"
                             @click="$emit('goNext')"
                             :title="$t('Next')"
-                            :disabled="!playlist[currentAudio.index + 1]"
+                            :disabled="!playlist[currentAudio.index + 1] || currentAudio.campaign"
                             v-if="!isPodcastEpisode"
                         >
                             <v-icon color="textContMedium"
@@ -347,6 +348,7 @@
                             v-else
                             class="epico_next-button epico_forwrad-button"
                             @click="$emit('rewindAudio', +30)"
+                            :disabled="currentAudio.campaign"
                             :title="$t('Rewind')"
                         >
                             <v-icon color="textContMedium"
@@ -356,7 +358,7 @@
                         <button
                             v-if="!isPodcastEpisode"
                             class="random-button"
-                            :disabled="playlist.length <= 1"
+                            :disabled="playlist.length <= 1 || currentAudio.campaign"
                             @click="$emit('shuffleAudio')"
                             :class="{ activeButton: buttons.shuffle }"
                         >
@@ -375,6 +377,7 @@
                             class="playback_rate__button"
                             @click="$emit('adjustPlayspeed')"
                             :title="$t('Play Speed')"
+                            :disabled="currentAudio.campaign"
                             v-else
                         >
                             <span
@@ -476,6 +479,7 @@
                             @change="$emit('volume', vol)"
                             thumb-color="primary"
                             tick-size="50"
+                            :disabled="currentAudio.campaign"
                             thumb-size="22"
                             hide-details=""
                             :thumb-label="true"

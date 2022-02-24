@@ -75,8 +75,9 @@
                                 )"
                                 :key="radioStation.id"
                                 @click.stop="
-                                    $store.dispatch('playRadioStation', {
-                                        radioStation
+                                    goToSearchRoute({
+                                        id: radioStation.id,
+                                        name: 'radio-station',
                                     })
                                 "
                             >
@@ -120,7 +121,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: song.id,
-                                        name: 'song'
+                                        name: 'song',
                                     })
                                 "
                             >
@@ -170,7 +171,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: artist.id,
-                                        name: 'artist'
+                                        name: 'artist',
                                     })
                                 "
                             >
@@ -217,7 +218,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: album.id,
-                                        name: 'album'
+                                        name: 'album',
                                     })
                                 "
                             >
@@ -256,8 +257,8 @@
                         class="search-category"
                         v-if="
                             searchResults &&
-                                $store.getters.getSettings.enablePodcasts &&
-                                searchResults.podcasts.length
+                            $store.getters.getSettings.enablePodcasts &&
+                            searchResults.podcasts.length
                         "
                     >
                         <div class="category-title">
@@ -274,7 +275,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: podcast.id,
-                                        name: 'podcast'
+                                        name: 'podcast',
                                     })
                                 "
                             >
@@ -327,7 +328,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: playlist.id,
-                                        name: 'playlist'
+                                        name: 'playlist',
                                     })
                                 "
                             >
@@ -378,7 +379,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: user.id,
-                                        name: 'profile'
+                                        name: 'profile',
                                     })
                                 "
                             >
@@ -410,16 +411,16 @@
                     <div
                         class="no-results"
                         v-else-if="
-                        searchResults && 
+                            searchResults &&
                             ((searchResults.podcasts &&
                                 !searchResults.podcasts.length) ||
                                 !searchResults.podcasts) &&
-                                !searchResults.radioStations.length &&
-                                !searchResults.albums.length &&
-                                !searchResults.playlists.length &&
-                                !searchResults.songs.length &&
-                                !searchResults.artists.length &&
-                                !searchResults.users.length
+                            !searchResults.radioStations.length &&
+                            !searchResults.albums.length &&
+                            !searchResults.playlists.length &&
+                            !searchResults.songs.length &&
+                            !searchResults.artists.length &&
+                            !searchResults.users.length
                         "
                     >
                         <empty-page
@@ -485,7 +486,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: song.id,
-                                        name: 'song'
+                                        name: 'song',
                                     })
                                 "
                             >
@@ -539,7 +540,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: album.id,
-                                        name: 'album'
+                                        name: 'album',
                                     })
                                 "
                             >
@@ -596,7 +597,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: playlist.id,
-                                        name: 'playlist'
+                                        name: 'playlist',
                                     })
                                 "
                             >
@@ -650,7 +651,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: podcast.id,
-                                        name: 'podcast'
+                                        name: podcast.type,
                                     })
                                 "
                             >
@@ -707,7 +708,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: artist.id,
-                                        name: 'artist'
+                                        name: 'artist',
                                     })
                                 "
                             >
@@ -758,7 +759,7 @@
                                 @click.stop="
                                     goToSearchRoute({
                                         id: user.id,
-                                        name: 'profile'
+                                        name: 'profile',
                                     })
                                 "
                             >
@@ -809,7 +810,7 @@ export default {
             menuItem: 0,
             keyword: "",
             searchResults: null,
-            loading: false
+            loading: false,
         };
     },
     methods: {
@@ -821,7 +822,7 @@ export default {
                 this.loading = true;
                 axios
                     .get("/api/search/" + this.keyword)
-                    .then(res => {
+                    .then((res) => {
                         this.searchResults = res.data;
                     })
                     .finally(() => (this.loading = false));
@@ -831,7 +832,7 @@ export default {
             this.$emit("navigation");
             this.pushRoute({ name, id });
             this.showResultPanel = false;
-        }
+        },
     },
     computed: {
         currentPage() {
@@ -858,9 +859,9 @@ export default {
             },
             get() {
                 return this.$store.getters.getSearchResultsPanel;
-            }
-        }
-    }
+            },
+        },
+    },
 };
 </script>
 <style lang="scss" scoped>

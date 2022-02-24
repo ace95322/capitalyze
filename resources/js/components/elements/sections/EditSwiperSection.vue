@@ -43,7 +43,7 @@
               </song-expo>
             </template>
             <template v-else-if="item.type === 'album'">
-              <album-expo :album="item">
+              <album-expo admin="true" :album="item">
                 <template v-slot:control-layer v-if="!section.endpoint">
                   <edit-item-position
                     @moveRight="$emit('moveRight', i)"
@@ -54,7 +54,7 @@
               </album-expo>
             </template>
             <template v-else-if="item.type === 'podcast'">
-              <podcast-box :podcast="item">
+              <podcast-box admin="true" :podcast="item">
                 <template v-slot:control-layer v-if="!section.endpoint">
                   <edit-item-position
                     @moveRight="$emit('moveRight', i)"
@@ -65,7 +65,7 @@
               </podcast-box>
             </template>
             <template v-else-if="item.type === 'genre'">
-              <genre :genre="item" :admin="true">
+              <genre admin="true" :genre="item">
                 <template v-slot:control-layer v-if="!section.endpoint">
                   <edit-item-position
                     @moveRight="$emit('moveRight', i)"
@@ -76,7 +76,7 @@
               </genre>
             </template>
             <template v-else-if="item.type === 'radio-station'">
-              <radio-station :radioStation="item">
+              <radio-station admin="true" :radioStation="item">
                 <template v-slot:control-layer v-if="!section.endpoint">
                   <edit-item-position
                     @moveRight="$emit('moveRight', i)"
@@ -87,7 +87,7 @@
               </radio-station>
             </template>
             <template v-else-if="item.type === 'playlist'">
-              <playlist-expo :playlist="item" :admin="true">
+              <playlist-expo admin="true" :playlist="item">
                 <template v-slot:control-layer v-if="!section.endpoint">
                   <edit-item-position
                     @moveRight="$emit('moveRight', i)"

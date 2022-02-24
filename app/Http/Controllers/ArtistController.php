@@ -3,15 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Artist;
-use App\ArtistFollow;
-use App\Helpers\FileManager as HelpersFileManager;
+use App\Helpers\Media;
 use App\Traits\Search;
-use FileManager;
 use Illuminate\Http\Request;
-use App\Http\Resources\SongResource;
 use App\Http\Resources\Artist\Account as ArtistResourceAccount;
-use App\Http\Resources\ArtistResource;
-use App\Http\Resources\PodcastResource;
+use App\Http\Resources\Podcast\PodcastResource_basic;
+use App\Http\Resources\Song\SongResource_basictoplay;
 use App\Notifications\ArtistMessage;
 use App\Payout;
 use App\Setting;
@@ -65,7 +62,7 @@ class ArtistController extends Controller
       $from = (object)[
           'name' => auth()->user()->artist->displayname,
           'email' => auth()->user()->email,
-          'avatar' => HelpersFileManager::asset_path(auth()->user()->artist->avatar),
+          'avatar' => Media::get(auth()->user()->artist, 'avatar'),
           'role' => __('Artist')
       ];
       
@@ -145,7 +142,7 @@ class ArtistController extends Controller
      */
     public function podcasts()
     {
-        return PodcastResource::collection(\Auth::user()->artist->podcasts);
+        return PodcastResource_basic::collection(auth()->user()->artist->podcasts);
     }
     /**
      * Matches the artists based on the given keyword.
@@ -168,7 +165,7 @@ class ArtistController extends Controller
      */
     public function latest($artist)
     {
-        return new SongResource($artist->song()->sortByDesc('created_at')->first());
+        return new SongResource_basictoplay($artist->song()->sortByDesc('created_at')->first());
     }
     /**
      * Get the popular songs for the given artist.
@@ -211,9 +208,12 @@ class ArtistController extends Controller
             ]);
 
             $artist = Artist::find($id);
-            if ($request->file('avatar')) {
-                $artist->avatar = FileManager::update($request->file('avatar'), $artist->avatar, '/avatars/users/');
+
+     
+            if ($file = $request->file('avatar')) {
+                Media::updateImage($artist, $file, 'avatar', 200);
             }
+
             $artist->firstname = $request->firstname;
             $artist->lastname = $request->lastname;
             $artist->displayname = $request->displayname;
@@ -242,14 +242,10 @@ class ArtistController extends Controller
                 'phone' => 'required',
                 'address' => 'required'
             ]);
-            if ($request->avatar) {
-                if ($request->file('avatar')) {
-                    $avatar = FileManager::store($request, '/avatars/artists/', 'avatar');
-                } else {
-                    $avatar = FileManager::generateFileData($request->avatar);
-                }
-            }
-            Artist::create([
+
+
+
+            $artist = Artist::create([
                 'firstname' => $request->firstname,
                 'lastname' => $request->lastname,
                 'displayname' => $request->displayname,
@@ -258,30 +254,19 @@ class ArtistController extends Controller
                 'address' => $request->address,
                 'phone' => $request->phone,
                 'email' => $request->email,
-                'avatar' => $avatar,
                 'spotify_link' => $request->spotify_link,
                 'youtube_link' => $request->youtube_link,
                 'soundcloud_link' => $request->soundcloud_link,
                 'itunes_link' => $request->itunes_link,
             ]);
+
+            if ($file = $request->file('avatar')) {
+                Media::updateImage($artist, $file, 'avatar', 200);
+            } else {
+                Media::setDefault($artist, 'defaults/images/artist_avatar.png', 'avatar');
+            }
+
             return response()->json(null, 201);
-        }
-    }
-    /**
-     * Checks if the current user followed the corresponding artist.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function isArtistFollowed(Request $request)
-    {
-        $user_id = $request->user_id;
-        $artist_id = $request->artist_id;
-        $follow = ArtistFollow::where('user_id', $user_id)->where('artist_id', $artist_id)->first();
-        if ($follow) {
-            return 'true';
-        } else {
-            return 'false';
         }
     }
 
@@ -296,19 +281,23 @@ class ArtistController extends Controller
         $request->validate([
             'displayname' => 'required|min:2|unique:artists',
         ]);
-        $avatar = FileManager::store($request, '/avatars/artists/', 'avatar');
+
         $artist = new Artist();
+
+        if ($file = $request->file('avatar')) {
+            Media::updateImage($artist, $file, 'avatar', 200);
+        } else {
+            Media::setDefault($artist, 'defaults/images/artist_avatar.png', 'avatar');
+        }
 
         $artist->firstname =  $request->firstname;
         $artist->lastname =  $request->lastname;
         $artist->displayname =  $request->displayname;
         $artist->available_disk_space = $request->available_disk_space;
-        $artist->avatar = $avatar;
         $artist->country = $request->country;
         $artist->address = $request->address;
         $artist->phone = $request->phone;
         $artist->email = $request->email;
-        $artist->avatar = $avatar;
 
         // links
         $artist->spotify_link = $request->spotify_link;
@@ -335,9 +324,11 @@ class ArtistController extends Controller
             'displayname' => 'required|min:2|unique:artists,displayname,' . $id,
         ]);
         $artist = Artist::find($id);
-        if ($request->file('avatar')) {
-            $artist->avatar = FileManager::update($request->file('avatar'), $artist->avatar, '/avatars/artists/');
+
+        if ($file = $request->file('avatar')) {
+            Media::updateImage($artist, $file, 'avatar');
         }
+
         $artist->firstname = $request->firstname;
         $artist->lastname = $request->lastname;
         $artist->displayname = $request->displayname;

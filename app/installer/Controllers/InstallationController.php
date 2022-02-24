@@ -2,8 +2,8 @@
 
 namespace App\installer\Controllers;
 
-use App\Helpers\FileManager;
 use App\Helpers\Manifest\ManifestGenerator;
+use App\Helpers\Media;
 use App\installer\Events\LaravelInstallerFinished;
 use App\NavigationItem;
 use App\Page;
@@ -147,10 +147,10 @@ class InstallationController extends Controller
         try {
             // migrate database tables
             Artisan::call('migrate:refresh', ['--force' => true]);
-            Artisan::call('migrate:refresh', ['--path' => 'vendor/laravel/passport/database/migrations', '--force' => true]);
+            // Artisan::call('migrate:refresh', ['--path' => 'vendor/laravel/passport/database/migrations', '--force' => true]);
             return response()->json([], 200);
         } catch (Exception $e) {
-            return         dd('dsq');;
+            return $e;
         }
     }
 
@@ -164,6 +164,7 @@ class InstallationController extends Controller
             return response()->json([], 200);
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
+            // throw $e;
         }
     }
 
@@ -198,6 +199,7 @@ class InstallationController extends Controller
             return response()->json([], 200);
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
+            // throw $e;
         }
     }
 
@@ -300,12 +302,14 @@ class InstallationController extends Controller
         $superAdmin = \App\User::create([
             'name' => 'Admin',
             'email' => $admin_data['email'],
-            'avatar' => FileManager::generateFileData('/storage/defaults/images/user_avatar.png'),
             'is_admin' => 1,
             'email_verified_at' => Carbon::now(),
             'available_disk_space' => 100,
             'password' => Hash::make($admin_data['password']),
         ]);
+
+        Media::setDefault($superAdmin, 'defaults/images/user_avatar.png', 'avatar');
+
         $superAdmin->roles()->attach(1);
         foreach (\App\Role::find(1)->available_permissions as $permission) {
             $superAdmin->permissions()->attach($permission->id);
@@ -318,6 +322,26 @@ class InstallationController extends Controller
 
         Setting::set('enablePodcasts', $request->survey['podcasts']);
         Setting::set('enable_artist_account', $request->survey['artists']);
+
+        if ($request->survey['radio']) {
+            Page::create([
+                'name' => 'Radio',
+                'title' => 'Radio',
+                'description' => 'Enjoy listening to our amazing radio stations',
+                'icon' => 'radio-tower',
+                'showLinkOnTheRightSidebar' => 0,
+                'blank' => 0,
+                'path' => '/radio',
+            ]);
+            NavigationItem::create([
+                'name' => 'radio',
+                'icon' => 'radio-tower',
+                'visibility' => 1,
+                'custom' => 0,
+                'rank' => 4,
+                'path' => '/radio'
+            ]);
+        }
 
         if ($request->survey['saas']) {
             Setting::set('saas', 1);
@@ -341,7 +365,7 @@ class InstallationController extends Controller
                     'icon' => 'shopping',
                     'visibility' => 1,
                     'custom' => 0,
-                    'rank' => 4,
+                    'rank' => 5,
                     'path' => '/store'
                 ]);
             }

@@ -5,6 +5,18 @@
         :loading="isLoading"
         editing="User"
     >
+        <template v-slot:header-actions v-if="!editedUser.new">
+        <v-btn
+            class="error"
+            @click="blockUser(1)"
+            small
+            v-if="!editedUser.blocked"
+            >{{ $t("Block") }}</v-btn
+        >
+        <v-btn class="error" @click="blockUser(0)" small v-else>{{
+            $t("Unblock")
+        }}</v-btn>
+    </template>
         <template v-slot:body>
             <v-container>
                 <v-row>
@@ -348,6 +360,33 @@ export default {
                 });
             } else {
                 this.$emit("close");
+            }
+        },
+                blockUser(block) {
+            if (block) {
+                axios
+                    .post("/api/admin/block/" + this.editedUser.id)
+                    .then(() => {
+                        this.$notify({
+                            group: "foo",
+                            type: "success",
+                            title: this.$t("Blocked"),
+                            text: "User Blocked"
+                        });
+                        this.$emit("updated");
+                    });
+            } else {
+                axios
+                    .post("/api/admin/unblock/" + this.editedUser.id)
+                    .then(() => {
+                        this.$notify({
+                            group: "foo",
+                            type: "success",
+                            title: this.$t("Unblocked"),
+                            text: "User Unblocked"
+                        });
+                        this.$emit("updated");
+                    });
             }
         },
         saveUser() {

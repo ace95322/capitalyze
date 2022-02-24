@@ -3,8 +3,8 @@
 use Illuminate\Support\Facades\Route;
 
 
-// this file contains all the admin routes 
-// which are accessible only by a user with 
+// this file contains all the admin routes
+// which are accessible only by a user with
 // the admin role
 
 Route::group(['middleware' => 'demo'], function() {
@@ -20,7 +20,9 @@ Route::group(['middleware' => 'demo'], function() {
             'payout-methods' => PayoutMethodController::class,
             'pages' => PageController::class,
             'subscriptions' => SubscriptionController::class,
+            'roles' => RoleController::class,
             'plans' => PlanController::class,
+            'campaigns' => CampaignController::class,
             'sections' => SectionController::class,
             'radio-stations' => RadioStationController::class,
         ],
@@ -51,13 +53,20 @@ Route::apiResources(
         'songs' => SongController::class,
         'videos' => VideoController::class,
         'podcasts' => PodcastController::class,
+        'roles' => RoleController::class,
         'episodes' => EpisodeController::class,
         'plans' => PlanController::class,
+        'campaigns' => CampaignController::class,
     ],
     [
         'only' => ['index']
     ]
 );
+
+Route::post('/add-tracks-to-playlists', 'PlaylistController@addTracksToPlaylist');
+Route::post('/delete-tracks', 'SongController@deleteTracks');
+Route::post('/block/{user}', 'UserController@block');
+Route::post('/unblock/{user}', 'UserController@unblock');
 
 
 Route::group(['prefix' => 'locales'], function () {
@@ -83,9 +92,18 @@ Route::get('/plays/{duration}', 'AnalyticsController@getPlays');
 Route::get('/sales/{duration}', 'AnalyticsController@getSales');
 Route::get('/generate-sitemap', 'AdminController@generateSitemap');
 Route::get('/analytics', 'AnalyticsController@index');
-Route::get('/songs/exportCSV', 'SongController@exportCSV');
+Route::get('/album/export', 'AlbumController@exportCSV');
+Route::get('/radiostation/export', 'RadioStationController@exportCSV');
+Route::get('/songs/export', 'SongController@exportCSV');
+Route::get('/video/export', 'VideoController@exportCSV');
+Route::get('/playlist/export', 'PlaylistController@exportCSV');
+Route::get('/podcasts/export', 'PodcastController@exportCSV');
+Route::get('/podcast-genres-export', 'PodcastGenreController@exportCSV');
+Route::get('/genres-export', 'GenreController@exportCSV');
+
 
 Route::group(['middleware' => 'demo'], function() {
+    Route::post('/upload', 'UploadController@store')->name('admin.upload');
     Route::post('/contact', 'AdminController@contact');
     Route::post('/mark-payout', 'PayoutController@mark');
     Route::post('/save-general-settings', 'SettingController@saveAppearanceGeneralSettings');
@@ -97,6 +115,7 @@ Route::group(['middleware' => 'demo'], function() {
     Route::post('/save-analytics-settings', 'SettingController@saveAnalyticsSettings');
     Route::post('/reset-settings', 'SettingController@resetSettings');
     Route::post('/save-ads', 'SettingController@saveAds');
+    Route::post('/roles/sync', 'RoleController@sync');
     Route::post('/save-mail-settings', 'SettingController@saveMailSettings');
     Route::post('/save-billing-settings', 'SettingController@saveBillingSettings');
     Route::post('/save-storage-settings', 'SettingController@saveStorageSettings');

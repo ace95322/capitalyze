@@ -503,12 +503,14 @@
         text-transform: uppercase;
     }
     &__small {
-        width: 80%;
+        width: 100%;
         .divider__text {
             font-size: 10px;
         }
     }
 }
+
+
 .small {
     font-size: 0.8em;
 }
@@ -633,4 +635,8 @@
 }
 .elevate-page {
     padding-bottom: 8em !important;
+}
+
+.forceAppearance {
+    opacity: 1 !important;
 }

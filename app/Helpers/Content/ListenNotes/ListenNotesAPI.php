@@ -16,8 +16,8 @@ class ListenNotesAPI{
 
     public function podcasts($query)
     {
-        $response = Cache::remember('listen_notes_search_' . $query, 244800, function() use ($query){
-            return $this->client->search( [ 'q' => $query ] );
+        $response = Cache::remember('listen_notes_search_' . $query, 240000, function() use ($query){
+            return $this->client->search( [ 'q' => $query, 'show_podcasts' => 1, 'show_genres' => 0  ] );
         });
         return collect(json_decode($response)->results);
     }

@@ -175,8 +175,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         Alaouy\Youtube\YoutubeServiceProvider::class,
         \Gliterd\BackblazeB2\BackblazeB2ServiceProvider::class,
-        Barryvdh\TranslationManager\ManagerServiceProvider::class,
-        Maatwebsite\Excel\ExcelServiceProvider::class,
+        Barryvdh\TranslationManager\ManagerServiceProvider::class
     ],
 
     /*
@@ -228,7 +227,5 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'Youtube' => Alaouy\Youtube\Facades\Youtube::class,
-        'FileManager' => App\Helpers\FileManager::class,
-        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
-    ]
+        'FileManager' => App\Helpers\FileManager::class    ]
 ];

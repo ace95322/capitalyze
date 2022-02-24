@@ -16,28 +16,17 @@ class PodcastResource extends JsonResource
      */
     public function toArray($request)
     {
-
-        return [
+   return [
             'type' => 'podcast',
             'origin' => 'listenNotes',
             'id' => $this->id,
-            'title' => $this->title,
+            'title' => isset($this->title) ? $this->title : $this->title_original,
+            'description' => isset($this->description_original) ? $this->description_original : (isset($this->description) ? $this->description : ''),
             'cover' => $this->image,
-            'publisher' => $this->publisher,
-            'last_update' => $this->latest_pub_date_ms,
+            'publisher' => isset($this->publisher_original) ? $this->publisher_original : $this->publisher,
+            'last_update' =>isset($this->latest_pub_date_ms) ?  $this->latest_pub_date_ms : '',
             'source' => $this->listennotes_url, 
-            'description' => $this->description,
-            'itunes_id' => $this->itunes_id
-            // 'genres' => $this->genres,
-            // 'nb_followers' => $this->follows->count(),
-            // 'cover' => FileManager::asset_path($this->cover), 
-            // $this->mergeWhen(\Auth::user() && \Auth::user()->isAdmin(), [
-            //     'user' => new UserResource($this->user),
-            //     'created_at' => $this->created_at,
-            //     'updated_at' => $this->updated_at,
-            // ]),
-            // $this->mergeWhen($this->artist_id, [
-            //     'artist'=>new ArtistResource($this->artist)
+            'itunes_id' => isset($this->itunes_id) ? $this->itunes_id : ''
         ];
     }
 }

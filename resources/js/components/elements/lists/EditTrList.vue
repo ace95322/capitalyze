@@ -13,7 +13,7 @@
     <tr
         v-else-if="item"
         :class="{ isAlbum }"
-        @click="!isOnEditPage ? play(item) : ''"
+        @click="!isOnEditPage ? play(item, true) : ''"
         class="data-table-tr"
     >
         <td class="pl-2">
@@ -35,17 +35,17 @@
                     >
                         <span
                             class="play-icon"
-                            :class="{
-                                hidden: $store.getters.isCurrentlyPlaying(item)
-                            }"
+                            :class="{ forceAppearance: isCurrentlyPlaying(item) }"
                         >
-                            <v-icon dark class="i"
-                                >$veutify.icons.play-circle</v-icon
-                            >
+                            <v-icon dark class="i"  v-if="!isCurrentlyPlaying(item)"
+                                >$veutify.icons.play-circle
+                            </v-icon>
+                            <v-icon dark class="i"  v-else @click.stop="pause"
+                                >$veutify.icons.pause-circle
+                            </v-icon>
                         </span>
-                        <div
+                        <!-- <div
                             class="dark-layer absolute fill justify-align-center"
-                            v-if="$store.getters.isCurrentlyPlaying(item)"
                         >
                             <div
                                 class="epico_music-is-playing-container white-bars"
@@ -54,7 +54,7 @@
                                 <span></span>
                                 <span></span>
                             </div>
-                        </div>
+                        </div> -->
                     </v-img>
                 </div>
                 <div class="item-title ml-4  max-1-lines" @click.stop="">
@@ -156,7 +156,7 @@ export default {
             type: Object
         },
         rank: {
-            type: String
+            type: Number
         },
         isOnEditPage: {
             type: Boolean
@@ -181,15 +181,16 @@ export default {
         }
     },
     methods: {
-        play(item) {
-            const params = {};
-            params[item.type] = item;
-            params.reset = true;
-            this.$store.dispatch(
-                "play" + item.type[0].toUpperCase() + item.type.substr(1),
-                params
-            );
-        },
+        // play(item) {
+        //     const params = {};
+        //     params[item.type] = item;
+        //     params.reset = true;
+        //     console.log(  "play" + item.type[0].toUpperCase() + item.type.substr(1))
+        //     this.$store.dispatch(
+        //         "play" + item.type[0].toUpperCase() + item.type.substr(1),
+        //         params
+        //     );
+        // },
         detachSong(song_id, origin, song_title) {
             this.$confirm({
                 message: `${this.$t(
@@ -312,5 +313,10 @@ export default {
 .cover-and-title {
     display: flex;
     align-items: center;
+}
+
+.forceAppearance {
+    display: initial;
+    opacity: 1;
 }
 </style>

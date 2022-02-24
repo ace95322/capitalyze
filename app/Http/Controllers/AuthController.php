@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\FEException;
-use App\Helpers\FileManager;
-use App\Http\Resources\UserResource;
+use App\Helpers\Media;
+use App\Jobs\ImageProcess;
 use Illuminate\Http\Request;
 use Hash;
 use App\Setting;
@@ -39,6 +39,12 @@ class AuthController extends Controller
         if (!Auth::check()) {
             Auth::login($user);
         }
+
+        if( Auth::user() &&  Auth::user()->blocked == 1) {
+            Auth::logout();
+            throw new FEException(__('Your account is suspended.'), '', 500);
+        }
+        
         if (!Auth::user()) {
             throw new FEException(__('Your credentials are incorrect. Please try again'), '', 500);
         }
@@ -62,31 +68,34 @@ class AuthController extends Controller
                 ],
                 [
                     'name' => $request->profile['name'],
-                    'avatar' => FileManager::generateFileData(null, 'external', $request->profile['avatar'], 'external'),
                     'password' => Hash::make(\Str::random(24))
                 ]
             );
+
+            Media::delete($user, 'avatar');
+            Media::updateImageFromURL($user, $request->profile['avatar'], 'avatar');
         } 
-        // else if ($driver === 'facebook') {
-        //     if (User::where('facebook_id', $request->profile['id'])->first()) {
-        //         return $this->login(User::where('facebook_id', $request->profile['id'])->first());
-        //     }
-        //     if (!isset($request->profile['email'])) {
-        //         return response()->json(['message' => __('Email was not recieved by the facebook provider, Try another login method')], 400);
-        //     } else {
-        //         $user = User::firstOrCreate(
-        //             [
-        //                 'email' => $request->profile['email']
-        //             ],
-        //             [
-        //                 'facebook_id' => $request->profile['id'],
-        //                 'name' => $request->profile['name'],
-        //                 'avatar' => $request->profile['avatar'],
-        //                 'password' => Hash::make($request->profile['password1'])
-        //             ]
-        //         );
-        //     }
-        // }
+        else if ($driver === 'facebook') {
+            if (User::where('facebook_id', $request->profile['id'])->first()) {
+                return $this->login(User::where('facebook_id', $request->profile['id'])->first());
+            }
+            if (!isset($request->profile['email'])) {
+                throw new FEException(__('Email was not recieved by the facebook provider, Try another login method.'), '', 500);
+            } else {
+                $user = User::firstOrCreate(
+                    [
+                        'email' => $request->profile['email']
+                    ],
+                    [
+                        'facebook_id' => $request->profile['id'],
+                        'name' => $request->profile['name'],
+                        'password' => Hash::make(\Str::random(24))
+                    ]
+                );
+                Media::delete($user, 'avatar');
+                Media::updateImageFromURL($user, $request->profile['avatar'], 'avatar');
+            }
+        }
         return $this->login($user);
     }
 
@@ -144,11 +153,12 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'avatar' => FileManager::generateFileData('/storage/defaults/images/user_avatar.png'),
             'password' => Hash::make($request->password),
             'available_disk_space' => floatval(Setting::get('availableUserDiskSpace')),
             'lang' => Setting::get('locale')
         ]);
+        Media::setDefault($user, 'defaults/images/user_avatar.png', 'avatar');
+        
         if (Setting::get('requireEmailConfirmation')) {
             try {
                 $user->sendEmailVerificationNotification();
@@ -168,7 +178,7 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        $token = \Auth::user()->token();
+        $token = auth()->user()->token();
         $token->revoke();
         return response()->json(__('Logged out successfully.'), 200);
     }

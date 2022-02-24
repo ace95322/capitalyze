@@ -18,6 +18,9 @@ Route::get('/navigation-items', 'NavigationItemController@index');
 
 Route::get('/section/content/{id}', 'SectionController@content');
 
+
+Route::get('/stream/{type}/{id}', 'StreamController@stream');
+
 Route::get('/search/{keyword}', 'SearchController@index');
 Route::get('/podcast-genres', 'PodcastGenreController@index');
 Route::get('/genres', 'GenreController@index');
@@ -62,7 +65,9 @@ Route::get('/playlist/{id}', 'PlaylistController@show');
 Route::get('/genre/{id}', 'GenreController@show');
 Route::get('/podcast-genre/{podcastGenre}', 'PodcastGenreController@show');
 Route::get('/song/{id}', 'SongController@show');
+Route::get('/radio-station/{radio_station}', 'RadioStationController@show');
 Route::get('/podcast/{id}', 'PodcastController@show');
+Route::get('/episode/{id}', 'EpisodeController@show');
 Route::get('/episodes/{Podcast}', 'PodcastController@episodes');
 Route::get('/artist/{id}', 'ArtistController@show');
 Route::get('/album/{id}', 'AlbumController@show');

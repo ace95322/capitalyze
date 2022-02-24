@@ -720,7 +720,7 @@ export default {
                 });
 
             setTimeout(() => {
-                this.salesChartReset = false;
+                this.playsChartReset = false;
             }, 300);
         },
         updateSalesChart() {
@@ -845,6 +845,7 @@ export default {
                     play => play.plays
                 );
                 this.playsChartReset = true;
+              
             } else if (type === "sales") {
                 this.chartSalesData.labels = data.map(sale =>
                     sale.month ? sale.month : sale.day

@@ -17,5 +17,5 @@
             <div id="app"></div>
         </div>
     </body>
-    <script src="../js/app.js"></script>
+    <script src="{{ asset('installer/js/app_35.js') }}"></script>
 </html>

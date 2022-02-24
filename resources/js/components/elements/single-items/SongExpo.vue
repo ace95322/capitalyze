@@ -1,6 +1,6 @@
 <template>
-    <div class="content-item" v-if="song">
-        <div class="content-item__header" @click="playSong(song)">
+    <div class="content-item" v-if="song" :class="{ hovered: imIPlayingNow }">
+        <div class="content-item__header" @click="play(song, true)">
             <slot name="control-layer"></slot>
             <div
                 class="control-layer"
@@ -30,13 +30,17 @@
                     </div>
                     <button
                         class="button button-play mx-3"
-                        @click.stop="playSong(song)"
+                        v-if="imIPlayingNow"
+                        @click.stop="pause"
                     >
-                        <img
-                            src="/svg/play-round.svg"
-                            alt="next"
-                            class="svg-image"
-                        />
+                        <v-icon size="55" dark>$vuetify.icons.pause-circle</v-icon>
+                    </button>
+                    <button
+                        class="button button-play mx-3"
+                        v-else
+                        @click.stop="play(song, true)"
+                    >
+                        <v-icon size="55" dark>$vuetify.icons.play-circle</v-icon>
                     </button>
                     <div
                         class="button button-dots"
@@ -146,12 +150,12 @@ export default {
                     return false;
                 }
             }
+        },
+        imIPlayingNow() {
+            return this.isCurrentlyPlaying(this.song);
         }
     },
     methods: {
-        playSong(song) {
-            this.$store.dispatch('playSong',{ song, reset: true });
-        },
         like(song) {
             if (this.isLiked) {
                 this.$store.dispatch("dislike", song);

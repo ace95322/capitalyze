@@ -4,6 +4,7 @@ use Illuminate\Database\Seeder;
 
 use App\Genre;
 use App\Helpers\FileManager;
+use App\Helpers\Media;
 
 class GenreTableSeeder extends Seeder
 {
@@ -17,65 +18,74 @@ class GenreTableSeeder extends Seeder
         Genre::truncate();
 
         // seeding the default genres
-        Genre::create([
+        $genre_1 = Genre::create([
             'name' => 'Electronic',
-            'slug' => 'electronic',
-            'cover' => FileManager::generateFileData('/storage/defaults/images/genres/electronic.png'),
-            'icon' => FileManager::generateFileData('/storage/defaults/icons/dj.svg')
+            'slug' => 'electronic'
         ]);
-        Genre::create([
+        Media::updateImageFromLocalURL($genre_1, public_path('storage/defaults/images/genres/electronic.png'), 'cover');
+        Media::updateImageFromLocalURL($genre_1, public_path('storage/defaults/icons/dj.svg'), 'icon');
+
+        $genre_2 = Genre::create([
             'name' => 'Sound FX',
-            'slug' => 'sound-fx',
-            'cover' => FileManager::generateFileData('/storage/defaults/images/genres/sound-fx.jpg'),
-            'icon' => FileManager::generateFileData('/storage/defaults/icons/noise.svg')
+            'slug' => 'sound-fx'
         ]);
-        Genre::create([
+        Media::updateImageFromLocalURL($genre_2, public_path('storage/defaults/images/genres/sound-fx.jpg'), 'cover');
+        Media::updateImageFromLocalURL($genre_2, public_path('storage/defaults/icons/noise.svg'), 'icon');
+
+        $genre_3 = Genre::create([
             'name' => 'Gaming',
-            'slug' => 'gaming',
-            'cover' => FileManager::generateFileData('/storage/defaults/images/genres/gaming.png'),
-            'icon' => FileManager::generateFileData('/storage/defaults/icons/controller.svg')
+            'slug' => 'gaming'
         ]);
-        Genre::create([
+        Media::updateImageFromLocalURL($genre_3, public_path('storage/defaults/images/genres/gaming.png'), 'cover');
+        Media::updateImageFromLocalURL($genre_3, public_path('storage/defaults/icons/controller.svg'), 'icon');
+
+        $genre_4 = Genre::create([
             'name' => 'Piano',
-            'slug' => 'piano',
-            'cover' => FileManager::generateFileData('/storage/defaults/images/genres/piano.png'),
-            'icon' => FileManager::generateFileData('/storage/defaults/icons/piano.svg')
+            'slug' => 'piano'
         ]);
-        Genre::create([
+        Media::updateImageFromLocalURL($genre_4, public_path('storage/defaults/images/genres/piano.png'), 'cover');
+        Media::updateImageFromLocalURL($genre_4, public_path('storage/defaults/icons/piano.svg'), 'icon');
+
+        $genre_5 = Genre::create([
             'name' => 'Chill',
-            'slug' => 'chill',
-            'cover' => FileManager::generateFileData('/storage/defaults/images/genres/chill.png'),
-            'icon' => FileManager::generateFileData('/storage/defaults/icons/relax.svg')
+            'slug' => 'chill'
         ]);
-        Genre::create([
+        Media::updateImageFromLocalURL($genre_5, public_path('storage/defaults/images/genres/chill.png'), 'cover');
+        Media::updateImageFromLocalURL($genre_5, public_path('storage/defaults/icons/relax.svg'), 'icon');
+
+        $genre_6 = Genre::create([
             'name' => 'Jazz',
-            'slug' => 'jazz',
-            'cover' => FileManager::generateFileData('/storage/defaults/images/genres/jazz.png'),
-            'icon' => FileManager::generateFileData('/storage/defaults/icons/horn.svg')
+            'slug' => 'jazz'
         ]);
-        Genre::create([
+        Media::updateImageFromLocalURL($genre_6, public_path('storage/defaults/images/genres/jazz.png'), 'cover');
+        Media::updateImageFromLocalURL($genre_6, public_path('storage/defaults/icons/horn.svg'), 'icon');
+
+        $genre_7 = Genre::create([
             'name' => 'K Pop',
-            'slug' => 'k-pop',
-            'cover' => FileManager::generateFileData('/storage/defaults/images/genres/k-pop.png'),
-            'icon' => FileManager::generateFileData('/storage/defaults/icons/headphone.svg')
+            'slug' => 'k-pop'
         ]);
-        Genre::create([
+        Media::updateImageFromLocalURL($genre_7, public_path('storage/defaults/images/genres/k-pop.png'), 'cover');
+        Media::updateImageFromLocalURL($genre_7, public_path('storage/defaults/icons/headphone.svg'), 'icon');
+
+        $genre_8 = Genre::create([
             'name' => 'Classical',
-            'slug' => 'classical',
-            'cover' => FileManager::generateFileData('/storage/defaults/images/genres/classical.png'),
-            'icon' => FileManager::generateFileData('/storage/defaults/icons/guitar.svg')
+            'slug' => 'classical'
         ]);
-        Genre::create([
+        Media::updateImageFromLocalURL($genre_8, public_path('storage/defaults/images/genres/classical.png'), 'cover');
+        Media::updateImageFromLocalURL($genre_8, public_path('storage/defaults/icons/guitar.svg'), 'icon');
+
+        $genre_9 = Genre::create([
             'name' => 'Hip Hop',
-            'slug' => 'hip-hop',
-            'cover' => FileManager::generateFileData('/storage/defaults/images/genres/hip-hop.png'),
-            'icon' => FileManager::generateFileData('/storage/defaults/icons/radio.svg')
+            'slug' => 'hip-hop'
         ]);
-        Genre::create([
+        Media::updateImageFromLocalURL($genre_9, public_path('storage/defaults/images/genres/hip-hop.png'), 'cover');
+        Media::updateImageFromLocalURL($genre_9, public_path('storage/defaults/icons/radio.svg'), 'icon');
+
+        $genre_10 = Genre::create([
             'name' => 'Indie',
-            'slug' => 'indie',
-            'cover' => FileManager::generateFileData('/storage/defaults/images/genres/indie.png'),
-            'icon' => FileManager::generateFileData('/storage/defaults/icons/microphone.svg')
+            'slug' => 'indie'
         ]);
+        Media::updateImageFromLocalURL($genre_10, public_path('storage/defaults/images/genres/indie.png'), 'cover');
+        Media::updateImageFromLocalURL($genre_10, public_path('storage/defaults/icons/microphone.svg'), 'icon');
     }
 }

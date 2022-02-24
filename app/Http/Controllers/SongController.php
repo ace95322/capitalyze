@@ -6,21 +6,25 @@ use App\Album;
 use App\Artist;
 use Spotify;
 use Illuminate\Http\Request;
-use App\Http\Resources\SongResource;
+use App\Http\Resources\Song\SongResource_index;
 use App\Song;
 use FileManager;
 use App\Traits\Search;
 use App\Exceptions\FEException;
+use App\Exports\SongExport;
+use App\Helpers\Media;
 use App\Helpers\YoutubeAPI;
-use App\Http\Resources\Spotify\SongResource as SpotifySongResource;
+use App\Http\Resources\Spotify\SongResource;
+use App\Http\Resources\Spotify\SongResource_index as SpotifySongResource;
 use App\Price;
 use App\Product;
 use App\Setting;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use App\Exports\DataExport;
-use Excel;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SongController extends Controller
 {
@@ -31,7 +35,7 @@ class SongController extends Controller
      */
     public function index()
     {
-        return SongResource::collection(\App\Song::orderBy('created_at', 'desc')->get());
+        return SongResource_index::collection(\App\Song::orderBy('created_at', 'desc')->get());
     }
     /**
      * Get all the songs for the current logged artist.
@@ -40,7 +44,7 @@ class SongController extends Controller
      */
     public function artistIndex()
     {
-        return SongResource::collection(auth()->user()->artist->ownSongs);
+        return SongResource_index::collection(auth()->user()->artist->ownSongs);
     }
     /**
      * Get all the songs for the current logged user.
@@ -49,7 +53,7 @@ class SongController extends Controller
      */
     public function userIndex()
     {
-        return SongResource::collection(Song::where('user_id', auth()->id())->where('uploaded_by', 'user')->orderBy('created_at', 'desc')->get());
+        return SongResource_index::collection(Song::where('user_id', auth()->id())->where('uploaded_by', 'user')->orderBy('created_at', 'desc')->get());
     }
     /**
      * Matches the songs based on the given keyword.
@@ -73,7 +77,7 @@ class SongController extends Controller
      */
     public function matchArtistSongs($keyword)
     {
-        return SongResource::collection(Song::where('title', 'like', '%' . $keyword . '%')->where('public', 1)->where('artist_id', auth()->user()->artist->id)->get());
+        return SongResource_index::collection(Song::where('title', 'like', '%' . $keyword . '%')->where('public', 1)->where('artist_id', auth()->user()->artist->id)->get());
     }
     /**
      * store the specified resource.
@@ -84,14 +88,16 @@ class SongController extends Controller
     public function store(Request $request)
     {
         ini_set('post_max_size', '100MB');
+
         $request->validate([
             'title' => 'required|max:255|min:1|string',
         ]);
+
         if( $request->uploaded_by  === 'artist' ) {
             $available_space = auth()->user()->artist->available_disk_space;
             $used_space = auth()->user()->artist->used_disk_space();
             if (($request->file_size || 0) + $used_space > ($available_space * 1024 * 1024)) {
-                throw new FEException('You have exceeded your space limit', '', 400);        
+                throw new FEException('You have exceeded your space limit', '', 400);
             }
         } else if ( $request->uploaded_by  === 'user' ) {
             $used_space = auth()->user()->used_disk_space();
@@ -105,25 +111,45 @@ class SongController extends Controller
                 $available_space = auth()->user()->available_disk_space;
             }
             if (($request->file_size || 0) + $used_space > ($available_space * 1024 * 1024)) {
-                throw new FEException('You have exceeded your space limit', '', 400);        
+                throw new FEException('You have exceeded your space limit', '', 400);
             }
         }
 
         $song = new Song();
-        $cover =  FileManager::store($request, '/covers/songs/', 'cover');
 
+        $song->title = $request->title;
+        $song->uploaded_by = $request->uploaded_by;
+        $song->public = $request->public;
+        $song->user_id = auth()->user()->id;
+        $song->album_id = $request->album_id;
+        $song->source_format = $request->source_format;
+
+        if( $request->uploaded_by === "artist" ) {
+            $song->artist_id = auth()->user()->artist->id;
+        }
+
+        // new update V2.1
+        $song->isProduct  =  $request->isProduct;
+        $song->isExclusive  =  $request->isExclusive;
+        $song->isExplicit  =  $request->isExplicit;
+        //
+
+        // links
+        $song->spotify_link = $request->spotify_link;
+        $song->youtube_link = $request->youtube_link;
+        $song->soundcloud_link = $request->soundcloud_link;
+        $song->itunes_link = $request->itunes_link;
+        $song->deezer_link = $request->deezer_link;
+        $song->sampleSeconds = $request->sampleSeconds;
+        $song->playSample = $request->playSample;
+        //
+        $song->save();
 
 
         // return response()->download($tempImage, $filename);
         if ($request->source_format === 'file') {
             if ($request->file('source')) {
-                $file_name = $request->file('source')->getClientOriginalName();
-                $file_size = $request->file_size;
-                try {
-                    $source = FileManager::store($request, '/audios/songs/', 'source');
-                } catch (Exception $e) {
-                    throw new FEException($e->getMessage(), '', 500);
-                }
+                Song::upload($song, $request->file('source'));
             } else {
                 $request->validate([
                     'source' => 'required',
@@ -131,9 +157,7 @@ class SongController extends Controller
             }
         } else if ($request->source_format === 'yt_video') {
             if ($request->source) {
-                $source = json_encode($request->source);
-                $file_name = null;
-                $file_size = null;
+                Song::uploadYoutubeVideo($song, $request->source);
             } else {
                 $request->validate([
                     'source' => 'required',
@@ -146,82 +170,54 @@ class SongController extends Controller
 
             $url = $request->source;
             $file_name = basename($url);
-            $file_size = 0;
             if( isset($request->saveFileFromURL) ) {
                 try {
                     $ch = curl_init($url);
 
-                    // Use basename() function to return
-                    // the base name of file 
-                  
-                    
                     // Save file into file location
-                    $save_file_loc = "storage" . '/audios/songs/' . $file_name;
-                
-                    // Open file 
+                    $tempFile = Str::random(32);
+                    $save_file_loc = storage_path('temp/' . $tempFile .  '/' . $file_name);
+                    // Open file
                     $fp = fopen($save_file_loc, 'wb');
-                    
+
                     // It set an option for a cURL transfer
                     curl_setopt($ch, CURLOPT_FILE, $fp);
                     curl_setopt($ch, CURLOPT_HEADER, 0);
-                    
+
                     // Perform a cURL session
                     curl_exec($ch);
-                    
+
                     // Closes a cURL session and frees all resources
                     curl_close($ch);
-                    
+
                     // Close file
                     fclose($fp);
-        
-                                        
-                    $source = $save_file_loc;
 
-                    $file_size = filesize($save_file_loc);
+                    $disk_name = json_decode(Setting::get('storageDisk'))->disk;
 
+                    $song->addMedia($save_file_loc)
+                    ->usingFileName($tempFile, PATHINFO_FILENAME)
+                    ->withCustomProperties(['bitrate' => intval($this->audio->bitrate / 1000)])
+                    ->toMediaCollection($disk_name);
                 } catch(Exception $e)
                 {
-                    throw new FEException('Failed to download the file. Make sure the URL is correct.', '', 400);        
+                    throw new FEException('Failed to download the file. Make sure the URL is correct.', '', 400);
                 }
             } else {
                 $source = $url;
             }
         }
 
-        $song->title = $request->title; 
-        $song->uploaded_by = $request->uploaded_by;
-        $song->public = $request->public;
-        $song->user_id = auth()->user()->id;
-        $song->album_id = $request->album_id;
-        $song->source_format = $request->source_format;
-        $song->file_name = $file_name;
-        $song->source = $source;
-        $song->cover = $cover;
-        $song->file_size = $file_size;
-        $song->duration = $request->duration;
-
-        if( $request->uploaded_by === "artist" ) {
-            $song->artist_id = auth()->user()->artist->id;
-        }
-        
-        // new update V2.1
-        $song->isProduct  =  $request->isProduct;
-        $song->isExclusive  =  $request->isExclusive;
-        $song->isExplicit  =  $request->isExplicit;
-        // 
-
-        // links
-        $song->spotify_link = $request->spotify_link;
-        $song->youtube_link = $request->youtube_link;
-        $song->soundcloud_link = $request->soundcloud_link;
-        $song->itunes_link = $request->itunes_link;
-        $song->deezer_link = $request->deezer_link;
-        //
         $song->save();
 
+        if ($file = $request->file('cover')) {
+            Media::updateImage($song, $file, 'cover');
+        } else {
+            Media::setDefault($song, 'defaults/images/song_cover.png', 'cover');
+        }
         // new update V2.1
         // Asset as product
-        if( isset($request->isProduct) &&  $request->isProduct) {
+        if( isset($request->isProduct) &&  $request->isProduct ) {
             // create product
 
             $product = $song->product()->create([]);
@@ -260,7 +256,7 @@ class SongController extends Controller
                 ]);
             }
         }
-        return response()->json(new SongResource($song), 201);
+        return response()->json(new SongResource_index($song), 201);
     }
     /**
      * Update the specified resource.
@@ -278,40 +274,29 @@ class SongController extends Controller
 
         $song = Song::find($id);
 
-        if ($request->file('cover')) {
-            $song->cover = FileManager::update($request->file('cover'), $song->cover, '/covers/songs/');
+
+        if ($cover = $request->file('cover')) {
+            Media::updateImage($song, $cover, 'cover');
         }
 
         if ($request->source_format === 'file') {
-            if ($request->file('source')) {
-                $source = FileManager::update($request->file('source'), $song->source, '/audios/songs/');
-                $file_name = $request->file('source')->getClientOriginalName();
-                $file_size = $request->file_size;
-                $song->file_size = $file_size;
-                $song->file_name = $file_name;
-                $song->source = $source;
-            } else if( !$song->source ) {
-                $request->validate([
-                    'source' => 'required',
-                ]);
+            if ($file = $request->file('source')) {
+                Media::updateAudio($song, $file);
             }
         } else if ($request->source_format === 'yt_video') {
             if ($request->source) {
                 // delete audio file if it exists
                 if ($song->source_format === 'file') {
-                    FileManager::delete($song->source);
+                    Media::delete($song, 'mp3');
+                    Media::delete($song, 'hls');
+                    Media::delete($song, 'm3u8');
                 }
-                $source = json_encode($request->source);
-                $file_name = null;
-                $file_size = null;
-                $song->file_name = $file_name;
-                $song->file_size = $file_size;
-                $song->source = $source;
-            } else if(!$song->source ){
-                $request->validate([
-                    'source' => 'required',
-                ]);
+                Song::uploadYoutubeVideo($song, $request->source, true);
             }
+            // else if(!$song->source ){
+            //     $request->validate([
+            //         'source' => 'required',
+            //     ]);
         } else if ( $request->source_format === 'audio_url' ) {
             $request->validate([
                 'source' => 'required|url',
@@ -325,30 +310,30 @@ class SongController extends Controller
                     $ch = curl_init($url);
 
                     // Use basename() function to return
-                    // the base name of file 
-                  
-                    
+                    // the base name of file
+
+
                     // Save file into file location
                     $save_file_loc = "storage" . '/audios/songs/' . $file_name;
-                
-                    // Open file 
+
+                    // Open file
                     $fp = fopen($save_file_loc, 'wb');
-                    
+
                     // It set an option for a cURL transfer
                     curl_setopt($ch, CURLOPT_FILE, $fp);
                     curl_setopt($ch, CURLOPT_HEADER, 0);
-                    
+
                     // Perform a cURL session
                     curl_exec($ch);
-                    
+
                     // Closes a cURL session and frees all resources
                     curl_close($ch);
-                    
+
                     // Close file
                     fclose($fp);
-        
-                                        
-                    $source = $save_file_loc;
+
+
+                    $song->source_format = 'audio_url';
 
                     $file_size = filesize($save_file_loc);
 
@@ -356,7 +341,7 @@ class SongController extends Controller
                     $song->file_size = $file_size;
                 } catch(Exception $e)
                 {
-                    throw new FEException('Failed to download the file. Make sure the URL is correct.', '', 400);        
+                    throw new FEException('Failed to download the file. Make sure the URL is correct.', '', 400);
                 }
             } else {
                 $source = $url;
@@ -365,7 +350,6 @@ class SongController extends Controller
 
         $song->title = $request->title;
         $song->public = $request->public;
-        $song->source_format = $request->source_format;
         $song->duration = $request->duration;
 
 
@@ -403,7 +387,7 @@ class SongController extends Controller
         $song->isProduct  =  $request->isProduct;
         $song->isExclusive  =  $request->isExclusive;
         $song->isExplicit  =  $request->isExplicit;
-        // 
+        //
         // links
         $song->spotify_link = $request->spotify_link;
         $song->youtube_link = $request->youtube_link;
@@ -411,6 +395,9 @@ class SongController extends Controller
         $song->itunes_link = $request->itunes_link;
         $song->deezer_link = $request->deezer_link;
         //
+        $song->sampleSeconds = $request->sampleSeconds;
+        $song->playSample = $request->playSample;
+
         $song->save();
         // reset genres
         \DB::table('genre_song')->where('song_id', $song->id)->delete();
@@ -430,9 +417,21 @@ class SongController extends Controller
                 ]);
             }
         }
-        
-        return response()->json(new SongResource($song), 200);
+
+        return response()->json(new SongResource_index($song), 200);
     }
+
+    public function deleteTracks(Request $request){
+        $ids = $request->tracks;
+
+        foreach ($ids as $id) {
+            if($song = Song::find($id))
+            $song->delete();
+        }
+
+        return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
     /**
      * Display the specified resource (fetch the data for the frontend).
      *
@@ -494,7 +493,7 @@ class SongController extends Controller
      */
     public function songsLikedByUser()
     {
-        $likes = \App\SongLike::where('user_id', \Auth::user()->id)->with('song')->get()->pluck('song');
+        $likes = \App\SongLike::where('user_id', auth()->user()->id)->with('song')->get()->pluck('song');
         return $likes;
     }
     /**
@@ -509,18 +508,18 @@ class SongController extends Controller
 
         if( $origin === "spotify" ) {
             $track = Spotify::track($id)->get();
-       
+
             $moreFromArtisttracks = $this->getSongsBasedOn("artists", $track);
 
             return $moreFromArtisttracks;
         } else if ( $origin === "local" )  {
             if( $artist = Artist::find($id) ) {
-                return SongResource::collection($artist->songs()->orderBy('created_at')->get());
+                return SongResource_index::collection($artist->songs()->orderBy('created_at')->get());
             } else {
                 return [];
             }
         }
-       
+
     }
     /**
      * Next songs based on the setings.
@@ -536,7 +535,7 @@ class SongController extends Controller
 
         if( $origin === "spotify" ) {
             $track = Spotify::track($id)->get();
-       
+
             foreach ($rules as $key => $value) {
                $tracks = $this->getSongsBasedOn($rules[$key]["value"], $track);
                $nextSongs = $nextSongs->toBase()->merge($tracks);
@@ -549,9 +548,9 @@ class SongController extends Controller
         $nextSongs = $nextSongs->unique("id")->filter(function($val) use ($id){
             return $val['id'] !== $id;
         });
-           
+
         //     if( $rules[0]["value"] === "album" ) {
-               
+
         //     }
         // } else if ( $origin === "local" ) {
 
@@ -571,18 +570,18 @@ class SongController extends Controller
 
         if( $origin === "spotify" ) {
             $track = Spotify::track($id)->get();
-       
+
             $moreFromAlbum = $this->getSongsBasedOn("album", $track);
 
             return $moreFromAlbum;
         } else if ( $origin === "local" )  {
             if( $album = Album::find($id) ) {
-                return SongResource::collection($album->songs()->orderBy('created_at')->get());
+                return SongResource_index::collection($album->songs()->orderBy('created_at')->get());
             } else {
                 return [];
             }
         }
-      
+
     }
     /**
      * Get more songs from a certain genre.
@@ -591,7 +590,7 @@ class SongController extends Controller
      */
     public function moreFromGenre($genre_id)
     {
-        return SongResource::collection(\App\Genre::find($genre_id)->songs()->orderBy('created_at')->where('public', 1)->get());
+        return SongResource_index::collection(\App\Genre::find($genre_id)->songs()->orderBy('created_at')->where('public', 1)->get());
     }
     /**
      * Try to get the video ID of track.
@@ -634,7 +633,7 @@ class SongController extends Controller
 
             }
         }
-        return SpotifySongResource::collection($results);
+        return SongResource::collection($results);
     }
 
     /**
@@ -650,10 +649,14 @@ class SongController extends Controller
         return response()->json(['message' => 'SUCCESS'], 200);
     }
 
-    public function exportCSV()
+    /**
+     * Export CSV
+     *
+     * @return void
+     */
+    public function exportCSV(Request $request)
     {
-        $result = Song::orderBy('created_at', 'desc')->get();
-        $export = new DataExport($result->toArray(),'Songs Report ('.date('Y-m-d').")");
-        return Excel::download($export, 'Songs.csv');
+        $export = new SongExport($request->get('start_date', null),  $request->get('end_date', null));
+        return Excel::download($export, 'Song.csv');
     }
 }

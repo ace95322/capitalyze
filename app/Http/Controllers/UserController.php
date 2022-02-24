@@ -13,36 +13,29 @@ use App\Artist;
 use App\Exceptions\FEException;
 use App\Plan;
 use App\Permission;
-use Carbon\Carbon;
 
-use FileManager;
 
-use App\Http\Resources\UserResource;
-
-use App\Http\Resources\SongResource;
-use App\Http\Resources\ArtistResource;
 use App\Http\Resources\AlbumResource;
-use App\Http\Resources\PodcastResource;
-use App\Http\Resources\PlaylistResource;
-use App\Http\Resources\profiles\UserResource as UserProfileResource;
 use App\Subscription;
 use Illuminate\Support\Facades\Notification;
 use App\Helpers\Billing\StripeAPI;
 use App\Helpers\Billing\PayPalAPI;
-use App\Helpers\Content\ListenNotes\ListenNotes;
-use App\Http\Resources\ListenNotes\PodcastResource as ListenNotesPodcastResource;
-use App\Http\Resources\RadioStationResource;
-use App\Http\Resources\Spotify\AlbumResource as SpotifyAlbumResource;
+use App\Helpers\Media;
+use App\Http\Resources\Artist\ArtistResource_basic;
+use App\Http\Resources\Artist\ArtistResource_index;
+use App\Http\Resources\Playlist\PlaylistResource_basic;
+use App\Http\Resources\Playlist\PlaylistResource_index;
+use App\Http\Resources\Podcast\PodcastResource_basic;
+use App\Http\Resources\profiles\UserResource;
+use App\Http\Resources\Song\SongResource_basic;
+use App\Http\Resources\Song\SongResource_basictoplay;
 use App\Http\Resources\Spotify\ArtistResource as SpotifyArtistResource;
-use App\Http\Resources\Spotify\SongResource as SpotifySongResource;
+use App\Http\Resources\User\UserResource_index;
 use App\Playlist;
 use App\Podcast;
-use App\PodcastFollow;
-use App\RadioStation;
 use App\Setting;
-use App\Song;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Cache;
+use App\Playing;
 
 class UserController extends Controller 
 {
@@ -53,7 +46,7 @@ class UserController extends Controller
      */
     public function account(Request $request)
     {
-        return new UserResource(auth()->user());
+        return new UserResource_index(auth()->user());
     }
 
     /**
@@ -112,6 +105,23 @@ class UserController extends Controller
 
         return response()->json(['message' => 'SUCCESS'], 200);
     }
+    public function playing( Request $request ) {
+        
+        if( !auth()->user()->playing ) {
+            Playing::create([
+                'user_id' => auth()->id()
+            ]);
+        }
+
+        auth()->user()->playing()->update([
+            'playlist' => isset($request->playlist)? $request->playlist : '',
+            'genre_id' => isset($request->genre_id) ? $request->genre_id: '',
+            'radio' => isset($request->radio)? $request->radio: '',
+            'playlist_index' => isset($request->index)? $request->index: ''
+        ]);
+
+        return auth()->user()->playing;
+    }
 
     /**
      * Cancel a subscription.
@@ -164,7 +174,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        return UserResource::collection(User::where('is_admin', 0)->orderBy('created_at', 'desc')->get());
+        return UserResource_index::collection(User::where('is_admin', 0)->orderBy('created_at', 'desc')->get());
     }
     /**
      * Get the user data to display the profile.
@@ -176,7 +186,7 @@ class UserController extends Controller
     {
         $user = User::find($id);
         if ($user && !$user->is_admin) {
-            return new UserProfileResource($user);
+            return new UserResource($user);
         } else {
             return response()->json(['message' => 'NOT_FOUND'], 404);
         }
@@ -194,14 +204,21 @@ class UserController extends Controller
             'name' => 'required|unique:users',
             'password' => 'required|min:8',
         ]);
-        $avatar = FileManager::store($request, '/avatars/users/', 'avatar');
+        
+
+
         $user = User::create([
             'email' =>  $request->email,
             'name' =>  $request->name,
             'available_disk_space' => $request->available_disk_space,
-            'password' =>  Hash::make($request->password),
-            'avatar' => $avatar
+            'password' =>  Hash::make($request->password)
         ]);
+
+        if ($file = $request->file('avatar')) {
+            Media::updateImage($user, $file, 'avatar', 200);
+        } else {
+            Media::setDefault($user, 'defaults/images/user_avatar.png', 'avatar');
+        }
         // attaching the roles
         if (isset($request->roles)) {
             foreach (json_decode($request->roles) as $role) {
@@ -242,10 +259,11 @@ class UserController extends Controller
             'password' => 'min:8'
         ]);
         $user = User::find($id);
-        if ($request->file('avatar')) {
-            $avatar = FileManager::update($request->file('avatar'), $user->avatar, '/avatars/users/');
-            $user->avatar = $avatar;
+
+        if ($file = $request->file('avatar')) {
+            Media::updateImage($user, $file, 'avatar', 200);
         }
+
         if (isset($request->roles)) {
             $this->updateRoles($user, json_decode($request->roles, true));
         }
@@ -321,9 +339,11 @@ class UserController extends Controller
             }
             $user->password = Hash::make($request->newPassword);
         }
-        if ($request->file('avatar')) {
-            $user->avatar = FileManager::update($request->file('avatar'), $user->avatar, '/avatars/users/');
+
+        if ($file = $request->file('avatar')) {
+            Media::updateImage($user, $file, 'avatar', 200);
         }
+        
         $user->name = $request->name;
         $user->lang = $request->lang;
         $user->hide_activity = $request->hide_activity ? 1 : 0;
@@ -346,9 +366,7 @@ class UserController extends Controller
             'phone' => 'required',
             'address' => 'required'
         ]);
-
-        $avatar = FileManager::store($request, '/avatars/artists/', 'avatar');
-
+        
         $artist = Artist::create([
             'firstname' => $request->firstname,
             'lastname' => $request->lastname,
@@ -357,19 +375,24 @@ class UserController extends Controller
             'address' => $request->address,
             'phone' => $request->phone,
             'email' => $request->email,
-            'avatar' => $avatar,
             'spotify_link' => $request->spotify_link,
             'youtube_link' => $request->youtube_link,
             'soundcloud_link' => $request->soundcloud_link,
             'itunes_link' => $request->itunes_link,
         ]);
 
+        if ($file = $request->file('avatar')) {
+            Media::updateImage($artist, $file, 'avatar', 200);
+        } else {
+            Media::setDefault($artist, 'defaults/images/artist_avatar.png', 'avatar');
+        }
+
         $admins = User::whereHas('roles', function ($query) {
             $query->where('name', 'admin');
         })->orWhere('is_admin', 1)->get();
-        $user = \Auth::user();
+        $user = auth()->user();
 
-        Notification::send($admins, new ArtistRequest($user, new ArtistResource($artist)));
+        Notification::send($admins, new ArtistRequest($user, new ArtistResource_index($artist)));
         $user->requested_artist_account = 1;
         $user->save();
         return response()->json(['message' => 'SUCCESS'], 200);
@@ -381,10 +404,10 @@ class UserController extends Controller
      */
     public function playlists()
     {
-        $user = \Auth::user();
+        $user = auth()->user();
         $playlists = new \stdClass();
         $playlists->followed = $this->follows('playlist');
-        $playlists->own = PlaylistResource::collection($user->playlists()->where('created_by', '!=', 'admin')->get());
+        $playlists->own = PlaylistResource_index::collection($user->playlists()->where('created_by', '!=', 'admin')->get());
         return response()->json($playlists, 200);
     }
     /**
@@ -405,11 +428,11 @@ class UserController extends Controller
 
         if( count($localIds) ) {
             if( $type == 'artist' ) {
-                $local_follows = ArtistResource::collection(collect(Artist::whereIn('id', $localIds)->get()));
+                $local_follows = ArtistResource_basic::collection(collect(Artist::whereIn('id', $localIds)->get()));
             } else if ( $type === 'podcast' ) {
-                $local_follows = PodcastResource::collection(collect(Podcast::whereIn('id', $localIds)->get()));
+                $local_follows = PodcastResource_basic::collection(collect(Podcast::whereIn('id', $localIds)->get()));
             }else if ( $type === 'playlist' ) {
-                $local_follows = PlaylistResource::collection(collect(Playlist::whereIn('id', $localIds)->get()));
+                $local_follows = PlaylistResource_basic::collection(collect(Playlist::whereIn('id', $localIds)->get()));
             }
             $collection = $collection->toBase()->merge($local_follows);
         }
@@ -455,8 +478,8 @@ class UserController extends Controller
      */
     public function recentPlays()
     {
-        $user = \Auth::user();
-        return SongResource::collection(\App\Song::whereIn('id',$user->plays()->selectRaw('content_id, COUNT(*)')->groupBy('content_id')->get()->pluck('content_id'))->orderBy('created_at','desc')->take(10)->get());
+        $user = auth()->user();
+        return SongResource_basictoplay::collection(\App\Song::whereIn('id',$user->plays()->selectRaw('content_id, COUNT(*)')->groupBy('content_id')->get()->pluck('content_id'))->orderBy('created_at','desc')->take(10)->get());
     }
     /**
      * Get the current user liked albums.
@@ -474,7 +497,7 @@ class UserController extends Controller
      */
     public function likedSongs()
     {
-        return SongResource::collection(\DB::table('likes')->select(\DB::raw('content_id as id'), \DB::raw('user_id as liker_id'))->where('user_id', auth()->user()->id)->where('content_type', 'song')->join('songs', 'songs.id', '=', 'liker_id')->get());
+        return SongResource_basictoplay::collection(\DB::table('likes')->select(\DB::raw('content_id as id'), \DB::raw('user_id as liker_id'))->where('user_id', auth()->user()->id)->where('content_type', 'song')->join('songs', 'songs.id', '=', 'liker_id')->get());
     }
     /**
      * Get the current user followed podcasts.
@@ -483,7 +506,7 @@ class UserController extends Controller
      */
     public function followedPodcasts()
     {
-        return PodcastResource::collection(\DB::table('follows')->select(\DB::raw('content_id as id'), \DB::raw('user_id as follower_id'))->where('user_id', auth()->user()->id)->where('content_type', 'podcast')->join('podcasts', 'podcasts.id', '=', 'follower_id')->get());
+        return PodcastResource_basic::collection(\DB::table('follows')->select(\DB::raw('content_id as id'), \DB::raw('user_id as follower_id'))->where('user_id', auth()->user()->id)->where('content_type', 'podcast')->join('podcasts', 'podcasts.id', '=', 'follower_id')->get());
 
     }
     /**
@@ -509,54 +532,6 @@ class UserController extends Controller
             return response()->json(['message' => 'SUCCESS'], 200);
         }
         return response()->json(['message' => 'NOT_FOUND'], 404);
-    }
-    /**
-     * Follow an artist.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function followArtist(Request $request)
-    {
-        $user_id = $request->user_id;
-        $artist_id = $request->artist_id;
-        \App\ArtistFollow::create([
-            'user_id' => $user_id,
-            'artist_id' => $artist_id
-        ]);
-        return true;
-    }
-    /**
-     * Unfollow an artist.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function unfollowArtist(Request $request)
-    {
-        $user_id = $request->user_id;
-        $artist_id = $request->artist_id;
-        $follow = \App\ArtistFollow::where([
-            'user_id' => $user_id,
-            'artist_id' => $artist_id
-        ]);
-        $follow->delete();
-        return true;
-    }
-    /**
-     * Get the current user followed artists.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public static function followedArtists($id = null)
-    {
-        if (isset($id)) {
-            $follows = ArtistResource::collection(\App\ArtistFollow::where('user_id', User::find($id))->with('artist')->get()->pluck('artist'));
-        } else {
-            $follows = ArtistResource::collection(\App\ArtistFollow::where('user_id', \Auth::user()->id)->with('artist')->get()->pluck('artist'));
-        }
-
-        return $follows;
     }
     /**
      * Like.
@@ -638,7 +613,7 @@ class UserController extends Controller
         foreach ($sales as $sale) {
             foreach ($sale->products as $product) {
                 if( $product->productable_type == 'App\Song') {
-                    array_push($songs, new SongResource($product->productable));
+                    array_push($songs, new SongResource_basic($product->productable));
                 } else if ( $product->productable_type == 'App\Album' ) {
                     array_push($albums, new AlbumResource($product->productable));
                 }
@@ -671,5 +646,17 @@ class UserController extends Controller
         $user = User::find($id);
         $user->delete();
         return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
+    public function block(User $user) {
+        $user->blocked = 1;
+        $user->save();
+        return response()->json();
+    }
+
+    public function unblock(User $user) {
+        $user->blocked = 0;
+        $user->save();
+        return response()->json();
     }
 }

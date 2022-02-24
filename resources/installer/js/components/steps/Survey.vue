@@ -4,7 +4,7 @@
             <v-col cols="12">
                 <v-switch
                     v-model="survey.podcasts"
-                    label="I want to enable podcasts"
+                    label="Podcasts: I want to enable podcasts"
                     messages="Check if you want to enable podcasts on your app"
                     type="checkbox"
                     required
@@ -13,7 +13,7 @@
             <v-col cols="12">
                 <v-switch
                     v-model="survey.artists"
-                    label="I want to allow artist accounts"
+                    label="Artists: I want to allow artist accounts"
                     messages="Check if you want to enable artist accounts"
                     type="checkbox"
                     required
@@ -22,8 +22,16 @@
             <v-col cols="12">
                 <v-switch
                     v-model="survey.saas"
-                    label="I want to use Muzzie as SaaS (Software as a service)"
+                    label="SaaS: I want to use Muzzie as SaaS (Software as a service)"
                     messages="Check if you want to earn money through Muzzie."
+                    type="checkbox"
+                    required
+                ></v-switch>
+            </v-col>
+            <v-col cols="12">
+                <v-switch
+                    v-model="survey.radio"
+                    label="Radio: I want to have a seprate page for radio"
                     type="checkbox"
                     required
                 ></v-switch>
@@ -54,16 +62,16 @@
                     ></v-switch>
                 </v-col>
                 <template v-if="survey.sell && survey.artists">
-                <v-col cols="12">
-                    <v-text-field
-                        v-model="survey.artist_sale_cut"
-                        :label="'Artist Sale Cut'"
-                        outlined
-                        class="pr-2"
-                        type="number"
-                        messages="Artist cut after the sale of his product. Enter the amount in percentage (max. 100)"
-                    ></v-text-field>
-                </v-col>
+                    <v-col cols="12">
+                        <v-text-field
+                            v-model="survey.artist_sale_cut"
+                            :label="'Artist Sale Cut'"
+                            outlined
+                            class="pr-2"
+                            type="number"
+                            messages="Artist cut after the sale of his product. Enter the amount in percentage (max. 100)"
+                        ></v-text-field>
+                    </v-col>
                 </template>
                 <v-col cols="12">
                     <v-switch
@@ -129,27 +137,28 @@ export default {
             podcasts: true,
             artists: true,
             saas: true,
+            radio: true,
             artist_royalty: 50,
             artist_sale_cut: 90,
             royalties: true,
             subscription: true,
-            default_currency: currencies[0]
+            default_currency: currencies[0],
         },
-        currencies
+        currencies,
     }),
     computed: {
-                defaultCurrencySymbol() {
-            return this.survey.default_currency.symbol ?
-            this.survey.default_currency.symbol :
-            (this.survey.default_currency.value + ' ')
-        }
+        defaultCurrencySymbol() {
+            return this.survey.default_currency.symbol
+                ? this.survey.default_currency.symbol
+                : this.survey.default_currency.value + " ";
+        },
     },
     methods: {
         price(amount) {
             if (isNaN(amount)) return 0;
             return parseFloat((amount / 100).toFixed(2));
-        }
-    }
+        },
+    },
 };
 </script>
 

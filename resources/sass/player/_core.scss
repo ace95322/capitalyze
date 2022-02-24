@@ -136,3 +136,15 @@
 .panel-color {
     background-color: $light-theme-panel-bg-color !important;
 }
+
+.hovered {
+    .control-layer {
+        opacity: 1;
+        .button-dots {
+            opacity: 0;
+        }
+        .button-heart {
+            opacity: 0;
+        }
+    }
+}

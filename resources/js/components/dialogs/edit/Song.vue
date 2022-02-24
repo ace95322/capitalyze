@@ -271,7 +271,7 @@
             <div class="title">{{ $t("Product") }}</div>
             <v-divider></v-divider>
           </v-col>
-          <v-col>
+          <v-col cols="12">
             <v-switch
               :label="
                 'Provide as product' +
@@ -281,7 +281,23 @@
               "
               :disabled="!$store.getters.getSettings.enableBilling"
               v-model="editedSong.isProduct"
+              @change="editedSong.isProduct ? (editedSong.playSample = true, editedSong.sampleSeconds = 5)  : (editedSong.playSample = false, editedSong.sampleSeconds = 5) "
             ></v-switch>
+          </v-col>
+          <v-col cols="12" v-if="editedSong.isProduct">
+            <v-switch
+              :label="
+                $t('Play sample only')
+              "
+              v-model="editedSong.playSample"
+            ></v-switch>
+            <v-spacer></v-spacer>
+            <v-text-field
+              :label="$t('Seconds to play before showing the purchase dialog')"
+              outlined
+              type="number"
+              v-model="editedSong.sampleSeconds"
+            ></v-text-field>
           </v-col>
           <v-col cols="12" v-if="editedSong.isProduct">
             <div class="d-flex justify-space-between">
@@ -734,6 +750,14 @@ export default {
       }
       if (this.editedSong.deezer_link) {
         formData.append("deezer_link", this.editedSong.deezer_link);
+      }
+
+      if (this.editedSong.playSample) {
+        formData.append("playSample", this.editedSong.playSample == true ? 1 : 0);
+      }
+
+      if (this.editedSong.sampleSeconds) {
+        formData.append("sampleSeconds", this.editedSong.sampleSeconds);
       }
 
       if (this.editedSong.public) {

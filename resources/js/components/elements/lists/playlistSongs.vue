@@ -14,7 +14,7 @@
                 class="item-list__item relative"
                 v-for="(song, i) in songs"
                 :key="i"
-                @click="$store.dispatch('playSong', { song, reset: true })"
+                @click="play(song, true)"
                 @contextmenu.prevent.stop="
                     $store.commit('setSongContextMenu', compid + i)
                 "

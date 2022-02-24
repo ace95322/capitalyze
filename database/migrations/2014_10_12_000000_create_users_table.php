@@ -26,6 +26,7 @@ class CreateUsersTable extends Migration
             $table->text('is_playing')->nullable();
             $table->boolean('requested_artist_account')->default(0);
             $table->boolean('is_admin')->default(0);
+            $table->boolean('blocked')->default(0);
             $table->boolean('hide_activity')->default(0);
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();

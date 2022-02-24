@@ -4,18 +4,21 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media as MM;
 use App\Traits\Search;
 
-class Album extends Model
+class Album extends Model implements HasMedia
 {
+    use InteractsWithMedia;
     /**
     * the attributes that are mass assignable.
     * @var array
-    */ 
+    */
     // protected $fillable = ['artist_id','release_date','cover','featured','title','created_by'];
     protected $guarded = [];
-    
+
     public function artists()
     {
         $artists = [];
@@ -38,10 +41,6 @@ class Album extends Model
     {
         return $this->hasMany('App\Song');
     }
-    public function videos()
-    {
-        return $this->hasMany('App\Video');
-    }
     public function plays()
     {
         return $this->hasMany('App\Play', 'content_id')->where('plays.content_type', '=', 'album');
@@ -50,7 +49,7 @@ class Album extends Model
     {
         return $this->hasMany('App\Like', 'content_id')->where('likes.content_type', '=', 'album');
     }
-    
+
     public function product()
     {
         return $this->morphOne(Product::class, 'productable');
@@ -58,11 +57,25 @@ class Album extends Model
 
     public static function boot() {
         parent::boot();
-        static::deleting(function($model) { 
-             // delete the album data after deletion
-            \App\Helpers\FileManager::delete($model->cover);
+        static::deleting(function($model) {
             $model->likes()->delete();
             $model->songs()->delete();
         });
+    }
+
+    public function registerMediaConversions(MM $media = null): void
+    {
+        if( Setting::get('optimize_images') ) {
+            $this->addMediaConversion('thumbnail')
+            ->width(80)
+            ->height(80)
+            ->performOnCollections('cover')
+            ->nonQueued();
+        }
+    }
+
+    public function videos()
+    {
+        return $this->hasMany('App\Video');
     }
 }

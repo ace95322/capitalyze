@@ -3,15 +3,12 @@
 namespace App\Traits;
 
 use App\Helpers\Content\ListenNotes\ListenNotes;
-use App\Helpers\Content\ListenNotes\ListenNotesAPI;
+use App\Http\Resources\Album\AlbumResource_index;
 use DB;
 use Spotify;
-use App\Http\Resources\AlbumResource;
 use App\Http\Resources\ListenNotes\PodcastResource as ListenNotesPodcastResource;
-use App\Http\Resources\SongResource;
-use App\Http\Resources\PodcastResource;
-use App\Http\Resources\Song\OnlyBasic;
-use App\Http\Resources\Song\OnlyBasicToPlay;
+use App\Http\Resources\Podcast\PodcastResource_index;
+use App\Http\Resources\Song\SongResource_basictoplay;
 use App\Http\Resources\Spotify\AlbumResource as SpotifyAlbumResource;
 use App\Setting;
 use Illuminate\Support\Facades\Cache;
@@ -76,10 +73,10 @@ trait SectionContentTrait
         if( $source === 'local' || $source === '*')
         {
             $latest_local_albums = \App\Album::orderBy('release_date', 'desc')->take($nb_items)->get();
-            $local_albums = AlbumResource::collection($latest_local_albums);
+            $local_albums = AlbumResource_index::collection($latest_local_albums);
             if( $nb_items >  count($latest_local_albums)) {
                 $latest_local_songs = \App\Song::orderBy('created_at', 'desc')->take($nb_items - count($latest_local_albums))->get();
-                $local_songs =  OnlyBasicToPlay::collection($latest_local_songs);
+                $local_songs =  SongResource_basictoplay::collection($latest_local_songs);
                 $collection = $collection->toBase()->merge($local_songs);
             }
             $collection = $collection->toBase()->merge($local_albums);
@@ -149,7 +146,7 @@ trait SectionContentTrait
      */
     public function sectionLatestPodcasts($nb_items)
     {
-        return PodcastResource::collection(\App\Podcast::orderBy('created_at', 'desc')->take($nb_items)->get());;
+        return PodcastResource_index::collection(\App\Podcast::orderBy('created_at', 'desc')->take($nb_items)->get());;
     }
 
     /**

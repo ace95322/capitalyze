@@ -28,6 +28,7 @@ class CreateSongsTable extends Migration
             $table->bigInteger('file_size')->nullable();
             $table->string('file_name')->nullable();
             $table->boolean('public')->default(0);
+            $table->boolean('hls')->default(0);
 
             // update V2.1
             $table->boolean('isProduct')->default(0);
@@ -36,6 +37,9 @@ class CreateSongsTable extends Migration
             //
             $table->boolean('rank_on_album')->nullable();
             $table->integer('album_id')->unsigned()->nullable();
+            //
+            $table->boolean('playSample')->default(0)->nullable();
+            $table->integer('sampleSeconds')->default(0)->nullable();
             $table->timestamps();
         });
         \DB::statement("ALTER TABLE songs AUTO_INCREMENT = 1687415;");

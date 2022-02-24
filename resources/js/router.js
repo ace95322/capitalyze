@@ -173,6 +173,15 @@ const router = new VueRouter({
                     ]
                 },
                 {
+                    path: "campaigns",
+                    component: () =>
+                        import(
+                            /* webpackChunkName: "admin" */ "./components/admin/pages/Campaigns.vue"
+                        ),
+                    name: "settings.campaigns",
+                    props: true
+                },
+                {
                     path: "pages",
                     component: () =>
                         import(
@@ -187,6 +196,14 @@ const router = new VueRouter({
                             /* webpackChunkName: "admin" */ "./components/admin/pages/Roles.vue"
                         ),
                     name: "admin.roles"
+                },
+                {
+                    path: "upload",
+                    component: () =>
+                        import(
+                            /* webpackChunkName: "admin" */ "./components/admin/pages/Upload.vue"
+                        ),
+                    name: "admin.upload"
                 },
                 {
                     path: "users",
@@ -541,6 +558,17 @@ const router = new VueRouter({
                     }
                 },
                 {
+                    path: "episode/:id",
+                    name: "episode",
+                    component: () =>
+                        import(
+                            /* webpackChunkName: "player" */ "./components/player/pages/Episode.vue"
+                        ),
+                    meta: {
+                        episodeRelated: true
+                    }
+                },
+                {
                     path: "/podcasts",
                     name: "podcasts",
                     component: () =>
@@ -575,9 +603,17 @@ const router = new VueRouter({
                     path: "song/:id",
                     component: () =>
                         import(
-                            /* webpackChunkName: "player" */ "./components/player/pages/song.vue"
+                            /* webpackChunkName: "player" */ "./components/player/pages/Song.vue"
                         ),
                     name: "song"
+                },
+                {
+                    path: "radio-station/:id",
+                    component: () =>
+                        import(
+                            /* webpackChunkName: "player" */ "./components/player/pages/RadioStation.vue"
+                        ),
+                    name: "radio-station"
                 },
                 {
                     path: "album/:id",

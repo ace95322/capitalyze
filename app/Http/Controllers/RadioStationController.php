@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\FEException;
-use App\Helpers\FileManager;
+use App\Exports\RadioStationExport;
+use App\Helpers\Media;
 use App\Helpers\Radio\Radio;
 use App\Http\Resources\RadioStationResource;
 use App\RadioStation;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Traits\Search;
 use Exception;
+use Maatwebsite\Excel\Facades\Excel;
 
 class RadioStationController extends Controller
 {
@@ -22,6 +24,17 @@ class RadioStationController extends Controller
     public function index()
     {
         return RadioStationResource::collection(RadioStation::all());
+    }
+
+    /**
+     * Display the specified resource (fetch the data for the frontend).
+     *
+     * @param  \App\Song  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Request $request, RadioStation $radio_station)
+    {
+        return new RadioStationResource($radio_station);
     }
     /**
      * Store a newly created resource in storage.
@@ -36,11 +49,8 @@ class RadioStationController extends Controller
             'streamEndpoint' => 'required'
         ]);
 
-        $cover = FileManager::store($request, '/covers/radio-stations/', 'cover');
-
         $radioStation = RadioStation::create([
             'name' => $request->name,
-            'cover' => $cover,
             'streamEndpoint' => $request->streamEndpoint,
             'serverType' => $request->serverType,
             'serverURL' => $request->serverURL,
@@ -55,24 +65,36 @@ class RadioStationController extends Controller
             'interval' => intval($request->interval),
         ]);
 
+        if ($file = $request->file('cover')) {
+            Media::updateImage($radioStation, $file, 'cover', 200);
+        } else {
+            Media::setDefault($radioStation, 'defaults/images/podcast_cover.png', 'cover');
+        }
+
         try {
             return new RadioStationResource($radioStation);
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             throw new FEException('Failed to connect to stream. Please make sure your data is correct.', $e->getMessage(), 500);
         }
         return response()->json(['message' => 'SUCCESS'], 200);
     }
     // getting the stats using proxy
-    public function getMetaDataProxy($station_id) {
+    public function getMetaDataProxy($station_id)
+    {
         $station = RadioStation::find($station_id);
-        $response =  Http::get($station->endpoint)->json();
-        if( $response )
-        return response()->json($response);
-        else
-        return response()->json([], 200);
+        try {
+            $response =  Http::timeout(3)->get($station->streamEndpoint);
+            if ($response)
+                return response()->json($response);
+            else
+                return response()->json([], 200);
+        } catch (\Throwable $th) {
+            return response()->json([], 200);
+        }
     }
     // getting the stats from server with auth
-    public function getMetaDataServer($station_id) {
+    public function getMetaDataServer($station_id)
+    {
         $station = RadioStation::find($station_id);
         $radio = new Radio();
         $stats = $radio->parse($station);
@@ -101,9 +123,8 @@ class RadioStationController extends Controller
 
         $radioStation = RadioStation::find($id);
 
-
-        if ($request->file('cover')) {
-            $radioStation->cover = FileManager::update($request->file('cover'), $radioStation->cover, '/covers/radio-stations/');
+        if ($file = $request->file('cover')) {
+            Media::updateImage($radioStation, $file, 'cover', 200);
         }
 
         $radioStation->name = $request->name;
@@ -143,5 +164,16 @@ class RadioStationController extends Controller
         $radioStation->delete();
 
         return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
+    /**
+     * Export CSV
+     *
+     * @return void
+     */
+    public function exportCSV(Request $request)
+    {
+        $export = new RadioStationExport($request->get('start_date', null),  $request->get('end_date', null));
+        return Excel::download($export, 'RadioStation.csv');
     }
 }

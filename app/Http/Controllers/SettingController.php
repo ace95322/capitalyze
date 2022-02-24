@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\Filesystem\Path;
 
 class SettingController extends Controller
 {
@@ -253,6 +254,50 @@ class SettingController extends Controller
             Setting::set('S3Bucket', $request->S3Bucket, 0);
             Setting::set('S3Endpoint', $request->S3Endpoint, 0);
         }
+
+        if ($disk === "ftp") {
+            // test the connection
+            Artisan::call('config:clear');
+            config([
+                'filesystems.disks.ftp.host' => $request->host,
+                'filesystems.disks.ftp.username' => $request->username,
+                'filesystems.disks.ftp.password' => $request->password,
+                'filesystems.disks.ftp.port' => $request->port,
+                'filesystems.disks.ftp.passive' => $request->passive,
+                'filesystems.disks.ftp.ssl' => $request->ssl,
+                'filesystems.disks.ftp.root' => $request->root,
+                'filesystems.disks.ftp.timeout' => $request->timeout
+            ]);
+            // dd(config());
+            try {
+                Storage::disk('ftp')->put('test_file.txt', 'test');
+                Storage::disk('ftp')->delete('test_file.txt');
+            } catch (\Exception $e) {
+                throw new FEException(__('Failed to connect to FTP host.') . ' ' . __('Make sure your information is correct.'), $e->getMessage(), 500);
+            }
+            $path = base_path('.env');
+            $content = file_get_contents($path);
+            $content  = preg_replace('/FTP_HOST=.*/', 'FTP_HOST=' . $this->formatValue($request->FTP_HOST), $content);
+            $content  = preg_replace('/FTP_USERNAME=.*/', 'FTP_USERNAME=' . $this->formatValue($request->FTP_USERNAME), $content);
+            $content  = preg_replace('/FTP_PASSWORD=.*/', 'FTP_PASSWORD=' . $this->formatValue($request->FTP_PASSWORD), $content);
+            $content  = preg_replace('/FTP_PORT=.*/', 'FTP_PORT=' . $this->formatValue($request->FTP_PORT), $content);
+            $content  = preg_replace('/FTP_ROOT=.*/', 'FTP_ROOT=' . $this->formatValue($request->FTP_ROOT), $content);
+            $content  = preg_replace('/FTP_PASSIVE=.*/', 'FTP_PASSIVE=' . $this->formatValue($request->FTP_PASSIVE), $content);
+            $content  = preg_replace('/FTP_SSL=.*/', 'FTP_SSL=' . $this->formatValue($request->FTP_SSL), $content);
+            $content  = preg_replace('/FTP_TIMEOUT=.*/', 'FTP_TIMEOUT=' . $this->formatValue($request->FTP_SSL), $content);
+
+            file_put_contents($path, $content);
+
+            Setting::set('FTP_HOST', $request->FTP_HOST, 0);
+            Setting::set('FTP_USERNAME', $request->FTP_USERNAME, 0);
+            Setting::set('FTP_PASSWORD', $request->FTP_PASSWORD, 0);
+            Setting::set('FTP_ROOT', $request->FTP_ROOT, 0);
+            Setting::set('FTP_PASSIVE', $request->FTP_PASSIVE, 0);
+            Setting::set('FTP_SSL', $request->FTP_SSL, 0);
+            Setting::set('FTP_TIMEOUT', $request->FTP_TIMEOUT, 0);
+            Setting::set('FTP_PORT', $request->FTP_PORT, 0);
+        }
+
         if ($disk === "b2") {
             $endpoint = preg_match('/http|https/', $request->blackblazeEndpoint) ? $request->blackblazeEndpoint : 'https://' . $request->blackblazeEndpoint;
             // test the connection
@@ -286,6 +331,8 @@ class SettingController extends Controller
         }
         Setting::set('storageDisk', $request->storageDisk);
         Setting::set('maxImageSize', $request->maxImageSize);
+        Setting::set('optimize_images', $request->optimize_images);
+        Setting::set('image_dimensions', $request->image_dimensions);
         Setting::set('maxFileSize', $request->maxFileSize);
         Setting::set('availableUserDiskSpace', $request->availableUserDiskSpace);
         Setting::set('availableArtistDiskSpace', $request->availableArtistDiskSpace);
@@ -495,6 +542,7 @@ class SettingController extends Controller
     {
         if ($request->file('logo')) {
             $newLogo = FileManager::asset_path(FileManager::update($request->file('logo'), Setting::get('appLogo'), '/'));
+
             Setting::set('appLogo', $newLogo);
         } else {
             Setting::set('appLogo', $request->logo);
@@ -504,11 +552,6 @@ class SettingController extends Controller
         } else {
             Setting::set('appFavicon', $request->favicon);
         }
-        // if ($request->file('favicon')) {
-        //     Setting::set('appFavicon', FileManager::asset_path(FileManager::update($request->file('favicon'), Setting::get('appfavicon'), '/')));
-        // } else {
-        //     Setting::set('appFavicon', $request->favicon);
-        // }
         Setting::set('playerLanding', $request->playerLanding);
         Setting::set('hideRightSidebar', $request->hideRightSidebar);
         Setting::set('enableThemeSwitcher', $request->enableThemeSwitcher);
@@ -535,6 +578,55 @@ class SettingController extends Controller
             Setting::set('autoPlay', 0);
             Setting::set('crossfade', 0);
         }
+
+        if( $request->enable_ffmpeg ) {
+            // test if path is correct befor saving
+            try {
+                \FFMpeg\FFMpeg::create([
+                    'ffmpeg.binaries' => $request->ffmpeg_path,
+                    'ffprobe.binaries' => $request->ffprobe_path,
+                    'timeout' => 7200,
+                    // 'ffmpeg.threads' => 12,
+                ]);
+            } catch (\Exception $e) {
+                throw new FEException(__($e->getMessage()),  __('Make sure FFMPEG path is correct.'), 420);
+            }
+          
+            Setting::set('enable_ffmpeg', $request->enable_ffmpeg);
+            Setting::set('ffprobe_path', $request->ffprobe_path);
+            Setting::set('ffmpeg_path', $request->ffmpeg_path);
+        } else {
+            Setting::set('enable_ffmpeg', false);
+        }
+    
+      
+        if( $request->enable_youtubedl ) {
+            Setting::set('enable_youtubedl', $request->enable_youtubedl);
+            Setting::set('youtubedl_path', $request->youtubedl_path);
+        } else {
+            Setting::set('enable_youtubedl', false);
+        }
+
+        if( $request->enable_hls ) {
+            Setting::set('enable_hls', $request->enable_hls);
+            Setting::set('hls_chunk_duration', $request->hls_chunk_duration);
+            Setting::set('hls_save_original_file', $request->hls_save_original_file);
+            Setting::set('enable_hls_encryption', $request->enable_hls_encryption);
+
+            if( true || $request->enable_hls_encryption && !file_exists(public_path('enc.keyinfo')) ) {
+                $enckeyinfo = fopen(public_path('enc.keyinfo'), "w");
+
+                $content = Path::join(config('app.url'), "enc.key") . "\n" . "enc.key";
+
+                fwrite( $enckeyinfo, $content);
+                
+                fclose($enckeyinfo);
+
+            }
+        } else {
+            Setting::set('enable_hls', false);
+        }
+
         Cache::put('settings', Setting::getPublicSettings(), 7200);
 
         return response()->json(['message' => 'SUCCESS'], 200);

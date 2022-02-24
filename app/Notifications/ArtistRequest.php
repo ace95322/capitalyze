@@ -2,8 +2,8 @@
 
 namespace App\Notifications;
 
+use App\Http\Resources\Artist\ArtistResource_index;
 use App\User;
-use App\Http\Resources\ArtistResource;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -16,7 +16,7 @@ class ArtistRequest extends Notification
      *
      * @return void
      */
-    public function __construct(User $user, ArtistResource $artist)
+    public function __construct(User $user, ArtistResource_index $artist)
     {
         $this->user = $user;
         $this->artist = $artist;

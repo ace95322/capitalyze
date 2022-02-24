@@ -1,7 +1,7 @@
 <template>
     <div class="content-encap-wrapper">
         <div class="control-layer">
-            <button class="play-button" @click="$store.dispatch('playSong', { song, reset: true });">
+            <button class="play-button" @click="play(song, true)">
                 <img src="/svg/play-round.svg" alt="next" class="svg-image" />
             </button>
         </div>

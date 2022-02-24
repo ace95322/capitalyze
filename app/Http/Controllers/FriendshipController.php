@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Notifications\FriendRequest;
 use Illuminate\Http\Request;
 use App\Http\Resources\chat\UserResource;
-use App\Helpers\FileManager;
 use App\Session;
 use App\Friendship;
+use App\Helpers\Media;
 
 class FriendshipController extends Controller
 {
@@ -43,7 +43,7 @@ class FriendshipController extends Controller
         //checking if notification 
         $notification = \DB::table('notifications')->where('type', 'App\Notifications\FriendRequest')->where('notifiable_id', $request->user_id)->first();
         if (!$notification || json_decode($notification->data)->id !== auth()->user()->id) {
-            $user->notify(new FriendRequest(['id' => $authUser->id, 'name' => $authUser->name, 'avatar' => FileManager::asset_path($authUser->avatar)]));
+            $user->notify(new FriendRequest(['id' => $authUser->id, 'name' => $authUser->name, 'avatar' => Media::get( $authUser, 'cover')]));
         }
         return response()->json(['message' => 'SUCCESS'], 200);
     }

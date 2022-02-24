@@ -2,11 +2,9 @@
 
 namespace App\Http\Resources;
 
-use App\Helpers\FileManager;
-use App\Http\Resources\Album\OnlyBasic as AlbumOnlyBasic;
-use App\Http\Resources\Song\OnlyBasic as SongOnlyBasic;
+use App\Http\Resources\Album\AlbumResource_basic;
+use App\Http\Resources\Song\SongResource_basic;
 use Illuminate\Http\Resources\Json\JsonResource;
-use stdClass;
 
 class CartResource extends JsonResource
 {
@@ -33,9 +31,9 @@ class CartResource extends JsonResource
         $items = [];
         foreach ($carts as $item) {
             if( $item->product->productable_type == 'App\Song') {
-                $item->item = new SongOnlyBasic($item->product->productable);
+                $item->item = new SongResource_basic($item->product->productable);
             } else if ( $item->product->productable_type == 'App\Album' ) {
-                $item->item  = new AlbumOnlyBasic($item->product->productable);
+                $item->item  = new AlbumResource_basic($item->product->productable);
             }
             array_push($items, $item);
         }

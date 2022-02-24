@@ -104,6 +104,18 @@
             color: $dark-theme-text-color !important;
         }
     }
+
+    .filepond--panel-root,
+    .filepond--panel[data-scalable=true] {
+        background-color: $dark-theme-panel-bg-color !important;
+    }
+
+    .divider {
+        &__text {
+            background: #1E1E1E;
+        }
+    }
+    
 }
 
 .player--dark {
@@ -115,6 +127,7 @@
         background-color: $dark-theme-panel-bg-color !important;
     }
 }
+
 
 // .theme--dark.v-btn.v-btn--has-bg
 

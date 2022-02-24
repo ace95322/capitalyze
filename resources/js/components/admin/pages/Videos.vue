@@ -13,6 +13,14 @@
                     <v-icon>$vuetify.icons.plus</v-icon>
                     {{ $t("New") }}
                 </v-btn>
+                <v-btn
+                    class="mx-2"
+                    dark
+                    small
+                    color="primary"
+                    @click="exportCSV()"
+                >{{ $t("Export CSV") }}
+                </v-btn>
                 <v-spacer></v-spacer>
                 <v-spacer></v-spacer>
                 <div class="admin-search-bar">
@@ -339,7 +347,38 @@ export default {
                 title: this.$t("Created"),
                 text: this.$t("Video") + " " + this.$t("Created") + "."
             });
-        }
+        },
+        exportCSV() {
+            // console.log(this.start_date);
+            // console.log(this.end_date);
+            var url = '/api/admin/video/export?';
+            // if(this.start_date){
+            //     url += 'start_date='+ this.start_date;
+            // }
+            // if(this.end_date){
+            //     url += 'end_date='+ this.end_date;
+            // }
+            axios({
+                url: url,
+                method: 'GET',
+            }).then((response) => {
+                var fileURL = URL.createObjectURL(new Blob([response.data], {
+                    type: 'text/csv'
+                }));
+                var fileLink = document.createElement('a');
+                fileLink.href = fileURL;
+                fileLink.setAttribute('download', 'Video.csv');
+                document.body.appendChild(fileLink);
+                fileLink.click();
+
+                this.$notify({
+                    group: "foo",
+                    type: "success",
+                    title: this.$t("Export"),
+                    text: this.$t("Video data") + " " + this.$t("Exported") + "."
+                });
+            }).catch(() => {});
+        },
     }
 };
 </script>

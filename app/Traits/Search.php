@@ -3,18 +3,24 @@
 namespace App\Traits;
 
 use App\Helpers\Content\ListenNotes\ListenNotes;
-use App\Http\Resources\AlbumResource;
-use App\Http\Resources\ArtistResource;
-use App\Http\Resources\EpisodeResource;
+use App\Http\Resources\Album\AlbumResource_basic;
+use App\Http\Resources\Album\AlbumResource_index;
+use App\Http\Resources\Artist\ArtistResource_basic;
+use App\Http\Resources\Episode\EpisodeResource_index;
+
+
 use App\Http\Resources\ListenNotes\EpisodeResource as ListenNotesEpisodeResource;
 use App\Http\Resources\ListenNotes\Pages\PodcastResource as PagesPodcastResource;
 use App\Http\Resources\ListenNotes\PodcastResource as ListenNotesPodcastResource;
 use App\Http\Resources\ListenNotes\PodcastSearchResource;
-use App\Http\Resources\PlaylistResource;
-use App\Http\Resources\PodcastResource;
+use App\Http\Resources\Playlist\PlaylistResource_index;
+use App\Http\Resources\Podcast\PodcastResource_basic;
+
+use App\Http\Resources\Podcast\PodcastResource_index;
 use App\Http\Resources\profiles\ArtistResource as ProfilesArtistResource;
 use App\Http\Resources\RadioStationResource;
-use App\Http\Resources\SongResource;
+use App\Http\Resources\Song\SongResource_basictoplay;
+use App\Http\Resources\Song\SongResource_index as SongSongResource_index;
 use App\Http\Resources\Spotify\AlbumResource as SpotifyAlbumResource;
 use App\Http\Resources\Spotify\ArtistResource as SpotifyArtistResource;
 use App\Http\Resources\Spotify\PlaylistResource as SpotifyPlaylistResource;
@@ -61,7 +67,7 @@ trait Search
             $collection = $collection->toBase()->merge($spotify_artists);
         }
         if (self::canSearchThrough('local', $engines)) {
-            $local_artists =  ArtistResource::collection(
+            $local_artists =  ArtistResource_basic::collection(
                 \App\Artist::where('displayname', 'like', $keyword . '%')
                     ->orWhere('firstname', 'like', $keyword . '%')
                     ->orWhere('lastname', 'like', $keyword . '%')
@@ -87,7 +93,7 @@ trait Search
             $collection = $collection->toBase()->merge($spotify_albums);
         }
         if (self::canSearchThrough('local', $engines)) {
-            $local_albums =  AlbumResource::collection(\App\Album::where('title', 'like', $keyword . '%')->limit(5)->get());
+            $local_albums =  AlbumResource_basic::collection(\App\Album::where('title', 'like', $keyword . '%')->limit(5)->get());
             $collection = $collection->toBase()->merge($local_albums);
         }
 
@@ -103,14 +109,24 @@ trait Search
         $collection = new Collection();
         if (self::isListenNotesAllowed() && self::canSearchThrough('listen_notes', $engines)) {
             $rows = ListenNotes::podcasts($keyword);
-            if( $search ) {
-                $listen_notes_podcasts = PodcastSearchResource::collection($rows);
-            } else {
-                $listen_notes_podcasts = ListenNotesPodcastResource::collection($rows);
+            $podcasts = [];
+            $episodes = [];
+            foreach ($rows as $row) {
+                if($row->audio) {
+                    array_push($episodes, new ListenNotesEpisodeResource($row));
+                } else {
+                    if( $search ) {
+                        array_push($podcasts, new PodcastSearchResource($row)) ;
+                    } else {
+                        array_push($podcasts, new ListenNotesPodcastResource($row));
+                    }
+                }
             }
-            $collection = $collection->toBase()->merge($listen_notes_podcasts);
+
+            $collection = $collection->toBase()->merge($podcasts);
+            $collection = $collection->toBase()->merge($episodes);
         }
-        $local_podcasts =  PodcastResource::collection(\App\Podcast::where('title', 'like', $keyword . '%')->limit(5)->get());
+        $local_podcasts =  PodcastResource_basic::collection(\App\Podcast::where('title', 'like', $keyword . '%')->limit(5)->get());
         $collection = $collection->toBase()->merge($local_podcasts);
         return $collection;
     }
@@ -152,7 +168,7 @@ trait Search
             $collection = $collection->toBase()->merge($spotify_tracks);
         }
         if (self::canSearchThrough('local', $engines)) {
-            $local_tracks =  SongResource::collection(\App\Song::where('title', 'like', $keyword . '%')->limit(5)->get());
+            $local_tracks =  SongResource_basictoplay::collection(\App\Song::where('title', 'like', $keyword . '%')->limit(5)->get());
             $collection = $collection->toBase()->merge($local_tracks);
         }
 
@@ -194,7 +210,7 @@ trait Search
                 {
                     return new ProfilesArtistResource($artist);
                 } else {
-                    return new ArtistResource($artist);
+                    return new ArtistResource_basic($artist);
                 }
                 
             } else {
@@ -225,7 +241,7 @@ trait Search
             if( !$resource ) {
                 return $song;
             } else {
-                return new SongResource($song);
+                return new SongSongResource_index($song);
             }
         } else {
             if (self::isSpotifyAllowed()) {
@@ -248,16 +264,28 @@ trait Search
         return null;
     }
 
-    public static function getEpisode($id)
+    public static function getEpisode($id, $page=false, $resource=false)
     {
         if ($episode = \App\Episode::find($id)) {
-            return new EpisodeResource($episode);
+            if( !$resource ) {
+                return $episode;
+            } else {
+                return new EpisodeResource_index($episode);
+            }
         } else {
             if (self::isListenNotesAllowed()) {
                 try {
                     $episode = ListenNotes::episode($id);
-                    return new ListenNotesEpisodeResource($episode);
-                } catch (\Exception $e) {}
+                    
+                    if( $resource ) {
+                        return new ListenNotesEpisodeResource($episode);
+                    } else {
+                       return $episode;
+                    }
+                } catch (\Exception $e) {
+                    if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
+                    return null;
+                }
             }
             // return response()->json(['message' => 'NOT_FOUND'], 404);
             return null;
@@ -269,7 +297,7 @@ trait Search
     {
         if ($album = \App\Album::find($id)) {
             if( $resource ) {
-                return new AlbumResource($album);
+                return new AlbumResource_index($album);
             } else {
                 return $album;
             }
@@ -298,7 +326,7 @@ trait Search
     {
         if ($podcast = \App\Podcast::find($id)) {
             if( $resource ) {
-                return new PodcastResource($podcast);
+                return new PodcastResource_index($podcast);
             } else {
                 return $podcast;
             }
@@ -339,7 +367,7 @@ trait Search
     public static function getPlaylist($id, $page)
     {
         if ($podcast = \App\Playlist::find($id)) {
-            return new PlaylistResource($podcast);
+            return new PlaylistResource_index($podcast);
         } else {
             try {
                 $podcast = Spotify::playlist($id)->get();

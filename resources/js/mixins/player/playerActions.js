@@ -24,6 +24,7 @@ export default {
                             (this.getMainArtist(this.currentAudio) ? ' - ' + this.getMainArtist(this.currentAudio) : "");
                     });
                     this.$store.commit("setCurrentAudio",{ id: this.currentAudio.id, type: this.currentAudio.type });
+                    this.$store.commit("setCurrentlyPlayingTypeStatus", 'play');
                     this.currentAudio.isPlaying = true;
                     if (this.videoPlayer.getCurrentTime() === 0) {
                         this.$store.dispatch("registerPlay", {
@@ -37,7 +38,7 @@ export default {
                     }
                 } else if (this.videoPlayer.getCurrentTime() > 0) {
                     this.currentAudio.isPlaying = false;
-                    this.$store.commit("setCurrentAudio", null);
+                    this.$store.commit("setCurrentlyPlayingTypeStatus", 'pause');
                     this.$nextTick(() => {
                         document.title =
                             this.currentAudio.title +
@@ -63,6 +64,7 @@ export default {
                                 "setCurrentAudio",
                                 { id: this.currentAudio.id, type: this.currentAudio.type }
                             );
+                            this.$store.commit("setCurrentlyPlayingTypeStatus", 'play');
                             this.currentAudio.isPlaying = true;
                             clearInterval(int);
                         }
@@ -80,6 +82,7 @@ export default {
                 } else if (this.audioPlayer.currentTime > 0) {
                     this.currentAudio.isPlaying = false;
                     this.$store.commit("setCurrentAudio", null);
+                    this.$store.commit("setCurrentlyPlayingTypeStatus", 'pause');
                     this.$nextTick(() => {
                         document.title =
                             this.currentAudio.title +
@@ -97,6 +100,7 @@ export default {
                                 "\u25b6 " + this.currentAudio.title;
                         });
                         // current audio works of songs only
+                        this.$store.commit("setCurrentlyPlayingTypeStatus", 'play');
                         this.$store.commit("setCurrentAudio", { id: this.currentAudio.id, type: this.currentAudio.type });
                         this.currentAudio.isPlaying = true;
                         if (this.audioPlayer.currentTime === 0) {
@@ -108,7 +112,8 @@ export default {
                         }
                     } else {
                         this.currentAudio.isPlaying = false;
-                        this.$store.commit("setCurrentAudio", null);
+                        // this.$store.commit("setCurrentAudio", null);
+                        this.$store.commit("setCurrentlyPlayingTypeStatus", 'pause');
                         this.$nextTick(() => {
                             document.title = this.currentAudio.title;
                         });
@@ -126,6 +131,7 @@ export default {
                                 "\u25b6 " + this.currentAudio.title;
                         });
                         this.$store.commit("setCurrentAudio", { id: this.currentAudio.id, type: this.currentAudio.type });
+                        this.$store.commit("setCurrentlyPlayingTypeStatus", 'play');
                         if (this.audioPlayer.currentTime === 0) {
                             this.$store.dispatch("registerPlay", {
                                 id: this.currentAudio.id,
@@ -141,6 +147,7 @@ export default {
                         //     event_category: 'Radio Station - ' + this.currentAudio.title
                         // })
                         this.$store.commit("setCurrentAudio", null);
+                        this.$store.commit("setCurrentlyPlayingTypeStatus", 'pause');
                         this.$nextTick(() => {
                             document.title = this.currentAudio.title;
                         });
@@ -166,6 +173,7 @@ export default {
         },
         goNext() {
             var index;
+            this.tracks_played++;
             if (this.currentAudio.index == this.playlist.length - 1) {
                 index = 0;
             } else {

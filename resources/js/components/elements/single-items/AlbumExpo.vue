@@ -1,17 +1,22 @@
 <template>
-    <div class="album-template-container content-item" v-if="album">
-        <div class="content-item__header" @click="playAlbum(album)">
-            <div class="control-layer">
+    <div class="album-template-container content-item" v-if="album" :class="{ hovered: imIPlayingNow }">
+        <div class="content-item__header">
+            <slot name="control-layer"></slot>
+            <div class="control-layer" v-if="!admin">
                 <div class="buttons">
                     <button
                         class="button button-play mx-3"
-                        @click="playAlbum(album)"
+                        v-if="imIPlayingNow"
+                        @click.stop="pause"
                     >
-                        <img
-                            src="/svg/play-round.svg"
-                            alt="next"
-                            class="svg-image"
-                        />
+                        <v-icon size="55" dark>$vuetify.icons.pause-circle</v-icon>
+                    </button>
+                    <button
+                        class="button button-play mx-3"
+                        v-else
+                        @click="play(album, true)"
+                    >
+                        <v-icon size="55" dark>$vuetify.icons.play-circle</v-icon>
                     </button>
                 </div>
             </div>
@@ -69,7 +74,7 @@
 <script>
 import addToPlaylist from "../../dialogs/Playlists";
 export default {
-    props: ["album"],
+    props: ["album", "admin"],
     components: {
         addToPlaylist
     },
@@ -82,12 +87,12 @@ export default {
     computed: {
         isLiked() {
             return this.$store.getters.isLiked(this.album.id);
+        },
+        imIPlayingNow() {
+            return this.isCurrentlyPlaying(this.album);
         }
     },
     methods: {
-        playAlbum() {
-            this.$store.dispatch('playAlbum', { album: this.album });
-        },
         like(album_id) {
             if (this.isLiked) {
                 this.$store.dispatch("dislike", album_id);

@@ -52,6 +52,7 @@
                         @click="follow()"
                         v-if="isFollowed"
                     >
+                     <v-icon left>$vuetify.icons.heart</v-icon>
                         {{ $t("Following") }}
                     </v-btn>
                     <v-btn
@@ -61,6 +62,7 @@
                         @click="follow()"
                         v-else
                     >
+                       <v-icon left>$vuetify.icons.heart-outline</v-icon>
                         {{ $t("Follow") }}
                     </v-btn>
                 </div>

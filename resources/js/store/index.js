@@ -5,11 +5,11 @@ import { i18n } from "../i18n-setup.js";
 
 Vue.use(Vuex);
 
-// modules 
-import auth from './modules/auth'
-import userModule from './modules/user'
-import player from './modules/player'
-import purchase from './modules/purchase'
+// modules
+import auth from "./modules/auth";
+import userModule from "./modules/user";
+import player from "./modules/player";
+import purchase from "./modules/purchase";
 import axios from "axios";
 
 /**
@@ -39,6 +39,7 @@ export default new Vuex.Store({
         notifications: null,
         plans: null,
         likedAlbums: null,
+        currentlyPlayingType: null,
         currentPageId: 0,
         songMenu: null,
         // songContextMenu is a value to determine which song dialog should show
@@ -65,9 +66,18 @@ export default new Vuex.Store({
         currentLang: null,
         chooseLangDialog: false,
         availableLanguages: false,
-        installPrompt: null
+        installPrompt: null,
+        playerStatus: null,
+        adPlayed: false,
+        currentCampaign: null
     },
     mutations: {
+        setCurrentCampaign(state, currentCampaign) {
+            state.currentCampaign = currentCampaign;
+        },
+        setAdPlayed(state, adPlayed) {
+            state.adPlayed = adPlayed;
+        },
         shareItem(state, item) {
             state.sharableItem = item;
             state.showSharingDialog = true;
@@ -79,6 +89,7 @@ export default new Vuex.Store({
             state.showSharingDialog = false;
         },
         updateQueue(state, songs) {
+          
             state.queue = songs;
         },
         setSongMenu(state, id) {
@@ -200,9 +211,21 @@ export default new Vuex.Store({
         },
         setInstallPrompt(state, e) {
             state.installPrompt = e;
+        },
+        setCurrentlyPlayingType(state, type) {
+            state.currentlyPlayingType = type;
+        },
+        setCurrentlyPlayingTypeStatus(state, status) {
+            state.currentlyPlayingType.status = status;
+        },
+        setPlayerStatus(state, status) {
+            state.playerStatus = status;
         }
     },
     getters: {
+        getCurrentCampaign(state) {
+            return state.currentCampaign;
+        },
         // getters for the state props.
         getQueue(state) {
             return state.queue;
@@ -230,6 +253,9 @@ export default new Vuex.Store({
         },
         getAds(state) {
             return state.ads;
+        },
+        getAdPlayed(state) {
+            return state.adPlayed;
         },
         getSearchResultsPanel(state) {
             return state.searchResultsPanel;
@@ -317,77 +343,91 @@ export default new Vuex.Store({
          */
         isLiked(state) {
             return function(id, type) {
-                if( type === 'song' ) {
+                if (type === "song") {
                     return (state.likedSongs || []).some(x =>
                         x ? x.id == id : false
                     );
-                } else if ( type === 'album' ) {
+                } else if (type === "album") {
                     return (state.likedAlbums || []).some(x =>
                         x ? x.id == id : false
                     );
                 }
             };
         },
-                /**
+        /**
          * Checks if a song is already liked by the user.
          * @param {*} state
          * @return {Boolean}
          */
         isFollowed(state) {
-        return function(id, type) {
-            if( type === 'podcast' ) {
-                return (state.followedPodcasts || []).some(x =>
-                    x ? x.id == id : false
-                );
-            } else if ( type === 'artist' ) {
-                return (state.followedArtists || []).some(x =>
-                    x ? x.id == id : false
-                );
-            }
-        };
+            return function(id, type) {
+                if (type === "podcast") {
+                    return (state.followedPodcasts || []).some(x =>
+                        x ? x.id == id : false
+                    );
+                } else if (type === "artist") {
+                    return (state.followedArtists || []).some(x =>
+                        x ? x.id == id : false
+                    );
+                }
+            };
+        },
+        getChooseLangDialog(state) {
+            return state.chooseLangDialog;
+        },
+        getAvailableLanguages(state) {
+            return state.availableLanguages;
+        },
+        getInstallPrompt(state) {
+            return state.installPrompt;
+        },
+        getCurrentlyPlayingType(state) {
+            return state.currentlyPlayingType;
+        },
+        getPlayerStatus(state) {
+            return state.playerStatus;
+        }
     },
-    getChooseLangDialog(state) {
-        return state.chooseLangDialog
-    },
-    getAvailableLanguages(state) {
-        return state.availableLanguages
-    },
-    getInstallPrompt(state) {
-        return state.installPrompt;
-    }
-},
     actions: {
-            /**
-     * Register a play on the database for stats.
-     * @param {*} context
-     * @param {*} id
-     */
-    fetchMessages(context, locale) {
-        return new Promise((resolve, reject) => {
-            axios
-                .get("/api/messages/" + locale)
-                .then(msgs => {
-                    const messages = {};
-                    messages.en = msgs.data.en;
-                    i18n.setLocaleMessage("en", messages.en);
-                    if (locale !== "en") {
-                        messages[locale] = msgs.data[locale];
-                        i18n.setLocaleMessage(locale, messages[locale]);
-                    }
-                    i18n.locale = locale;
-                    if( context.getters.getAvailableLanguages && context.getters.getAvailableLanguages.length) {
-                        context.commit('setCurrentLang', context.getters.getAvailableLanguages.find(lang => lang.locale == locale))
-                    }
-                    context.commit("setMessages", messages);
-                })
-                .then(res => {
-                    resolve(res);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    },
+        /**
+         * Register a play on the database for stats.
+         * @param {*} context
+         * @param {*} id
+         */
+        fetchMessages(context, locale) {
+            return new Promise((resolve, reject) => {
+                axios
+                    .get("/api/messages/" + locale)
+                    .then(msgs => {
+                        const messages = {};
+                        messages.en = msgs.data.en;
+                        i18n.setLocaleMessage("en", messages.en);
+                        if (locale !== "en") {
+                            messages[locale] = msgs.data[locale];
+                            i18n.setLocaleMessage(locale, messages[locale]);
+                        }
+                        i18n.locale = locale;
+                        if (
+                            context.getters.getAvailableLanguages &&
+                            context.getters.getAvailableLanguages.length
+                        ) {
+                            context.commit(
+                                "setCurrentLang",
+                                context.getters.getAvailableLanguages.find(
+                                    lang => lang.locale == locale
+                                )
+                            );
+                        }
+                        context.commit("setMessages", messages);
+                    })
+                    .then(res => {
+                        resolve(res);
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
+            });
+        },
         /**
          * Get the user notifications.
          * @param {*} context
@@ -435,7 +475,7 @@ export default new Vuex.Store({
                         context.dispatch("likes", "song");
                         context.dispatch("likes", "album");
                         context.dispatch("follows", "artist");
-                        if( context.getters.getSettings.enablePodcasts ) {
+                        if (context.getters.getSettings.enablePodcasts) {
                             context.dispatch("follows", "podcast");
                         }
                         context.dispatch("fetchPlaylists");
@@ -443,8 +483,8 @@ export default new Vuex.Store({
                         context.dispatch("fetchPurchases");
 
                         context.dispatch("fetchFriends");
-                        context.commit('purchase/setCart', result.data.cart)
-                        
+                        context.commit("purchase/setCart", result.data.cart);
+
                         res(result.data);
                     })
                     .catch(() => {
@@ -465,14 +505,20 @@ export default new Vuex.Store({
                 context.commit("setArtist", {});
             }
         },
- 
-        registerPlay(context, { id, type, label, duration, origin, artist_id = '' }) {
-            if( context.getters.getSettings.ga4 && context.getters.getSettings.analytics_play_event ) {
+
+        registerPlay(
+            context,
+            { id, type, label, duration, origin, artist_id = "" }
+        ) {
+            if (
+                context.getters.getSettings.ga4 &&
+                context.getters.getSettings.analytics_play_event
+            ) {
                 emitAnalyticsEvent({
-                    action: 'play',
+                    action: "play",
                     category: type,
                     label: label
-                })
+                });
             }
             return new Promise((resolve, reject) => {
                 axios
@@ -489,7 +535,7 @@ export default new Vuex.Store({
                         }
                     )
                     .then(res => {
-                        context.commit('setRegistredPlayID', res.data)
+                        context.commit("setRegistredPlayID", res.data);
                         resolve(res);
                     })
                     .catch(e => {
@@ -502,10 +548,10 @@ export default new Vuex.Store({
          * @param {*} context
          * @param {*} songs
          */
-        playAlbum(context, { album }) {
-            context.dispatch("registerPlay", { ...album, label: album.title });
+        playAlbum(context, { item }) {
+            context.dispatch("registerPlay", { ...item, label: item.title });
             context.dispatch("updateQueue", {
-                content: album.songs,
+                content: item.songs,
                 reset: true
             });
         },
@@ -514,20 +560,19 @@ export default new Vuex.Store({
          * @param {*} context
          * @param {*} songs
          */
-        async playPodcast(context, { podcast }) {
+        async playPodcast(context, { item }) {
             context.dispatch("registerPlay", {
-                ...podcast,
-                label: podcast.title
+                ...item,
+                label: item.title
             });
-            // fetch podcast episodes if they are not fetched
-            if( !podcast.episodes ) {
+            // fetch item episodes if they are not fetched
+            if (!item.episodes) {
                 var episodes = [];
-                await axios.get('/api/podcast/' + podcast.id)
-                .then((res) => {
-                    episodes = res.data.episodes
-                })
+                await axios.get("/api/podcast/" + item.id).then(res => {
+                    episodes = res.data.episodes;
+                });
             } else {
-                var episodes = podcast.episodes
+                var episodes = item.episodes;
             }
             context.dispatch("updateQueue", {
                 content: episodes,
@@ -539,13 +584,24 @@ export default new Vuex.Store({
          * @param {*} context
          * @param {*} songs
          */
-        playPlaylist(context, { playlist }) {
+        async playPlaylist(context, { item }) {
             context.dispatch("registerPlay", {
-                ...playlist,
-                label: playlist.title
+                ...item,
+                label: item.title
             });
+
+            if( !item.songs ) {
+                var songs = [];
+                await axios.get('/api/playlist/' + item.id)
+                .then((res) => {
+                    songs = res.data.songs
+                })
+            } else {
+                var songs = item.songs
+            }
+
             context.dispatch("updateQueue", {
-                content: playlist.songs,
+                content: songs,
                 reset: true
             });
         },
@@ -554,9 +610,9 @@ export default new Vuex.Store({
          * @param {*} context
          * @param {*} stream
          */
-        playRadioStation(context, { radioStation }) {
+        playRadioStation(context, { item }) {
             context.dispatch("updateQueue", {
-                content: [radioStation],
+                content: [item],
                 reset: true
             });
         },
@@ -566,13 +622,13 @@ export default new Vuex.Store({
          * @param {*} context
          * @param {*} stream
          */
-        playEpisode(context, { episode, reset }) {
+        playEpisode(context, { item, reset }) {
             // registering the plays will take place on the player
-            context.dispatch("updateQueue", { content: [episode], reset });
+            context.dispatch("updateQueue", { content: [item], reset });
         },
-        playSong(context, { song, reset }) {
+        playSong(context, { item, reset }) {
             // registering the plays will take place on the player
-            context.dispatch("updateQueue", { content: [song], reset });
+            context.dispatch("updateQueue", { content: [item], reset });
         },
         /**
          * Reset the user status when he compeleted listening to an audio.
@@ -580,7 +636,10 @@ export default new Vuex.Store({
         endPlay(context) {
             return new Promise((resolve, reject) => {
                 axios
-                    .post("/api/user/end-play/" + context.getters.getRegistredPlayID)
+                    .post(
+                        "/api/user/end-play/" +
+                            context.getters.getRegistredPlayID
+                    )
                     .then(res => {
                         resolve(res);
                     })
@@ -622,11 +681,11 @@ export default new Vuex.Store({
             });
         },
         updateLang(context, lang) {
-            context.dispatch('fetchMessages', lang.locale).then(() => {
-                context.commit('setCurrentLang', lang)
-                localStorage.setItem('pref-locale', lang.locale)
-                context.commit('setChooseLangDialog', false)
-            })
+            context.dispatch("fetchMessages", lang.locale).then(() => {
+                context.commit("setCurrentLang", lang);
+                localStorage.setItem("pref-locale", lang.locale);
+                context.commit("setChooseLangDialog", false);
+            });
         }
     }
 });

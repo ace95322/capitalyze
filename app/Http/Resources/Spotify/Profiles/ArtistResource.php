@@ -35,7 +35,7 @@ class ArtistResource extends JsonResource
 
     private function getAlbums()
     {
-        $albums = Spotify::artistAlbums($this['id'])->limit(10)->get();
+        $albums = Spotify::artistAlbums($this['id'])->limit(20)->get();
         return AlbumResource::collection(collect((object)$albums['items']))->sortBy('release_date')->toArray();
     }
 }

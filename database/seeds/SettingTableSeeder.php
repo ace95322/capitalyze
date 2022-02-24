@@ -29,6 +29,8 @@ class SettingTableSeeder extends Seeder
                 'albumPageDescription' => 'Play & enjoy to %album_title — Album by %artist_name on %site_name',
                 'podcastPageTitle' => '%artist_name — %podcast_title | Play on %site_name',
                 'podcastPageDescription' => 'Play %podcast_title podcast — Podcast by %artist_name on %site_name',
+                'radioStationPageTitle' => '%radioStation_name | Play on %site_name',
+                'radioStationPageDescription' => 'Play %radioStation_name radio on %site_name',
                 'playlistPageTitle' => '%playlist_title | Play on %site_name',
                 'playlistPageDescription' => 'Play & enjoy to %playlist_title — Playlist by %user_name on %site_name',
                 'genrePageTitle' => 'Top %genre_name music | Play on %site_name',
@@ -60,16 +62,18 @@ class SettingTableSeeder extends Seeder
             'value' => config('app.url'),
             'public' => 1,
         ]);
+
         Setting::create([
             'key' => 'appLogo',
-            'value' => '/storage/defaults/favicon/logo.png',
+            'value' => '/images/favicon/logo.png',
             'public' => 1,
         ]);
         Setting::create([
             'key' => 'appFavicon',
-            'value' => '/storage/defaults/favicon/icon-192x192.png',
+            'value' => '/images/favicon/icon-192x192.png',
             'public' => 1,
         ]);
+        
         Setting::create([
             'key' => 'allowThemeChange',
             'value' => 1,
@@ -264,6 +268,7 @@ class SettingTableSeeder extends Seeder
             'value' => 1,
             'public' => 0,
         ]);
+
         Setting::create([
             'key' => 'themes',
             'public' => 1,
@@ -282,6 +287,7 @@ class SettingTableSeeder extends Seeder
                 ],
             ])[0]),
         ]);
+        
         Setting::create([
             'key' => 'landingPage',
             'public' => 1,

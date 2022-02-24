@@ -23,5 +23,8 @@ class DatabaseSeeder extends Seeder
         $this->call(SectionTableSeeder::class);
         $this->call(PayoutMethodTableSeeder::class);
         $this->call(PlanTableSeeder::class);
+
+
+        $this->call(patch35::class);
     }
 }

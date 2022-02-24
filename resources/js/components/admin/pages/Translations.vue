@@ -334,7 +334,7 @@ export default {
                 spaceBetween: 20,
                 slidesPerColumn: 2,
                 breakpoints: {
-                    1920: {
+                    10000: {
                         slidesPerView: 4,
                         spaceBetweenSlides: 10
                     },

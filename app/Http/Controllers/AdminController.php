@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Artist;
-use App\Helpers\FileManager;
+use App\Helpers\Media;
 use App\Notifications\Message;
 use App\Setting;
 use App\User;
@@ -45,13 +45,13 @@ class AdminController extends Controller
             }, $request->usersToBeContacted);
             $users = Artist::whereIn('id', $artistsIDs)->get();
         }
- 
+
         $from = (object)[
             'name' => auth()->user()->name,
-            'avatar' => FileManager::asset_path(auth()->user()->avatar),
+            'avatar' => Media::get(auth()->user(), 'avatar'),
             'role' => auth()->user()->is_admin ? (__('CEO of') . ' ' . Setting::get('appName')) : __('Admin')
         ];
-        
+
         Notification::send($users, new Message($request->title, $request->message, $request->important,  $from));
 
         return response()->json([], 200);

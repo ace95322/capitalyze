@@ -4,11 +4,16 @@ import vuetify from "./plugins/vuetify.js";
 import store from "./store/index.js";
 import VueGtag from "vue-gtag";
 import {i18n} from './i18n-setup.js';
+import Hls from "hls.js";
 import './googleOauth';
 import './components-init';
 import './plugins/axios';
 
 import VueSocialSharing from 'vue-social-sharing'
+
+import DatetimePicker from 'vuetify-datetime-picker'
+ 
+Vue.use(DatetimePicker)
 
 Vue.use(VueSocialSharing);
 
@@ -23,6 +28,8 @@ window.emitAnalyticsEvent = function ({ action, category, label }) {
     })
 }
 
+window.Hls = Hls;
+
 // helper methods
 import helpers from './helpers';
 
@@ -34,11 +41,11 @@ import globalMixin from './globalMixin';
 helpers.updateSettings();
 
 // disble debug tools & console message on production mode
-if (process.env.MIX_ENV_MODE === 'production') {
-    Vue.config.devtools = false;
-    Vue.config.debug = false;
-    Vue.config.silent = true; 
-}
+// if (process.env.MIX_ENV_MODE === 'production') {
+//     Vue.config.devtools = false;
+//     Vue.config.debug = false;
+//     Vue.config.silent = true; 
+// }
 
 
 

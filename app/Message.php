@@ -2,7 +2,6 @@
 
 namespace App;
 
-use Auth;
 use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
@@ -23,7 +22,7 @@ class Message extends Model
         return $this->chats()->create([
             'session_id' => $session_id,
             'type' => 0,
-            'user_id' => Auth::user()->id
+            'user_id' =>auth()->user()->id
         ]);
     }
 

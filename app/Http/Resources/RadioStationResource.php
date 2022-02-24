@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use App\Exceptions\FEException;
 use App\Helpers\Radio\Radio;
-use App\Helpers\FileManager;
+use App\Helpers\Media;
 use App\RadioStation;
 use Exception;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -23,7 +23,8 @@ class RadioStationResource extends JsonResource
             'type' => 'radio-station',
             'id' => $this->id,
             'name' => $this->name,
-            'cover' => FileManager::asset_path($this->cover),
+            'cover' => Media::get($this, 'cover'), 
+            'thumbnail' => Media::getConversion($this, 'cover', 'thumbnail'),
             'streamEndpoint' => $this->streamEndpoint,
             'highlight' => $this->highlight == "0" ? false : true,
             'proxy' => $this->proxy == "0" ? false : true,
@@ -34,7 +35,8 @@ class RadioStationResource extends JsonResource
             'serverMount' => $this->serverMount,
             'serverUsername' => $this->serverUsername,
             'serverPassword' => $this->serverPassword,
-            'stats' => $this->statsSource === 'server' ? $this->getStats(): '',
+            'stats' => '',
+            // 'stats' => $this->statsSource === 'server' ? $this->getStats(): '',
             'statsEndpoint' => $this->statsEndpoint,
             'interval' => $this->interval,
             'created_at' => $this->created_at,

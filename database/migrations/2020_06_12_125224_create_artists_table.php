@@ -21,10 +21,10 @@ class CreateArtistsTable extends Migration
             $table->string('firstname')->nullable();
             $table->string('lastname')->nullable();
             $table->string('displayname');
-            $table->string('address');
-            $table->string('country');
-            $table->string('email');
-            $table->string('phone');
+            $table->string('address')->nullable();
+            $table->string('country')->nullable();
+            $table->string('email')->nullable();
+            $table->string('phone')->nullable();
             $table->bigInteger('available_disk_space')->default(500);
             $table->timestamps();
         });

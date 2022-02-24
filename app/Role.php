@@ -41,4 +41,16 @@ class Role extends Model
             $this->current_permissions()->attach($permission->id);
         }
     }
+
+    public function custom() {
+        return $this->name != 'admin' && $this->name != 'artist' && $this->name != 'user';
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+        static::deleting(function ($song) {
+            $song->current_permissions()->delete();
+        });
+    }
 }

@@ -64,23 +64,23 @@
           {{ $t("Install") }}
         </v-btn>
       </div>
-      <!-- <div class="container theme-switch">
-                <v-switch
-                    small
-                    v-model="$vuetify.theme.dark"
-                    @change="changeTheme"
-                    label=""
-                >
-                    <template v-slot:label>
-                        <v-icon small v-if="$vuetify.theme.dark"
-                            >$vuetify.icons.weather-night</v-icon
-                        >
-                        <v-icon small v-else
-                            >$vuetify.icons.white-balance-sunny</v-icon
-                        >
-                    </template>
-                </v-switch>
-            </div> -->
+    <!-- <div class="container theme-switch">
+              <v-switch
+                  small
+                  v-model="$vuetify.theme.dark"
+                  @change="changeTheme"
+                  label=""
+              >
+                  <template v-slot:label>
+                      <v-icon small v-if="$vuetify.theme.dark"
+                          >$vuetify.icons.weather-night</v-icon
+                      >
+                      <v-icon small v-else
+                          >$vuetify.icons.white-balance-sunny</v-icon
+                      >
+                  </template>
+              </v-switch>
+          </div> -->
     </v-card>
     <v-bottom-navigation id="bottom-nav" grow color="primary">
       <v-btn
@@ -97,6 +97,7 @@
       :playlist="$store.getters.getQueue"
       v-if="$store.getters.getQueue.length"
     ></player>
+    <audio id="audio-player" crossOrigin="anonymous"></audio>
   </div>
 </template>
 <script>
@@ -135,7 +136,7 @@ export default {
       // // Wait for the user to respond to the prompt
       // const { outcome } = await deferredPrompt.userChoice;
     },
-  },
+  }
 };
 </script>
 <style lang="scss" scoped>

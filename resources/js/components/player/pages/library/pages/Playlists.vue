@@ -55,7 +55,7 @@
                         <div class="item-title">{{ playlist.title }}</div>
                         <div
                             class="options"
-                            v-if="playlist.user.id == $store.getters.getUser.id"
+                            v-if="playlist.user && playlist.user.id == $store.getters.getUser.id"
                         >
                             <div
                                 class="private"

@@ -21,7 +21,6 @@
                     <v-col cols="12" class="auth-box__inputs">
                         <v-text-field
                             v-model="email"
-                            
                             :label="$t('Email')"
                             outlined
                         ></v-text-field>
@@ -33,7 +32,6 @@
                             v-model="password"
                             :type="showPassword ? 'text' : 'password'"
                             :label="$t('Password')"
-                            
                             outlined
                             hide-details
                             @click:append="showPassword = !showPassword"
@@ -52,7 +50,7 @@
                             {{ $t("Login") }}
                             <template v-slot:loader>
                                 <span class="custom-loader">
-                                    <v-icon >$vuetify.icons.cached</v-icon>
+                                    <v-icon>$vuetify.icons.cached</v-icon>
                                 </span>
                             </template>
                         </v-btn>
@@ -71,28 +69,70 @@
                 <div
                     class="justify-center mt-2"
                     v-if="
-                        $store.getters.getSettings.facebook_oauth_client_id ||
-                            ($store.getters.getSettings.enableGoogleLogin && $store.getters.getSettings.google_oauth_client_id)
+                        ($store.getters.getSettings.facebook_oauth_client_id &&
+                            $store.getters.getSettings.enableFacebookLogin) ||
+                        ($store.getters.getSettings.enableGoogleLogin &&
+                            $store.getters.getSettings.google_oauth_client_id)
                     "
                 >
-                        <div class="divider divider__small">
-                        <strong class="divider__text"> {{ $t("Or") }} </strong>
-                    </div>
+                    <v-container>
+                        <v-row>
+                            <v-col cols="12">
+                                <div class="divider divider__small">
+                                    <strong class="divider__text">
+                                        {{ $t("Or") }}
+                                    </strong>
+                                </div>
+                            </v-col>
+                            <v-col cols="12">
+                                <div class="justify-center">
+                                    <v-facebook-login-scope
+                                        v-if="
+                                            $store.getters.getSettings
+                                                .facebook_oauth_client_id
+                                        "
+                                        :app-id="
+                                            $store.getters.getSettings
+                                                .facebook_oauth_client_id
+                                        "
+                                        @login="logInWithFacebook($event)"
+                                        @sdk-init="handleSdkInit"
+                                    >
+                                        <v-btn
+                                            class="px-2"
+                                            slot-scope="scope"
+                                            color="#3578E5"
+                                            dark
+                                            @click="scope.login"
+                                        >
+                                            <v-icon left
+                                                >$vuetify.icons.facebook</v-icon
+                                            >
+                                            {{ $t("Sign In") }}
+                                        </v-btn>
+                                    </v-facebook-login-scope>
+                                    <div
+                                        class="justify-center"
+                                        v-if="
+                                            $store.getters.getSettings
+                                                .enableGoogleLogin
+                                        "
+                                    >
+                                        <div
+                                            class="g-signin2 px-2"
+                                            data-onsuccess="onSignIn"
+                                            v-if="
+                                                $store.getters.getSettings
+                                                    .google_oauth_client_id
+                                            "
+                                        ></div>
+                                    </div>
+                                </div>
+                            </v-col>
+                        </v-row>
+                    </v-container>
                 </div>
-                <v-row class="text-center" v-if="$store.getters.getSettings.enableGoogleLogin">
-                    <v-col>
-                        <div class="justify-center">
-                            <div
-                                class="g-signin2 px-2"
-                                data-onsuccess="onSignIn"
-                                v-if="
-                                    $store.getters.getSettings
-                                        .google_oauth_client_id
-                                "
-                            ></div>
-                        </div>
-                    </v-col>
-                </v-row>
+
                 <div class="divider wide-divider"></div>
                 <div v-if="!$store.getters.getSettings.disableRegistration">
                     <div>
@@ -103,7 +143,7 @@
                             <v-btn
                                 color="primary"
                                 outlined
-                                @click="$router.push({ name: 'register' })"
+                                @click="goRegister"
                                 >{{ $t("Open New Account") }}</v-btn
                             >
                         </div>
@@ -117,17 +157,17 @@
 <script>
 import LoadingBackground from "../LoadingBackground";
 import authentificationTemplate from "../templates/Authentication";
-// import { VFBLoginScope as VFacebookLoginScope } from "vue-facebook-login-component";
+import { VFBLoginScope as VFacebookLoginScope } from "vue-facebook-login-component";
 export default {
     metaInfo: {
         title:
-            window.Settings.find(set => set.key === "appName").value +
-            " - Login to your account"
+            window.Settings.find((set) => set.key === "appName").value +
+            " - Login to your account",
     },
     components: {
         LoadingBackground,
         authentificationTemplate,
-        // VFacebookLoginScope
+        VFacebookLoginScope,
     },
     data() {
         return {
@@ -137,7 +177,7 @@ export default {
             error: "",
             loading: false,
             loadingPage: false,
-            showPassword: false
+            showPassword: false,
         };
     },
     created() {},
@@ -147,12 +187,37 @@ export default {
             try {
                 await this.$store.dispatch("login", {
                     email: this.email,
-                    password: this.password
+                    password: this.password,
                 });
             } catch (e) {
                 this.loading = false;
             }
         },
-    }
+        goRegister() {
+            location.replace('/register');
+        },
+
+        logInWithFacebook(res) {
+            axios
+                .get(
+                    `https://graph.facebook.com/me?fields=name,email,picture&access_token=${res.authResponse.accessToken}`
+                )
+                .then((result) => {
+                    let profile = {
+                        email: result.data.email,
+                        avatar: result.data.picture.data.url,
+                        name: result.data.name,
+                        id: result.data.id,
+                    };
+                    this.$store.dispatch("login", {
+                        driver: "facebook",
+                        profile,
+                    });
+                });
+        },
+        handleSdkInit({ scope }) {
+            this.$store.commit("setFbLogoutFunction", scope.logout);
+        },
+    },
 };
 </script>

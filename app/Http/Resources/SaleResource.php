@@ -2,7 +2,9 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\User\OnlyBasic;
+use App\Http\Resources\Album\AlbumResource_basic;
+use App\Http\Resources\Song\SongResource_index;
+use App\Http\Resources\User\UserResource_mostbasic;
 use App\Price;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +20,7 @@ class SaleResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user' => new OnlyBasic($this->user),
+            'user' => new UserResource_mostbasic($this->user),
             'total_price' => $this->total_price,
             'gateway' => $this->gateway,
             'products' => $this->getProducts()
@@ -30,9 +32,9 @@ class SaleResource extends JsonResource
         foreach ($this->products as $product) 
         {
             if( $product->productable_type == 'App\Song') {
-                $item = new SongResource($product->productable);
+                $item = new SongResource_index($product->productable);
             } else if ( $product->productable_type == 'App\Album' ) {
-                $item = new AlbumResource($product->productable);
+                $item = new AlbumResource_basic($product->productable);
             }
             array_push($ps, [
                 'price' => Price::find($product->pivot->price),

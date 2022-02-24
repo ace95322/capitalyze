@@ -18,9 +18,9 @@ class SessionController extends Controller
      */
     public function create(Request $request)
     {
-        $session = Session::create(['user1_id' => Auth::user()->id, 'user2_id' => $request->friend_id]);
+        $session = Session::create(['user1_id' =>auth()->user()->id, 'user2_id' => $request->friend_id]);
         $modifiedSession = new SessionResource($session);
-        broadcast(new SessionEvent($modifiedSession,  Auth::user()->id));
+        broadcast(new SessionEvent($modifiedSession, auth()->user()->id));
         return $modifiedSession;
     }
 }

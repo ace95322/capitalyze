@@ -2,13 +2,9 @@
 
 namespace App\Http\Resources\Artist;
 
-use App\Http\Resources\SongResource;
-use App\Http\Resources\AlbumResource;
+
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Helpers\FileManager;
-use App\Payout;
-use App\Setting;
-use Carbon\Carbon;
+use App\Helpers\Media;
 use Illuminate\Support\Facades\DB;
 
 class Account extends JsonResource
@@ -25,7 +21,8 @@ class Account extends JsonResource
             'id' => $this->id,
             'displayname' => $this->displayname,
             'firstname' => $this->firstname,
-            'avatar' => FileManager::asset_path($this->avatar),
+            'avatar' => Media::get($this, 'avatar'),
+            'thumbnail' => Media::getConversion($this, 'avatar', 'thumbnail'),
             'lastname' => $this->lastname,
             'available_disk_space' => $this->available_disk_space,
             'email' => $this->email,

@@ -3,17 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Album;
-use App\Helpers\FileManager as HelpersFileManager;
+use App\Exports\AlbumExport;
+use App\Helpers\Media;
+use App\Http\Resources\Album\AlbumResource_index;
 use App\Song;
-use Spotify;
-use FileManager;
 use App\Traits\Search;
 use App\Http\Resources\AlbumResource;
-use App\Http\Resources\Spotify\AlbumResource as SpotifyAlbumResource;
 use App\Price;
 use App\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AlbumController extends Controller
 {
@@ -25,7 +25,7 @@ class AlbumController extends Controller
      */
     public function index()
     {
-        return AlbumResource::collection(\App\Album::orderBy('created_at', 'desc')->get());
+        return AlbumResource_index::collection(\App\Album::orderBy('created_at', 'desc')->get());
     }
 
     /**
@@ -35,7 +35,7 @@ class AlbumController extends Controller
      */
     public function artistIndex()
     {
-        return AlbumResource::collection(auth()->user()->artist->ownAlbums()->orderBy('created_at', 'desc')->get());
+        return AlbumResource_index::collection(auth()->user()->artist->ownAlbums()->orderBy('created_at', 'desc')->get());
     }
 
     /**
@@ -79,14 +79,11 @@ class AlbumController extends Controller
             'cover' => 'required'
         ]);
 
-        $cover = HelpersFileManager::store($request, '/covers/albums/', 'cover');
-
         $album = new Album();
 
         $album->title =  $request->title;
         $album->release_date =  $request->release_date;
         $album->created_by =  $request->created_by;
-        $album->cover =  $cover;
 
         if( $request->created_by === "artist" ) {
             $album->artist_id = auth()->user()->artist->id;
@@ -106,6 +103,12 @@ class AlbumController extends Controller
         $album->deezer_link = $request->deezer_link;
         //
         $album->save();
+
+        if ($file = $request->file('cover')) {
+            Media::updateImage($album, $file, 'cover', 200);
+        } else {
+            Media::setDefault($album, 'defaults/images/album_cover.png', 'cover');
+        }
 
         // Asset as product
         if( isset($request->isProduct) &&  $request->isProduct) {
@@ -145,7 +148,7 @@ class AlbumController extends Controller
 
         return response()->json(null, 202);
     }
-    
+
     /**
      * Update the specified resource.
      *
@@ -162,13 +165,13 @@ class AlbumController extends Controller
 
         $album = Album::find($id);
 
-        if ($request->file('cover')) {
-            $album->cover = HelpersFileManager::update($request->file('cover'), $album->cover, '/covers/albums/');
+        if ($file = $request->file('cover')) {
+            Media::updateImage($album, $file, 'cover', 200);
         }
 
         $album->title = $request->title;
         $album->release_date = $request->release_date;
-        
+
         // reset artists
         DB::table('album_artist')->where('album_id', $album->id)->delete();
         if (isset($request->artists)) {
@@ -180,12 +183,13 @@ class AlbumController extends Controller
             }
         }
 
-        
+
+        // copy the cover for songs
+        $disk_name = json_decode(Setting::get('storageDisk'))->disk;
         foreach ($album->songs as $song) {
-            if (strpos($song->cover, '/covers/albums')) {
-                $song->cover = $album->cover;
-                $song->save();
-            }
+           Media::delete($song, 'cover');
+           $mediaItem = $album->getMedia('cover')->first();
+           $mediaItem->copy($song, 'cover', $disk_name);
         }
 
         $rank = 0;
@@ -237,7 +241,7 @@ class AlbumController extends Controller
         $album->deezer_link = $request->deezer_link;
         //
         $album->save();
-        
+
         return response()->json(null, 202);
     }
 
@@ -280,5 +284,17 @@ class AlbumController extends Controller
         $album = Album::find($id);
         $album->delete();
         return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
+    /**
+     * Export CSV for Album
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function exportCSV(Request $request)
+    {
+        $export = new AlbumExport($request->get('start_date', null),  $request->get('end_date', null));
+        return Excel::download($export, 'Albums.csv');
     }
 }

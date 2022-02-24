@@ -4,7 +4,7 @@
             <li
                 v-for="(album, i) in albums"
                 :key="i"
-                @click="$store.dispatch('playAlbum', { album })"
+                @click="play(album, true)"
             >
                 <div class="item-cover">
                     <v-img :src="album.cover" class="img" aspect-ratio="1">

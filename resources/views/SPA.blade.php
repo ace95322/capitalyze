@@ -10,8 +10,8 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
-    <link rel="shortcut icon" href="{{ asset('/storage/defaults/images/favicon.png') }}" type="image/x-icon">
-    <link rel="apple-touch-icon" href="{{ asset('/storage/defaults/images/favicon.png') }}">
+    <!-- <link rel="shortcut icon" href="{{ asset('images/favicon/favicon.png') }}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{ asset('images/favicon/favicon.png') }}"> -->
     <script>
       window.Settings = {!! $settings !!};
 </script>
@@ -46,7 +46,7 @@ if ('serviceWorker' in navigator) {
 </div>
 <div id="app">
   <Master />
-</div> 
+</div>
 <script src="{{ asset('js/app.js') }}" defer></script>
 </body>
 </html>
@@ -54,11 +54,11 @@ if ('serviceWorker' in navigator) {
   :root{
     --color-primary: {!! $themes['primary']  !!};
     --color-secondary: {!! $themes['secondary']  !!};
-    
+
     --dark-theme-bg-color: {!! $themes['dark']['background']  !!};
     --dark-theme-text-color:{!! $themes['dark']['text']  !!};
     --dark-theme-panel-bg-color:{!! $themes['dark']['panel']  !!};
-    
+
     --light-theme-bg-color: {!! $themes['light']['background']  !!};
     --light-theme-text-color:{!! $themes['light']['text']  !!};
     --light-theme-panel-bg-color:{!! $themes['light']['panel']  !!};

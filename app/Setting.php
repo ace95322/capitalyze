@@ -18,6 +18,11 @@ class Setting extends Model
      * @var array
      */
     protected const default_settings = [
+        'FTP_ROOT' => '',
+        'FTP_USERNAME' => '',
+        'FTP_PASSWORD' => '',
+        'FTP_PORT' => 21,
+        'FTP_HOST' => '',
         'enablePodcasts' => 1,
         'enableBrowse' => 1,
         'aboutUs' => '',
@@ -32,7 +37,6 @@ class Setting extends Model
         'availableArtistDiskSpace' => 500,
         'maxFileSize' => 5,
         'maxImageSize' => 2,
-	'account_agreement' => '',
         'google_oauth_client_id' => '',
         'pusherAppId' => '',
         'pusherSecret' => '',
@@ -40,6 +44,7 @@ class Setting extends Model
         'disableRegistration' => 0,
         'requireEmailConfirmation' => 0,
         'defaultTheme' => 'Light',
+        'account_agreement' => '',
         'mailMailer' => 'smtp',
         'enableMail' => 0,
         'pusherKey' => '',

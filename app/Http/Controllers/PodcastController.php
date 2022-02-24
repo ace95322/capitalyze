@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PodcastExport;
+use App\Helpers\Media;
+use App\Http\Resources\Podcast\PodcastResource_index;
 use Illuminate\Http\Request;
-use App\Http\Resources\PodcastResource;
 use App\Podcast;
-use FileManager;
 use App\Traits\Search;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PodcastController extends Controller
 {
@@ -27,7 +29,7 @@ class PodcastController extends Controller
      */
     public function index()
     {
-        return PodcastResource::collection(\App\Podcast::orderBy('created_at', 'desc')->get());
+        return PodcastResource_index::collection(\App\Podcast::orderBy('created_at', 'desc')->get());
     }
     /**
      * Display a listing of the resource for the current logged artist.
@@ -36,7 +38,7 @@ class PodcastController extends Controller
      */
     public function artistIndex()
     {
-        return PodcastResource::collection(\Auth::user()->artist->podcasts()->orderBy('created_at', 'desc')->get());
+        return PodcastResource_index::collection(auth()->user()->artist->podcasts()->orderBy('created_at', 'desc')->get());
     }
     /**
      * Matches the podcasts based on the given keyword.
@@ -75,13 +77,12 @@ class PodcastController extends Controller
         $request->validate([
             'title' => 'required|max:255'
         ]);
-        $cover = FileManager::store($request, '/covers/podcasts/', 'cover');
+
         $podcast = new Podcast();
 
         $podcast->title = $request->title;
         $podcast->description = isset($request->description) ? $request->description : '';
         $podcast->artist_id = $request->artist_id ? $request->artist_id : null;
-        $podcast->cover = $cover;
 
         // links
         $podcast->spotify_link = $request->spotify_link;
@@ -92,7 +93,13 @@ class PodcastController extends Controller
 
 
         $podcast->save();
-        
+
+        if ($file = $request->file('cover')) {
+            Media::updateImage($podcast, $file, 'cover', 200);
+        } else {
+            Media::setDefault($podcast, 'defaults/images/podcast_cover.png', 'cover');
+        }
+
         if (json_decode($request->genres)) {
             foreach (json_decode($request->genres) as $genre) {
                 $podcast->genres()->attach($genre->id);
@@ -126,11 +133,13 @@ class PodcastController extends Controller
         $request->validate([
             'title' => 'required|max:255'
         ]);
-        
+
         $podcast = Podcast::find($id);
-        if ($request->file('cover')) {
-            $podcast->cover = FileManager::update($request->file('cover'), $podcast->cover, '/covers/podcasts/');
+
+        if ($file = $request->file('cover')) {
+            Media::updateImage($podcast, $file, 'cover', 200);
         }
+
         $podcast->title = $request->title;
         $podcast->artist_id = $request->artist_id ? $request->artist_id : null;
         $podcast->description = isset($request->description) ? $request->description : '';
@@ -149,5 +158,15 @@ class PodcastController extends Controller
             }
         }
         return response()->json(null, 202);
+    }
+
+    /**
+     * Export CSV
+     *
+     * @return void
+     */
+    public function exportCSV(Request $request){
+        $export = new PodcastExport($request->get('start_date', null),  $request->get('end_date', null));
+        return Excel::download($export, 'Podcast.csv');
     }
 }

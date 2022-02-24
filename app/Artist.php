@@ -2,21 +2,22 @@
 
 namespace App;
 
-use App\Helpers\FileManager;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Notifications\Notifiable;
-class Artist extends Model
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media as MM;
+
+class Artist extends Model implements HasMedia
 {
-    use Notifiable;
+    use Notifiable, InteractsWithMedia;
     /**
     * the attributes that are mass assignable.
     * @var array
-    */ 
-    // protected $fillable = ['user_id','avatar','firstname','lastname','displayname'];
+    */
     protected $guarded = [];
-    
+
     public function user()
     {
         return $this->belongsTo('App\User');
@@ -45,14 +46,7 @@ class Artist extends Model
     {
         return $this->belongsToMany(Song::class);
     }
-    public function ownVideos()
-    {
-        return $this->hasMany(Video::class);
-    }
-    public function featuredVideos()
-    {
-        return $this->belongsToMany(Video::class);
-    }
+
     public function sales($rows = 200, $from_date = null)
     {
         $song_sales = DB::table('sales')
@@ -100,15 +94,16 @@ class Artist extends Model
         ->get()->toArray();
 
         $sales = array_merge($song_sales, $album_sales);
-        
-        foreach ($sales as $sale) {
-            $sale->cover = FileManager::asset_path($sale->cover);
-        }
+
+        // foreach ($sales as $sale) {
+        //     Media::updateImage($song, $file, 'cover', 200);
+        //     $sale->cover = FileManager::asset_path($sale->cover);
+        // }
 
         return $sales;
     }
 
-    public function royalties() 
+    public function royalties()
     {
         return $this->hasMany(Royalty::class);
     }
@@ -126,11 +121,30 @@ class Artist extends Model
     }
     public static function boot() {
         parent::boot();
-        static::deleting(function($model) { 
+        static::deleting(function($model) {
             // delete the arist data after deletion
-            \App\Helpers\FileManager::delete($model->avatar);
             $model->ownAlbums()->delete();
             $model->podcasts()->delete();
         });
+    }
+
+    public function registerMediaConversions(MM $media = null): void
+    {
+        if( Setting::get('optimize_images') ) {
+            $this->addMediaConversion('thumbnail')
+            ->width(80)
+            ->height(80)
+            ->performOnCollections('avatar')
+            ->nonQueued();
+        }
+    }
+
+    public function ownVideos()
+    {
+        return $this->hasMany(Video::class);
+    }
+    public function featuredVideos()
+    {
+        return $this->belongsToMany(Video::class);
     }
 }

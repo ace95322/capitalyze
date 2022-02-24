@@ -25,7 +25,7 @@
                             class="router-link d-flex pt-2 pb-5 mb-3 align-center"
                             :to="{
                                 name: 'artist',
-                                params: { id: podcast.artist.id }
+                                params: { id: podcast.artist.id },
                             }"
                             target="_blank"
                         >
@@ -39,23 +39,51 @@
                             </div>
                         </router-link>
                     </div>
-                    <div class="podcast__description-lg" v-html="podcast.description">
-                    </div>
+                    <div
+                        class="podcast__description-lg"
+                        v-html="podcast.description"
+                    ></div>
                 </div>
             </div>
-            <div class="podcast__description-sm" v-html="podcast.description">
-            </div>
+            <div
+                class="podcast__description-sm"
+                v-html="podcast.description"
+            ></div>
             <div class="podcast__actions">
                 <div class="play-button">
                     <v-btn
                         color="primary"
                         rounded
-                        block
-                        :disabled="!podcast.episodes.length"
-                        @click="$store.dispatch('playPodcast', { podcast })"
+                        @click="pause"
+                        v-if="isCurrentlyPlaying(podcast)"
+                    >
+                        <v-icon left>$vuetify.icons.pause</v-icon>
+                        {{ $t("Pause") }}
+                    </v-btn>
+                    <v-btn
+                        color="primary"
+                        rounded
+                        @click="play(podcast, true)"
+                        :disabled="loading"
+                        v-else
                     >
                         <v-icon left>$vuetify.icons.play</v-icon>
                         {{ $t("Play") }}
+                    </v-btn>
+                </div>
+                <div class="follow-button" v-if="isFollowed !== null">
+                    <v-btn
+                        class="secondary"
+                        rounded
+                        @click="follow()"
+                        v-if="isFollowed"
+                    >
+                        <v-icon left>$vuetify.icons.heart</v-icon>
+                        {{ $t("Following") }}
+                    </v-btn>
+                    <v-btn class="primary" rounded @click="follow()" v-else>
+                        <v-icon left>$vuetify.icons.heart-outline</v-icon>
+                        {{ $t("Follow") }}
                     </v-btn>
                 </div>
             </div>
@@ -70,12 +98,7 @@
                         class="episode"
                         v-for="episode in podcast.episodes"
                         :key="episode.id"
-                        @click="
-                            $store.dispatch('playEpisode', {
-                                episode,
-                                reset: true
-                            })
-                        "
+                        @click="play(episode, true)"
                     >
                         <div class="justify-between">
                             <div class="episode__cover">
@@ -89,10 +112,10 @@
                                         class="dark-layer hide-above-699"
                                         v-if="
                                             $store.getters.getCurrentAudio &&
-                                                $store.getters.getCurrentAudio
-                                                    .id === episode.id &&
-                                                $store.getters.getCurrentAudio
-                                                    .podcast
+                                            $store.getters.getCurrentAudio
+                                                .id === episode.id &&
+                                            $store.getters.getCurrentAudio
+                                                .podcast
                                         "
                                     >
                                         <div
@@ -125,7 +148,9 @@
                                     small
                                     @click.stop="shareEpisode(episode)"
                                 >
-                                    <v-icon left>$vuetify.icons.share-variant</v-icon>
+                                    <v-icon left
+                                        >$vuetify.icons.share-variant</v-icon
+                                    >
                                     {{ $t("Share") }}
                                 </v-btn>
                             </div>
@@ -135,26 +160,36 @@
                             <div class="episode-header">
                                 <div class="infos">
                                     <div class="title">
-                                      <div class="icon hide-under-700">
-                                          <template
-                                            v-if="
-                                              $store.getters.getCurrentAudio &&
-                                              $store.getters.getCurrentAudio.id === episode.id &&
-                                              $store.getters.getCurrentAudio.podcast
-                                            "
-                                          >
-                                            <div class="epico_music-is-playing-container">
-                                              <span></span>
-                                              <span></span>
-                                              <span></span>
-                                            </div>
-                                          </template>
-                                          <template v-else>
-                                            <v-icon class="icon__access-point" large
-                                              >$vuetify.icons.access-point</v-icon
+                                        <div class="icon hide-under-700">
+                                            <template
+                                                v-if="
+                                                    $store.getters
+                                                        .getCurrentAudio &&
+                                                    $store.getters
+                                                        .getCurrentAudio.id ===
+                                                        episode.id &&
+                                                    $store.getters
+                                                        .getCurrentAudio.podcast
+                                                "
                                             >
-                                            <v-icon class="icon__play" large>$vuetify.icons.play</v-icon>
-                                          </template>
+                                                <div
+                                                    class="epico_music-is-playing-container"
+                                                >
+                                                    <span></span>
+                                                    <span></span>
+                                                    <span></span>
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <v-icon
+                                                    class="icon__access-point"
+                                                    large
+                                                    >$vuetify.icons.access-point</v-icon
+                                                >
+                                                <v-icon class="icon__play" large
+                                                    >$vuetify.icons.play</v-icon
+                                                >
+                                            </template>
                                         </div>
                                         <div class="title__title">
                                             {{ episode.title }}
@@ -184,13 +219,17 @@
                                         small
                                         @click.stop="shareEpisode(episode)"
                                     >
-                                        <v-icon left>$vuetify.icons.share-variant</v-icon>
+                                        <v-icon left
+                                            >$vuetify.icons.share-variant</v-icon
+                                        >
                                         {{ $t("Share") }}
                                     </v-btn>
                                 </div>
                             </div>
-                            <div class="description" v-html="episode.description">
-                            </div>
+                            <div
+                                class="description"
+                                v-html="episode.description"
+                            ></div>
                         </div>
                     </v-card>
                 </div>
@@ -246,54 +285,70 @@ export default {
                         this.podcast,
                         this.$store.getters.getSettings.podcastPageDescription,
                         "podcast"
-                    )
-                }
-            ]
+                    ),
+                },
+            ],
         };
     },
     data() {
         return {
             podcast: null,
             isFollowed: null,
-            errorStatus: null
+            errorStatus: null,
         };
     },
     created() {
         axios
             .get("/api/podcast/" + this.$route.params.id)
-            .then(res => {
+            .then((res) => {
                 this.podcast = res.data;
+                this.$store
+                    .dispatch("isPodcastFollowed", this.podcast.id)
+                    .then((res) => (this.isFollowed = res));
                 if (this.$route.query.episode) {
                     const episode = this.podcast.episodes.find(
-                        ep => ep.id == this.$route.query.episode
+                        (ep) => ep.id == this.$route.query.episode
                     );
                     this.$store.dispatch("playEpisode", {
                         episode,
-                        reset: true
+                        reset: true,
                     });
                 }
             })
-            .catch(e => (this.errorStatus = e.response.status));
+            .catch((e) => {
+                axios
+                    .get("/api/episode/" + this.$route.params.id)
+                    .then(() => {
+                        this.$router.push({
+                            name: "episode",
+                            params: { id: this.$route.params.id },
+                        });
+                    })
+                    .catch((error) => {
+                        this.errorStatus = e.response.status;
+                    });
+            });
     },
     methods: {
         shareEpisode(episode) {
             const appUrl = this.$store.getters.getSettings.appUrl;
             this.$store.commit("shareItem", {
                 cover: this.podcast.cover,
-                url: appUrl +
+                url:
+                    appUrl +
                     (appUrl.substring(appUrl.length - 1) === "/"
-                        ? 'podcast' + "/"
-                        : "/" + 'podcast' + "/") +
-                    this.podcast.id + '?episode=' + episode.id,
+                        ? "podcast" + "/"
+                        : "/" + "podcast" + "/") +
+                    this.podcast.id +
+                    "?episode=" +
+                    episode.id,
                 title: episode.title,
-                type: 'episode',
-                artist: this.getMainArtist(this.podcast)
+                type: "episode",
+                artist: this.getMainArtist(this.podcast),
             });
         },
         formatEpisodeDate(date) {
-            return moment(date)
-                .fromNow()
-                .match(/year/)
+            return moment(date).fromNow().match(/year/)
                 ? moment(date).format("MMM YYYY")
                 : moment(date).format("DD MMM");
         },
@@ -302,24 +357,26 @@ export default {
             secs = secs % 60;
             return minutes + " min" + " " + secs + " secs";
         },
-        // follow() {
-        //     if (this.isFollowed) {
-        //         this.$store
-        //             .dispatch("unfollowPodcast", this.podcast.id)
-        //             .then(() => {
-        //                 this.isFollowed = false;
-        //             })
-        //             .catch(() => {});
-        //     } else {
-        //         this.$store
-        //             .dispatch("followPodcast", this.podcast.id)
-        //             .then(() => {
-        //                 this.isFollowed = true;
-        //             })
-        //             .catch(() => {});
-        //     }
-        // }
-    }
+        follow() {
+            if (this.isFollowed) {
+                this.$store
+                    .dispatch("unfollow", this.podcast)
+                    .then(() => {
+                        this.isFollowed = false;
+                        this.podcast.nb_followers--;
+                    })
+                    .catch(() => {});
+            } else {
+                this.$store
+                    .dispatch("follow", this.podcast)
+                    .then(() => {
+                        this.isFollowed = true;
+                        this.podcast.nb_followers++;
+                    })
+                    .catch(() => {});
+            }
+        },
+    },
 };
 </script>
 <style lang="scss" scoped>
@@ -328,9 +385,9 @@ export default {
 .podcast-container {
     padding: 2em;
     @media (max-width: 700px) {
-      padding: 0.2em;
+        padding: 0.2em;
     }
-  }
+}
 .podcast {
     &__header {
     }

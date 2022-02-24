@@ -13,75 +13,61 @@
 
 // If the loader is already loaded, just stop.
 if (!self.define) {
-  const singleRequire = name => {
-    if (name !== 'require') {
-      name = name + '.js';
-    }
-    let promise = Promise.resolve();
-    if (!registry[name]) {
+  let registry = {};
+
+  // Used for `eval` and `importScripts` where we can't get script URL by other means.
+  // In both cases, it's safe to use a global var because those functions are synchronous.
+  let nextDefineUri;
+
+  const singleRequire = (uri, parentUri) => {
+    uri = new URL(uri + ".js", parentUri).href;
+    return registry[uri] || (
       
-        promise = new Promise(async resolve => {
+        new Promise(resolve => {
           if ("document" in self) {
             const script = document.createElement("script");
-            script.src = name;
-            document.head.appendChild(script);
+            script.src = uri;
             script.onload = resolve;
+            document.head.appendChild(script);
           } else {
-            importScripts(name);
+            nextDefineUri = uri;
+            importScripts(uri);
             resolve();
           }
-        });
+        })
       
-    }
-    return promise.then(() => {
-      if (!registry[name]) {
-        throw new Error(`Module ${name} didn’t register its module`);
-      }
-      return registry[name];
-    });
+      .then(() => {
+        let promise = registry[uri];
+        if (!promise) {
+          throw new Error(`Module ${uri} didn’t register its module`);
+        }
+        return promise;
+      })
+    );
   };
 
-  const require = (names, resolve) => {
-    Promise.all(names.map(singleRequire))
-      .then(modules => resolve(modules.length === 1 ? modules[0] : modules));
-  };
-  
-  const registry = {
-    require: Promise.resolve(require)
-  };
-
-  self.define = (moduleName, depsNames, factory) => {
-    if (registry[moduleName]) {
+  self.define = (depsNames, factory) => {
+    const uri = nextDefineUri || ("document" in self ? document.currentScript.src : "") || location.href;
+    if (registry[uri]) {
       // Module is already loading or loaded.
       return;
     }
-    registry[moduleName] = Promise.resolve().then(() => {
-      let exports = {};
-      const module = {
-        uri: location.origin + moduleName.slice(1)
-      };
-      return Promise.all(
-        depsNames.map(depName => {
-          switch(depName) {
-            case "exports":
-              return exports;
-            case "module":
-              return module;
-            default:
-              return singleRequire(depName);
-          }
-        })
-      ).then(deps => {
-        const facValue = factory(...deps);
-        if(!exports.default) {
-          exports.default = facValue;
-        }
-        return exports;
-      });
+    let exports = {};
+    const require = depUri => singleRequire(depUri, uri);
+    const specialDeps = {
+      module: { uri },
+      exports,
+      require
+    };
+    registry[uri] = Promise.all(depsNames.map(
+      depName => specialDeps[depName] || require(depName)
+    )).then(deps => {
+      factory(...deps);
+      return exports;
     });
   };
 }
-define("./service-worker.js",['./workbox-903cc191'], function (workbox) { 'use strict';
+define(['./workbox-fa046058'], (function (workbox) { 'use strict';
 
   /**
   * Welcome to your Workbox-powered service worker!
@@ -107,134 +93,101 @@ define("./service-worker.js",['./workbox-903cc191'], function (workbox) { 'use s
    */
 
   workbox.precacheAndRoute([{
-    "url": "//css/app.css",
-    "revision": "674d2f18823c4db495341102c4cc4f54"
-  }, {
-    "url": "//installer/css/app.css",
-    "revision": "f66d5bbf552af1ea3260d987e379999f"
-  }, {
     "url": "//installer/js/app.js",
-    "revision": "5904722ebb043f5d77e2be8be2ce36b0"
+    "revision": "5d32e6d649e7858812a4b74e0e08f3e3"
   }, {
     "url": "//js/app.js",
-    "revision": "b002784bc7027dedf9f46959b9732423"
+    "revision": "2a26154a49ffc74ff94e40ba3579436e"
   }, {
-    "url": "/images/background.svg?d41d8cd98f00b204e9800998ecf8427e",
-    "revision": "d41d8cd98f00b204e9800998ecf8427e"
+    "url": "/css/app.css",
+    "revision": "c21348e54a1cc21c79625c4f2d28bb2b"
   }, {
-    "url": "/js/chunks/0926169a7ab951dae3be.js",
+    "url": "/js/chunks/01abb199bf20a066.js",
     "revision": null
   }, {
-    "url": "/js/chunks/0ed91ba884e98ff0f888.js",
+    "url": "/js/chunks/0a9c9dcea4369fd7.js",
     "revision": null
   }, {
-    "url": "/js/chunks/10bea939fdbb5fc52c4d.js",
+    "url": "/js/chunks/12577f5d336ec0f3.js",
     "revision": null
   }, {
-    "url": "/js/chunks/147db08c7fb8bb3b5d57.js",
+    "url": "/js/chunks/205fdea2656d49ce.js",
     "revision": null
   }, {
-    "url": "/js/chunks/20520b14338b5afdaca5.js",
+    "url": "/js/chunks/22d5b4fb25303645.js",
     "revision": null
   }, {
-    "url": "/js/chunks/261c23c57027aa6b7d93.js",
+    "url": "/js/chunks/2a8db6475a44bdfa.js",
     "revision": null
   }, {
-    "url": "/js/chunks/2c38660300a539f5a412.js",
+    "url": "/js/chunks/3adef333016760a7.js",
     "revision": null
   }, {
-    "url": "/js/chunks/2c7389b971ac3f0839bd.js",
+    "url": "/js/chunks/3fcf74f3ecb56ffc.js",
     "revision": null
   }, {
-    "url": "/js/chunks/32281a1563362eb34f60.js",
+    "url": "/js/chunks/4040579aebc08e3b.js",
     "revision": null
   }, {
-    "url": "/js/chunks/3d9fd0c625d203eec88e.js",
+    "url": "/js/chunks/48866cccc026ba07.js",
     "revision": null
   }, {
-    "url": "/js/chunks/3f481cd93a873340a994.js",
+    "url": "/js/chunks/58ed082979fc7d7b.js",
     "revision": null
   }, {
-    "url": "/js/chunks/411159108ad6e35f8346.js",
+    "url": "/js/chunks/6bb6e43c042878a9.js",
     "revision": null
   }, {
-    "url": "/js/chunks/434d15021ee2778dedc4.js",
+    "url": "/js/chunks/6dcd008eb05088b1.js",
     "revision": null
   }, {
-    "url": "/js/chunks/47e756e54e6c01d75b09.js",
+    "url": "/js/chunks/75f2ae247a35977b.js",
     "revision": null
   }, {
-    "url": "/js/chunks/4d36bbe9757f6fa7197e.js",
+    "url": "/js/chunks/7a32a0e59685289b.js",
     "revision": null
   }, {
-    "url": "/js/chunks/4d8e8f7f75a07f1cd9fc.js",
+    "url": "/js/chunks/8022ec7afdf35891.js",
     "revision": null
   }, {
-    "url": "/js/chunks/5c246c0810358d3717e6.js",
+    "url": "/js/chunks/952e1596645e9a46.js",
     "revision": null
   }, {
-    "url": "/js/chunks/6499627625b4f9ae954d.js",
+    "url": "/js/chunks/b0e44ad9cffec38b.js",
     "revision": null
   }, {
-    "url": "/js/chunks/6ff5f2c9a8b1506e113d.js",
+    "url": "/js/chunks/b744fd0a06b832e3.js",
     "revision": null
   }, {
-    "url": "/js/chunks/769eca35f33711f4cfd3.js",
+    "url": "/js/chunks/bb6e582762dce8e4.js",
     "revision": null
   }, {
-    "url": "/js/chunks/77a96c89ed46e032bcff.js",
+    "url": "/js/chunks/beff7ce1b98b5a62.js",
     "revision": null
   }, {
-    "url": "/js/chunks/7c2ac743f42546fa0627.js",
+    "url": "/js/chunks/c108c4206fdde475.js",
     "revision": null
   }, {
-    "url": "/js/chunks/82253416edeff6740e42.js",
+    "url": "/js/chunks/ddbf9613c5ed2c91.js",
     "revision": null
   }, {
-    "url": "/js/chunks/9b4d6bab07b3b9def7fa.js",
+    "url": "/js/chunks/e15744fc5bc55203.js",
     "revision": null
   }, {
-    "url": "/js/chunks/ad2985a7d3b8b18c9359.js",
+    "url": "/js/chunks/e31adcef839d6662.js",
     "revision": null
   }, {
-    "url": "/js/chunks/bf11157fb1d917a94b6c.js",
+    "url": "/js/chunks/e32682ac9e50b15a.js",
     "revision": null
   }, {
-    "url": "/js/chunks/bf121db23eadea1dd9ff.js",
+    "url": "/js/chunks/e6783a88c04ed40c.js",
     "revision": null
   }, {
-    "url": "/js/chunks/d163fc35be452df923bc.js",
+    "url": "/js/chunks/f221200b424cd1f6.js",
     "revision": null
   }, {
-    "url": "/js/chunks/d2438dc29c380d17b997.js",
-    "revision": null
-  }, {
-    "url": "/js/chunks/ddd60457095518ae9ad7.js",
-    "revision": null
-  }, {
-    "url": "/js/chunks/de214fd032d67a7837a2.js",
-    "revision": null
-  }, {
-    "url": "/js/chunks/deaa1c162d68f907be19.js",
-    "revision": null
-  }, {
-    "url": "/js/chunks/e47736131c25b9383bfe.js",
-    "revision": null
-  }, {
-    "url": "/js/chunks/e502c72fc6f2cf58797a.js",
-    "revision": null
-  }, {
-    "url": "/js/chunks/e5210bbe6676ca3562aa.js",
-    "revision": null
-  }, {
-    "url": "/js/chunks/e8d441d646f63984d13d.js",
-    "revision": null
-  }, {
-    "url": "/js/chunks/f86a6a6c2552fcc892d4.js",
-    "revision": null
-  }, {
-    "url": "/js/chunks/fb3a1a8981552e73ad82.js",
+    "url": "/js/chunks/fc1dab834587310a.js",
     "revision": null
   }], {});
 
-});
+}));

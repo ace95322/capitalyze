@@ -1,5 +1,6 @@
 <?php
 
+use App\PodcastGenre;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,3 +28,10 @@ Route::name('admin.')->prefix('admin')
 
 Route::middleware('guest')
     ->group(__DIR__ . '/_guest.php');
+
+
+// Route::get('/vivek', function(){
+//     $result = PodcastGenre::where('id', '<>', null)->get();
+//     dd($result);
+// });
+// Route::get('/vivek', 'VideoController@index');

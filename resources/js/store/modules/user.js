@@ -587,8 +587,20 @@ const actions = {
             let artists = context.getters.getFollowedArtists;
             return artists.some(artist => artist.id === artist_id);
         } else if (context.state.user) {
-            await context.dispatch("fetchFollowedArtists");
+            await context.dispatch("follows", 'artist');
             context.commit("isArtistFollowed", artist_id);
+        } else {
+            return false;
+        }
+    },
+
+    async isPodcastFollowed(context, podcast_id) {
+        if (context.getters.getFollowedPodcasts) {
+            let podcasts = context.getters.getFollowedPodcasts;
+            return podcasts.some(podcast => podcast.id === podcast_id);
+        } else if (context.state.user) {
+            await context.dispatch("follows", 'podcast');
+            context.commit("isPodcastFollowed", podcast_id);
         } else {
             return false;
         }

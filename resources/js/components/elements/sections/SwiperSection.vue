@@ -102,6 +102,18 @@ export default {
             type: Object,
             default: function() {
                 return {
+                    4000: {
+                        slidesPerView: 12,
+                        spaceBetweenSlides: 10
+                    },
+                    2180: {
+                        slidesPerView: 9,
+                        spaceBetweenSlides: 10
+                    },
+                    1920: {
+                        slidesPerView: 7,
+                        spaceBetweenSlides: 10
+                    },
                     1500: {
                         slidesPerView: 5,
                         slidesPerGroup: 5,

@@ -546,6 +546,12 @@ import Billing from "@mixins/billing/billing";
 export default {
     props: ["album", "creator"],
     created() {
+        if( this.album.id ) {
+            axios.get('/api/album/' + this.album.id)
+                .then((res) => {
+                    this.editedAlbum.songs = res.data.songs
+                })
+        }
         axios.get("/api/prices").then(res => {
             this.previousPrices = this.previousPrices = res.data;
         });

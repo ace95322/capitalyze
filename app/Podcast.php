@@ -5,8 +5,14 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Search;
 
-class Podcast extends Model
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media as MM;
+
+class Podcast extends Model implements HasMedia
 {
+
+    use InteractsWithMedia;
     /**
     * the attributes that are mass assignable.
     * @var array
@@ -38,9 +44,20 @@ class Podcast extends Model
         parent::boot();
         static::deleting(function($model) { 
             // delete the podcast data after deletion         
-            \App\Helpers\FileManager::delete($model->cover);
+
             $model->episodes()->delete();
             $model->follows()->delete();
         });
+    }
+
+    public function registerMediaConversions(MM $media = null): void
+    {
+        if( Setting::get('optimize_images') ) {
+            $this->addMediaConversion('thumbnail')
+            ->width(80)
+            ->height(80)
+            ->performOnCollections('cover')
+            ->nonQueued();
+        }
     }
 }

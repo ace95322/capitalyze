@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Album;
 use App\Genre;
-use App\Helpers\FileManager;
+use App\Helpers\Media;
 use App\Setting;
-use Illuminate\Support\Str;
 // use Illuminate\Support\Facades\Session;
 // use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,7 +15,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use stdClass;
 use App\Helpers\Meta as MetaHelper;
-
+use App\Helpers\Radio\Radio;
+use App\RadioStation;
 use App\Traits\Search;
 use Butschster\Head\Facades\Meta;
 use Butschster\Head\Packages\Entities\OpenGraphPackage;
@@ -72,7 +71,8 @@ class HomeController extends Controller
 
         $twitter->setType('summary');
 
-        Meta::registerPackage($twitter);
+        Meta::registerPackage($twitter)
+        ->setFavicon(Setting::get('appFavicon'));
     }
     private function applyMetaTags()
     {
@@ -82,6 +82,7 @@ class HomeController extends Controller
         preg_match("/podcast\/[a-zA-Z0-9]+/i", request()->path(), $podcast);
         preg_match("/podcasts\/[a-zA-Z]+/i", request()->path(), $podcastGenre);
         preg_match("/genre\/[a-zA-Z0-9]+/i", request()->path(), $genre);
+        preg_match("/radio-station\/[a-zA-Z0-9]+/i", request()->path(), $radioStation);
 
 
         if (isset($album) && count($album)) {
@@ -109,8 +110,8 @@ class HomeController extends Controller
 
                 $album_title = isset($album->name) ? $album->name: $album->title;
 
-                if( isset($album->cover) ){
-                    $album_cover = FileManager::asset_path($album->cover);
+                if( $cover = Media::get($album, 'cover') ){
+                    $album_cover = $cover;
                 } else if ( isset($album->images)) {
                     $album_cover =  $album->images[1]['url'];
                 } else {
@@ -132,7 +133,7 @@ class HomeController extends Controller
                     ->setUrl(request()->fullUrl())
                     ->setDescription($description);
 
-                $og->addImage(FileManager::asset_path($album_cover), [
+                $og->addImage($album_cover, [
                     'width' => 300,
                     'height' => 300
                 ]);
@@ -167,8 +168,9 @@ class HomeController extends Controller
                 if( isset($podcast->image) ) {
                     $cover = $podcast->image;
                 } else {
-                    $cover = FileManager::asset_path($podcast->cover); 
+                    $cover = Media::get($podcast, 'cover'); 
                 }
+
                 Meta::prependTitle($title)
                     ->addMeta('description', ['content' => $description]);
 
@@ -181,11 +183,14 @@ class HomeController extends Controller
                     ->setUrl(request()->fullUrl())
                     ->setDescription($description);
 
-                $og->addImage(FileManager::asset_path($cover), [
-                    'width' => 300,
-                    'height' => 300
-                ]);
-
+                    if($cover) {
+                        $og->addImage($cover, [
+                            'width' => 300,
+                            'height' => 300
+                        ]);
+        
+                    }
+  
                 $twitter = new TwitterCardPackage('Twitter');
 
                 $twitter->setType('summary');
@@ -200,10 +205,12 @@ class HomeController extends Controller
             $id = preg_replace("/\//", "", $ids[0]);
 
             $song = Search::getSong($id, false, false);
+
+
             if ($song) {
                 $artist_name = MetaHelper::getArtistName($song);
                 $song_title = isset(((object)$song)->title) ? ((object)$song)->title : ((object)$song)->name;
-                $song_cover = isset(((object)$song)->cover) ? ((object)$song)->cover: ((object)$song)->album['images']['1']['url'];
+                $song_cover = Media::get(((object)$song), 'cover') ? Media::get(((object)$song), 'cover'): ((object)$song)->album['images']['1']['url'];
                 $title = $this->replaceVariables('%song_title', $song_title, $artist_name, Setting::get('songPageTitle'));
                 $description = $this->replaceVariables('%song_title', $song_title, $artist_name, Setting::get('songPageDescription'));
 
@@ -219,7 +226,7 @@ class HomeController extends Controller
                     ->setUrl(request()->fullUrl())
                     ->setDescription($description);
 
-                $og->addImage(FileManager::asset_path($song_cover), [
+                $og->addImage($song_cover , [
                     'width' => 300,
                     'height' => 300
                 ]);
@@ -259,7 +266,8 @@ class HomeController extends Controller
                     ->setUrl(request()->fullUrl())
                     ->setDescription($description);
 
-                $og->addImage(FileManager::asset_path($artist->avatar), [
+
+                $og->addImage(Media::get($artist, 'avatar')? Media::get($artist, 'avatar') : $artist->avatar, [
                     'width' => 300,
                     'height' => 300
                 ]);
@@ -298,7 +306,7 @@ class HomeController extends Controller
                     ->setUrl(request()->fullUrl())
                     ->setDescription($description);
 
-                $og->addImage(FileManager::asset_path($podcastGenre->cover), [
+                $og->addImage(Media::get($podcastGenre, 'cover'), [
                     'width' => 300,
                     'height' => 300
                 ]);
@@ -337,7 +345,7 @@ class HomeController extends Controller
                     ->setUrl(request()->fullUrl())
                     ->setDescription($description);
 
-                $og->addImage(FileManager::asset_path($genre->cover), [
+                $og->addImage(Media::get($genre, 'cover'), [
                     'width' => 300,
                     'height' => 300
                 ]);
@@ -349,7 +357,42 @@ class HomeController extends Controller
                 Meta::registerPackage($og);
                 Meta::registerPackage($twitter);
             }
-        } else {
+        } 
+        else if (isset($radioStation) && count($radioStation)) {
+
+            preg_match("/\/[a-zA-Z0-9]+/i", $radioStation[0], $ids);
+
+            $id = preg_replace("/\//", "", $ids[0]);
+
+            $radioStation = RadioStation::find($id);
+
+            if ($radioStation) {
+
+                $radioStation_name = $radioStation->title;
+
+                $title = $this->replaceVariables('%radioStation_name',  $radioStation_name, $radioStation_name, Setting::get('radioStationPageTitle'));
+                $description = $this->replaceVariables('%radioStation_name',  $radioStation_name, $radioStation_name, Setting::get('radioStationPageDescription'));
+
+                Meta::prependTitle($title)
+                    ->addMeta('description', ['content' => $description]);
+
+                $og = new OpenGraphPackage('radio-station');
+
+
+                $og->addImage(Media::get($radioStation, 'cover'), [
+                    'width' => 300,
+                    'height' => 300
+                ]);
+
+                $twitter = new TwitterCardPackage('Twitter');
+
+                $twitter->setType('summary');
+
+                Meta::registerPackage($og);
+                Meta::registerPackage($twitter);
+            }
+        }
+        else {
             $title = Cache::remember('title', 7200, function () {
                 return str_replace('%site_name', Setting::get('appName'), Setting::get('siteTitle'));
             });
@@ -429,9 +472,9 @@ class HomeController extends Controller
      */
     public function SPA(Request $request)
     {
-        // if (!file_exists(storage_path('installed'))) {
-        //     return redirect()->route('installer');
-        // }
+        if (!file_exists(storage_path('installed'))) {
+            return redirect()->route('installer');
+        }
         // if (!Session::get('current_ip')) {
         //     self::updateLocation();
         // } else {

@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PodcastGenreExport;
 use App\Helpers\Content\ListenNotes\ListenNotes;
-use App\Http\Resources\ListenNotes\Pages\PodcastResource as PagesPodcastResource;
+use App\Helpers\Media;
 use App\Http\Resources\ListenNotes\PodcastResource as ListenNotesPodcastResource;
+use App\Http\Resources\Podcast\PodcastResource_basic;
 use Illuminate\Http\Request;
 use App\PodcastGenre;
 use App\Http\Resources\PodcastGenreResource;
-use App\Http\Resources\PodcastResource;
 use App\Setting;
-use FileManager;
 use Illuminate\Database\Eloquent\Collection;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PodcastGenreController extends Controller
 {
@@ -37,9 +38,9 @@ class PodcastGenreController extends Controller
                 $listen_notes_podcasts = ListenNotes::genrePodcasts($podcastGenre->listen_notes_genre_id);
                 $collection = $collection->toBase()->merge(ListenNotesPodcastResource::collection($listen_notes_podcasts));
             }
-            $local_podcasts = PodcastResource::collection($podcastGenre->podcasts);
+            $local_podcasts = PodcastResource_basic::collection($podcastGenre->podcasts);
             $collection = $collection->toBase()->merge($local_podcasts);
-            return  $collection; 
+            return  $collection;
         } else {
             return response()->json(['message' => 'NOT_FOUND'], 404);
         }
@@ -70,13 +71,18 @@ class PodcastGenreController extends Controller
             'slug' => 'required|unique:podcast_genres'
         ]);
 
-        $cover = FileManager::store($request, '/covers/podcast-genres/', 'cover');
+
 
         $podcastGenre = new PodcastGenre();
 
         $podcastGenre->name = $request->name;
-        $podcastGenre->cover = $cover;
         $podcastGenre->slug = $request->slug;
+
+        if ($file = $request->file('cover')) {
+            Media::updateImageAsIs($podcastGenre, $file, 'cover');
+        } else {
+            Media::setDefault($podcastGenre, 'defaults/images/genre_cover.png', 'cover');
+        }
 
         if( $request->listen_notes_genre_id ) {
             $podcastGenre->listen_notes_genre_id = $request->listen_notes_genre_id;
@@ -102,9 +108,10 @@ class PodcastGenreController extends Controller
 
         $genre = PodcastGenre::find($id);
 
-        if ($request->file('cover')) {
-            $genre->cover = FileManager::update($request->file('cover'), $genre->cover, '/covers/podcast-genres/');
+        if ($file = $request->file('cover')) {
+            Media::updateImage($genre, $file, 'cover', 200);
         }
+
         $genre->name = $request->name;
         $genre->slug = $request->slug;
         if( $request->listen_notes_genre_id ) {
@@ -124,5 +131,15 @@ class PodcastGenreController extends Controller
         $genre = PodcastGenre::find($id);
         $genre->delete();
         return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
+    /**
+     * Export CSV
+     *
+     * @return void
+     */
+    public function exportCSV(Request $request){
+        $export = new PodcastGenreExport($request->get('start_date', null),  $request->get('end_date', null));
+        return Excel::download($export, 'PodcastGenre.csv');
     }
 }

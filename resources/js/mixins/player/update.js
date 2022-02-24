@@ -3,21 +3,151 @@ import axios from "axios";
 export default {
     methods: {
         async updateCurrentAudio(index, force) {
-            this.isLoading = true
+            this.isLoading = true;
             this.reset();
-            await this.prepare(index)
-
-            if( this.$store.getters.getSettings.autoPlay && this.$store.getters.getQueue.length < 2) {
-                this.fetchSimilarities(index)
+            
+            if (
+              
+                this.campaigns.length &&
+                this.tracks_played > 0 &&
+                !this.$store.getters.getAdPlayed
+            ) {
+             
+                const campaignsToPlay = this.campaigns.filter( campaign => (campaign.playAfterXSongs == 1 || (this.tracks_played % campaign.playAfterXSongs) == 0)).splice(0,1);
+                if (
+                    campaignsToPlay.length
+                ) {
+                    return this.playCampaign(campaignsToPlay, 0, index, force);
+                }
             }
 
+            await this.prepare(index);
+
+            if (
+                this.$store.getters.getSettings.autoPlay &&
+                this.$store.getters.getQueue.length < 2
+            ) {
+                this.fetchSimilarities(index);
+            }
+
+            if (this.$store.getters.getUser) {
+                this.updateUserPlay(index);
+            }
+
+            if (!this.isCurrentAudioAStream) {
+                // await this.afterPrepareForNonStream(index);
+            } else {
+                this.afterPrepareForStream(index);
+            }
             if (this.isCurrentAudioAYoutubeVideo) {
                 this.playYoutubeVideo(index, force);
             } else if (this.isCurrentAudioAFileAudio) {
                 this.playAudioFile(index, force);
-            } else if(this.isCurrentAudioAStream) {
+            } else if (this.isCurrentAudioAStream) {
                 this.playStream(index, force);
             }
+        },
+        playCampaign(campaigns, campaignIndex, trackIndex, force) {
+            // if (this.campaigns[this.currentCampaignIndex]) {
+                // this.switchToCampaignChannel();
+                this.$store.commit(
+                    "setCurrentCampaign",
+                    campaigns[campaignIndex]
+                );
+
+                const isThereANextCampagin = campaignIndex !== campaigns.length - 1;
+                const nextCampaignIndex = campaignIndex + 1;
+
+                this.audioPlayer.src = this.$store.getters.getCurrentCampaign.file
+
+                if( !isThereANextCampagin ) {
+                    this.$store.commit("setAdPlayed", true);
+                } 
+                // else {
+                //     var audio = new Audio();
+                //     audio.src = campaigns[nextCampaignIndex].file
+                //     audio.load()
+                // }
+             
+                this.$set(
+                    this.currentAudio,
+                    "title",
+                    this.$store.getters.getCurrentCampaign.name
+                );
+
+
+                if (
+                    this.$store.getters.getCurrentCampaign.banner &&
+                    this.$store.getters.getCurrentCampaign.banner.length
+                ) {
+                    this.$set(
+                        this.currentAudio,
+                        "cover",
+                        this.$store.getters.getCurrentCampaign.banner
+                    );
+                } else {
+                    this.$set(
+                        this.currentAudio,
+                        "cover",
+                        ""
+                    );
+                }
+                                   
+
+                this.$set(this.currentAudio, "campaign", true);
+
+                this.audioPlayer.play();
+
+                
+
+                this.audioPlayer.onended = function() {
+                    this.$store.commit("setCurrentCampaign", null);
+
+                    // move to the next campaign
+                    if( isThereANextCampagin ) {
+                        this.prepareCampaign( nextCampaignIndex );
+                        this.playCampaign(campaigns, nextCampaignIndex, trackIndex, force)
+                    } else {
+                        // this.switchToMusicChannel();
+                        this.updateCurrentAudio(trackIndex, force);
+                    }  
+                }.bind(this);
+            // } 
+            // else {
+            //     this.$store.commit("setAdPlayed", true);
+            //     this.updateCampaignIndex(0);
+            //     this.updateCurrentAudio(trackIndex, force);
+            // }
+        },
+        updateUserPlay(index) {
+            if( this.isCurrentAudioAStream ) {
+                var obj = {
+                    playlist: null,
+                    index: null,
+                    genre_id: null,
+                    radio: JSON.stringify(this.currentAudio)
+                }
+            } else {
+               var obj = {
+                playlist: JSON.stringify(this.playlist.map(track => track.id)),
+                index: index,
+                genre_id:
+                    this.$store.getters.getCurrentlyPlayingType &&
+                    this.$store.getters.getCurrentlyPlayingType.type ===
+                        "genre" &&
+                    this.$store.getters.getCurrentlyPlayingType.id
+                        ? this.$store.getters.getCurrentlyPlayingType.id
+                        : null
+            }
+            }
+            axios.post("/api/user/playing", obj);
+        },
+        prepareCampaign(index) {
+            // this.channels[2].player.src = this.campaigns[index].file;
+            // this.channels[2].player.load();
+        },
+        updateCampaignIndex(index) {
+            this.currentCampaignIndex = index;
         },
         reset() {
             clearInterval(this.timeUpdater);
@@ -36,7 +166,7 @@ export default {
             }
         },
         playAudioFile(index, force) {
-            this.updateAudioElement(this.currentAudio.source)
+            this.updateAudioElement(this.currentAudio.hls? true: false, this.currentAudio.source)
             if (
                 this.currentAudio.index !== 0 ||
                 force ||
@@ -88,9 +218,34 @@ export default {
                 isPlaying: false
             };
         },
-        updateAudioElement(source) {
-            this.audioPlayer.src = source;
-            this.audioPlayer.load();
+        updateAudioElement(hls, source) {
+            this.canPlay = false
+            this.audioPlayer = document.getElementById("audio-player");
+          
+          
+            this.initEventHandlers()
+            return new Promise((res, rej) => {
+                if( hls && Hls.isSupported()) {
+                    this.initHLS(source + '?hls=true');
+                    this.hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                        this.canPlay = true
+                        res()
+                      }.bind(this));
+                } else {
+                    this.detachHLS().then(()=> {
+                        this.audioPlayer.crossOrigin = "anonymous";
+                        this.audioPlayer.src = source;
+                        this.audioPlayer.load();
+                        console.log(this.audioPlayer.crossOrigin);
+                        console.log(source);
+                        res()
+                    }) ;
+                }
+            })
+            // this.audioPlayer.crossOrigin = "anonymous";
+            // this.audioPlayer.src = source;
+
+            // this.hls.attachMedia(this.audioPlayer)
         },
         resetAudioElement() {
             this.audioPlayer.pause();
@@ -125,6 +280,41 @@ export default {
                 } else {
                     this.audioStatus = null
                 }
+
+                if( this.currentAudio.isProduct &&  this.currentAudio.playSample && !this.isOwned) {
+
+                    // show purchase dialog after sample
+                    if (
+                        parseInt(this.audioPlayer.currentTime) > this.currentAudio.sampleSeconds
+                    ) {
+                        this.audioPlayer.pause();
+                        this.$store.commit("updateQueue", []);
+                        this.$store.commit("setCurrentlyPlayingType", {
+                            type: "",
+                            id: null
+                        });
+                        this.$store.commit("purchase/setSellingAsset", this.currentAudio);
+                    }
+                }
+
+                                    // crossfade
+                                    if (
+                                        !isNaN(currentTime) &&
+                                        !isNaN(duration) &&
+                                        duration - currentTime <= this.currentAudio.sampleSeconds
+                                    ) {
+                                        this.audioStatus = "ending";
+                                    } else if (
+                                        !isNaN(currentTime) &&
+                                        !isNaN(duration) &&
+                                        currentTime >= 0 &&
+                                        currentTime <= this.currentAudio.sampleSeconds
+                                    ) {
+                                        this.audioStatus = "starting";
+                                    } else {
+                                        this.audioStatus = null;
+                                    }
+
             }
             // updating the current time "xx:yy"
             this.$set(this.currentAudio, 'currentTime', this.getTimeFormat(
@@ -169,6 +359,33 @@ export default {
                     this.$store.dispatch('updateQueue', { content: res.data, reset: false });
                 }
             })
+        },
+
+        initHLS(source) {
+            if( this.hls ) {
+                this.hls.destroy();
+            }
+            this.hls = new Hls();
+            if( source ) {
+                this.hls.loadSource(source)
+            }
+            this.hls.attachMedia(this.audioPlayer);       
+        },
+        detachHLS() {
+            return new Promise((res, rej) => {
+                // if (Hls.isSupported() && this.hls && this.hls.media) {
+                //     // this.hls.detachMedia();
+                    
+                //     // this.hls.on(Hls.Events.MEDIA_DETACHED, function() {
+                //     //     return res()  
+                        
+                //     // });
+                // } else {
+                    res();
+                // }
+            })
+
         }
+
     }
 };

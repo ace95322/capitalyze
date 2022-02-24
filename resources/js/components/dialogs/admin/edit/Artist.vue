@@ -19,29 +19,31 @@
                             <v-row>
                                 <v-col cols="12" sm="6">
                                     <v-text-field
+                                        :label="$t('Displayname')"
+                                        
+                                        v-model="editedArtist.displayname"
+                                    ></v-text-field
+                                ></v-col>
+                                <template v-if="!editedArtist.new">
+<v-col cols="12" sm="6">
+                                    <v-text-field
                                         :label="$t('Firstname')"
-                                        :readonly="!artist.new"
+                                        
                                         v-model="editedArtist.firstname"
                                     ></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6">
                                     <v-text-field
                                         :label="$t('Lastname')"
-                                        :readonly="!artist.new"
+                                        
                                         v-model="editedArtist.lastname"
                                     ></v-text-field>
                                 </v-col>
-                                <v-col cols="12" sm="6">
-                                    <v-text-field
-                                        :label="$t('Displayname')"
-                                        :readonly="!artist.new"
-                                        v-model="editedArtist.displayname"
-                                    ></v-text-field
-                                ></v-col>
+
                                 <v-col cols="12" sm="6">
                                     <v-select
                                         :label="$t('Country')"
-                                        :readonly="!artist.new"
+                                        
                                         :items="countriesList"
                                         v-model="editedArtist.country"
                                     ></v-select
@@ -49,24 +51,25 @@
                                 <v-col cols="12" sm="6">
                                     <v-text-field
                                         :label="$t('Address')"
-                                        :readonly="!artist.new"
+                                        
                                         v-model="editedArtist.address"
                                     ></v-text-field
                                 ></v-col>
                                 <v-col cols="12" sm="6">
                                     <v-text-field
                                         :label="$t('Phone')"
-                                        :readonly="!artist.new"
+                                        
                                         v-model="editedArtist.phone"
                                     ></v-text-field
                                 ></v-col>
                                 <v-col cols="12" sm="6">
                                     <v-text-field
                                         :label="$t('Email')"
-                                        :readonly="!artist.new"
+                                        
                                         v-model="editedArtist.email"
                                     ></v-text-field
                                 ></v-col>
+                                </template>
                             </v-row>
                         </v-container>
                     </v-col>

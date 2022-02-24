@@ -2,10 +2,10 @@
 
 namespace App;
 
-use App\Http\Resources\AlbumResource;
-use App\Http\Resources\PlaylistResource;
+use App\Http\Resources\Album\AlbumResource_basic;
+use App\Http\Resources\Playlist\PlaylistResource_basic;
 use App\Http\Resources\RadioStationResource;
-use App\Http\Resources\SongResource;
+use App\Http\Resources\Song\SongResource_basictoplay;
 use App\Http\Resources\Spotify\AlbumResource as SpotifyAlbumResource;
 use App\Http\Resources\Spotify\SongResource as SpotifySongResource;
 use Spotify;
@@ -13,10 +13,13 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media as MM;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasMedia
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, InteractsWithMedia;
 
     /**
      * the attributes that are mass assignable.
@@ -47,6 +50,12 @@ class User extends Authenticatable
     {
         return $this->hasOne('App\Artist');
     }
+
+    public function playing()
+    {
+        return $this->hasOne(Playing::class);
+    }
+
     public function playlists()
     {
         return $this->hasMany('App\Playlist');
@@ -54,10 +63,6 @@ class User extends Authenticatable
     public function songs()
     {
         return $this->hasMany('App\Song');
-    }
-    public function videos()
-    {
-        return $this->hasMany('App\Video');
     }
     public function roles()
     {
@@ -116,12 +121,12 @@ class User extends Authenticatable
     }
     public function followed_playlists()
     {
-        return PlaylistResource::collection(\DB::table('follows')->select(\DB::raw('followed_id as followed_id'), \DB::raw('follows.user_id as follower_id'))->where('follows.user_id', $this->id)->where('followed_type', 'playlist')->join('playlists', 'playlists.id', '=', 'follows.user_id')->get());
+        return PlaylistResource_basic::collection(\DB::table('follows')->select(\DB::raw('followed_id as followed_id'), \DB::raw('follows.user_id as follower_id'))->where('follows.user_id', $this->id)->where('followed_type', 'playlist')->join('playlists', 'playlists.id', '=', 'follows.user_id')->get());
     }
     public function likes($type)
     {
         $collection = new Collection();
-        $localIds = 
+        $localIds =
             \DB::table('likes')
                 ->select(\DB::raw('content_id as id'))
                 ->where('user_id', $this->id)
@@ -131,16 +136,16 @@ class User extends Authenticatable
 
         if( count($localIds) ) {
             if( $type == 'album' ) {
-                $local_likes = AlbumResource::collection(collect(Album::whereIn('id', $localIds)->get()));
+                $local_likes = AlbumResource_basic::collection(collect(Album::whereIn('id', $localIds)->get()));
             } else if ( $type === 'song' ) {
-                $local_likes = SongResource::collection(collect(Song::whereIn('id', $localIds)->get()));
+                $local_likes = SongResource_basictoplay::collection(collect(Song::whereIn('id', $localIds)->get()));
             }else if ( $type === 'radio-station' ) {
                 $local_likes = RadioStationResource::collection(collect(RadioStation::whereIn('id', $localIds)->get()));
             }
             $collection = $collection->toBase()->merge($local_likes);
         }
 
-        $spotifyIds = 
+        $spotifyIds =
             \DB::table('likes')
                 ->select(\DB::raw('content_id as id'))
                 ->where('user_id', $this->id)
@@ -226,14 +231,13 @@ class User extends Authenticatable
                         'plan_id' => $plan->id,
                         'user_id' => $model->id,
                         'gateway' => 'local',
-                        // 'renews_at' => $request->renews_at 
+                        // 'renews_at' => $request->renews_at
                     ]);
                 }
             }
         });
         self::deleting(function ($model) {
             // delete the user avatar image after deletion
-            \App\Helpers\FileManager::delete($model->avatar);
             // detach the user permissions after deletion
             foreach ($model->permissions as $permission) {
                 $model->permissions()->detach($permission->id);
@@ -252,5 +256,21 @@ class User extends Authenticatable
             $model->songs()->delete();
             $model->playlists()->delete();
         });
+    }
+
+    public function registerMediaConversions(MM $media = null): void
+    {
+        if( Setting::get('optimize_images') ) {
+            $this->addMediaConversion('thumbnail')
+            ->width(80)
+            ->height(80)
+            ->performOnCollections('avatar')
+            ->nonQueued();
+        }
+    }
+
+    public function videos()
+    {
+        return $this->hasMany('App\Video');
     }
 }

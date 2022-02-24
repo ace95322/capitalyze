@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\User\UserResource_Basic;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class SubscriptionResource extends JsonResource
@@ -16,7 +17,7 @@ class SubscriptionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'owner' => new UserResource($this->owner),
+            'owner' => new UserResource_Basic($this->owner),
             'plan' => new PlanResource($this->plan),
             'status' => $this->status,
             'gateway_id' => $this->gateway_id,

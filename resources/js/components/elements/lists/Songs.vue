@@ -14,7 +14,7 @@
                 v-for="(song, i) in songs"
                 :key="i"
                 class="relative list-li"
-                @click="$store.dispatch('playSong', { song, reset: true })"
+                @click="play(song, true)"
             >
                 <abs-menu
                     v-if="$store.getters.getSongContextMenu == compid + i"

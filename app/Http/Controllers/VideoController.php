@@ -11,6 +11,7 @@ use App\Video;
 use FileManager;
 use App\Traits\Search;
 use App\Exceptions\FEException;
+use App\Exports\VideosExport;
 use App\Helpers\YoutubeAPI;
 use App\Http\Resources\Spotify\VideoResource as SpotifyVideoResource;
 use App\Price;
@@ -19,6 +20,7 @@ use App\Setting;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class VideoController extends Controller
 {
@@ -85,25 +87,25 @@ class VideoController extends Controller
         $request->validate([
             'title' => 'required|max:255|min:1|string',
         ]);
-        if( $request->uploaded_by  === 'artist' ) {
+        if ($request->uploaded_by  === 'artist') {
             $available_space = auth()->user()->artist->available_disk_space;
             $used_space = auth()->user()->artist->used_disk_space();
             if (($request->file_size || 0) + $used_space > ($available_space * 1024 * 1024)) {
-                throw new FEException('You have exceeded your space limit', '', 400);        
+                throw new FEException('You have exceeded your space limit', '', 400);
             }
-        } else if ( $request->uploaded_by  === 'user' ) {
+        } else if ($request->uploaded_by  === 'user') {
             $used_space = auth()->user()->used_disk_space();
             // checking the storage space given by the plan
             if ($sub = auth()->user()->active_subscription()->first()) {
                 $user_plan = $sub->plan;
             }
-            if (isSet($user_plan)) {
+            if (isset($user_plan)) {
                 $available_space = auth()->user()->available_disk_space > $user_plan->storage_space  ? auth()->user()->available_disk_space : $user_plan->storage_space;
             } else {
                 $available_space = auth()->user()->available_disk_space;
             }
             if (($request->file_size || 0) + $used_space > ($available_space * 1024 * 1024)) {
-                throw new FEException('You have exceeded your space limit', '', 400);        
+                throw new FEException('You have exceeded your space limit', '', 400);
             }
         }
 
@@ -137,7 +139,7 @@ class VideoController extends Controller
                     'source' => 'required',
                 ]);
             }
-        } else if ( $request->source_format === 'video_url' ) {
+        } else if ($request->source_format === 'video_url') {
             $request->validate([
                 'source' => 'required|url',
             ]);
@@ -145,48 +147,46 @@ class VideoController extends Controller
             $url = $request->source;
             $file_name = basename($url);
             $file_size = 0;
-            if( isset($request->saveFileFromURL) ) {
+            if (isset($request->saveFileFromURL)) {
                 try {
                     $ch = curl_init($url);
 
                     // Use basename() function to return
-                    // the base name of file 
-                  
-                    
+                    // the base name of file
+
+
                     // Save file into file location
                     $save_file_loc = "storage" . '/videos/videos/' . $file_name;
-                
-                    // Open file 
+
+                    // Open file
                     $fp = fopen($save_file_loc, 'wb');
-                    
+
                     // It set an option for a cURL transfer
                     curl_setopt($ch, CURLOPT_FILE, $fp);
                     curl_setopt($ch, CURLOPT_HEADER, 0);
-                    
+
                     // Perform a cURL session
                     curl_exec($ch);
-                    
+
                     // Closes a cURL session and frees all resources
                     curl_close($ch);
-                    
+
                     // Close file
                     fclose($fp);
-        
-                                        
+
+
                     $source = $save_file_loc;
 
                     $file_size = filesize($save_file_loc);
-
-                } catch(Exception $e)
-                {
-                    throw new FEException('Failed to download the file. Make sure the URL is correct.', '', 400);        
+                } catch (Exception $e) {
+                    throw new FEException('Failed to download the file. Make sure the URL is correct.', '', 400);
                 }
             } else {
                 $source = $url;
             }
         }
 
-        $video->title = $request->title; 
+        $video->title = $request->title;
         $video->uploaded_by = $request->uploaded_by;
         $video->public = $request->public;
         $video->user_id = auth()->user()->id;
@@ -198,15 +198,15 @@ class VideoController extends Controller
         $video->file_size = $file_size;
         $video->duration = $request->duration;
 
-        if( $request->uploaded_by === "artist" ) {
+        if ($request->uploaded_by === "artist") {
             $video->artist_id = auth()->user()->artist->id;
         }
-        
+
         // new update V2.1
         $video->isProduct  =  $request->isProduct;
         $video->isExclusive  =  $request->isExclusive;
         $video->isExplicit  =  $request->isExplicit;
-        // 
+        //
 
         // links
         $video->spotify_link = $request->spotify_link;
@@ -219,14 +219,14 @@ class VideoController extends Controller
 
         // new update V2.1
         // Asset as product
-        if( isset($request->isProduct) &&  $request->isProduct) {
+        if (isset($request->isProduct) &&  $request->isProduct) {
             // create product
 
             $product = $video->product()->create([]);
             // create prices
             $prices = [];
             foreach (json_decode($request->licenses, true) as $pr) {
-                if( !isset($pr['id']) ) {
+                if (!isset($pr['id'])) {
                     $defaultCurrency = json_decode(Setting::get('default_currency'));
                     $price = Price::create([
                         'name' => $pr['name'],
@@ -238,7 +238,7 @@ class VideoController extends Controller
                 } else {
                     $price = Price::find($pr['id']);
                 }
-                if( $price ) {
+                if ($price) {
                     array_push($prices, $price->id);
                 }
             }
@@ -288,7 +288,7 @@ class VideoController extends Controller
                 $video->file_size = $file_size;
                 $video->file_name = $file_name;
                 $video->source = $source;
-            } else if( !$video->source ) {
+            } else if (!$video->source) {
                 $request->validate([
                     'source' => 'required',
                 ]);
@@ -305,12 +305,12 @@ class VideoController extends Controller
                 $video->file_name = $file_name;
                 $video->file_size = $file_size;
                 $video->source = $source;
-            } else if(!$video->source ){
+            } else if (!$video->source) {
                 $request->validate([
                     'source' => 'required',
                 ]);
             }
-        } else if ( $request->source_format === 'video_url' ) {
+        } else if ($request->source_format === 'video_url') {
             $request->validate([
                 'source' => 'required|url',
             ]);
@@ -318,43 +318,42 @@ class VideoController extends Controller
             $url = $request->source;
             $file_name = basename($url);
             $file_size = 0;
-            if( isset($request->saveFileFromURL) ) {
+            if (isset($request->saveFileFromURL)) {
                 try {
                     $ch = curl_init($url);
 
                     // Use basename() function to return
-                    // the base name of file 
-                  
-                    
+                    // the base name of file
+
+
                     // Save file into file location
                     $save_file_loc = "storage" . '/videos/videos/' . $file_name;
-                
-                    // Open file 
+
+                    // Open file
                     $fp = fopen($save_file_loc, 'wb');
-                    
+
                     // It set an option for a cURL transfer
                     curl_setopt($ch, CURLOPT_FILE, $fp);
                     curl_setopt($ch, CURLOPT_HEADER, 0);
-                    
+
                     // Perform a cURL session
                     curl_exec($ch);
-                    
+
                     // Closes a cURL session and frees all resources
                     curl_close($ch);
-                    
+
                     // Close file
                     fclose($fp);
-        
-                                        
+
+
                     $source = $save_file_loc;
 
                     $file_size = filesize($save_file_loc);
 
                     $video->file_name = $file_name;
                     $video->file_size = $file_size;
-                } catch(Exception $e)
-                {
-                    throw new FEException('Failed to download the file. Make sure the URL is correct.', '', 400);        
+                } catch (Exception $e) {
+                    throw new FEException('Failed to download the file. Make sure the URL is correct.', '', 400);
                 }
             } else {
                 $source = $url;
@@ -369,14 +368,14 @@ class VideoController extends Controller
 
         // new update V2.1
         // Asset as product
-        if( isset($request->isProduct) &&  $request->isProduct) {
+        if (isset($request->isProduct) &&  $request->isProduct) {
             // create product
 
             $product = $video->product()->firstOrCreate([]);
             // create prices
             $prices = [];
             foreach (json_decode($request->licenses, true) as $pr) {
-                if( !isset($pr['id']) ) {
+                if (!isset($pr['id'])) {
                     $defaultCurrency = json_decode(Setting::get('default_currency'));
                     $price = Price::create([
                         'name' => $pr['name'],
@@ -388,12 +387,12 @@ class VideoController extends Controller
                 } else {
                     $price = Price::find($pr['id']);
                 }
-                if( $price ) {
+                if ($price) {
                     array_push($prices, $price->id);
                 }
             }
             $product->prices()->sync($prices);
-        } else if( !$request->isProduct && $video->product) {
+        } else if (!$request->isProduct && $video->product) {
             $video->product->delete();
         }
 
@@ -401,7 +400,7 @@ class VideoController extends Controller
         $video->isProduct  =  $request->isProduct;
         $video->isExclusive  =  $request->isExclusive;
         $video->isExplicit  =  $request->isExplicit;
-        // 
+        //
         // links
         $video->spotify_link = $request->spotify_link;
         $video->youtube_link = $request->youtube_link;
@@ -428,7 +427,7 @@ class VideoController extends Controller
                 ]);
             }
         }
-        
+
         return response()->json(new VideoResource($video), 200);
     }
     /**
@@ -505,20 +504,19 @@ class VideoController extends Controller
         $id = request()->query('id');
         $origin = request()->query('origin');
 
-        if( $origin === "spotify" ) {
+        if ($origin === "spotify") {
             $track = Spotify::track($id)->get();
-       
+
             $moreFromArtisttracks = $this->getVideosBasedOn("artists", $track);
 
             return $moreFromArtisttracks;
-        } else if ( $origin === "local" )  {
-            if( $artist = Artist::find($id) ) {
+        } else if ($origin === "local") {
+            if ($artist = Artist::find($id)) {
                 return VideoResource::collection($artist->videos()->orderBy('created_at')->get());
             } else {
                 return [];
             }
         }
-       
     }
     /**
      * Next videos based on the setings.
@@ -532,24 +530,23 @@ class VideoController extends Controller
 
         $rules = json_decode(Setting::get("shuffleOrder"), true);
 
-        if( $origin === "spotify" ) {
+        if ($origin === "spotify") {
             $track = Spotify::track($id)->get();
-       
-            foreach ($rules as $key => $value) {
-               $tracks = $this->getVideosBasedOn($rules[$key]["value"], $track);
-               $nextVideos = $nextVideos->toBase()->merge($tracks);
-            }
 
+            foreach ($rules as $key => $value) {
+                $tracks = $this->getVideosBasedOn($rules[$key]["value"], $track);
+                $nextVideos = $nextVideos->toBase()->merge($tracks);
+            }
         }
 
         // filter out the same video
 
-        $nextVideos = $nextVideos->unique("id")->filter(function($val) use ($id){
+        $nextVideos = $nextVideos->unique("id")->filter(function ($val) use ($id) {
             return $val['id'] !== $id;
         });
-           
+
         //     if( $rules[0]["value"] === "album" ) {
-               
+
         //     }
         // } else if ( $origin === "local" ) {
 
@@ -567,20 +564,19 @@ class VideoController extends Controller
         $id = request()->query('id');
         $origin = request()->query('origin');
 
-        if( $origin === "spotify" ) {
+        if ($origin === "spotify") {
             $track = Spotify::track($id)->get();
-       
+
             $moreFromAlbum = $this->getVideosBasedOn("album", $track);
 
             return $moreFromAlbum;
-        } else if ( $origin === "local" )  {
-            if( $album = Album::find($id) ) {
+        } else if ($origin === "local") {
+            if ($album = Album::find($id)) {
                 return VideoResource::collection($album->videos()->orderBy('created_at')->get());
             } else {
                 return [];
             }
         }
-      
     }
     /**
      * Get more videos from a certain genre.
@@ -610,26 +606,25 @@ class VideoController extends Controller
     {
 
         $results = [];
-        if( $factor === "album" ) {
-            $album_id = isSet($track["album"]) ? $track["album"]["id"]: null;
-            if( $album_id ) {
+        if ($factor === "album") {
+            $album_id = isset($track["album"]) ? $track["album"]["id"] : null;
+            if ($album_id) {
                 $album = Spotify::album($album_id)->get();
                 $album_tracks = $album['tracks']['items'];
                 foreach ($album_tracks as $key => $value) {
-                   $album_tracks[$key]['cover'] =  $album['images'][1]['url'];
+                    $album_tracks[$key]['cover'] =  $album['images'][1]['url'];
                 }
                 $results = array_merge($results, $album_tracks);
             }
-        } else if ( $factor === "artists" ) {
+        } else if ($factor === "artists") {
             $artists = $track["artists"];
             foreach ($artists as $artist) {
                 $artist_id = $artist["id"];
-                if( $artist_id ) {
+                if ($artist_id) {
                     $artist_top_tracks = Spotify::artistTopTracks($artist_id)->get();
                     $artist_top_tracks = $artist_top_tracks['tracks'];
                     $results = array_merge($results, $artist_top_tracks);
                 }
-
             }
         }
         return SpotifyVideoResource::collection($results);
@@ -646,5 +641,16 @@ class VideoController extends Controller
         $video = Video::find($id);
         $video->delete();
         return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
+    /**
+     * Export CSV
+     *
+     * @return void
+     */
+    public function exportCSV(Request $request)
+    {
+        $export = new VideosExport($request->get('start_date', null),  $request->get('end_date', null));
+        return Excel::download($export, 'Video.csv');
     }
 }

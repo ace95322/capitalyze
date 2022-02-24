@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Episode;
 use App\Exceptions\FEException;
+use App\Helpers\Media;
+use App\Http\Resources\Episode\EpisodeResource_index;
 use App\Http\Resources\EpisodeResource;
 use FileManager;
+use App\Traits\Search;
 
 class EpisodeController extends Controller
 {
@@ -24,35 +27,28 @@ class EpisodeController extends Controller
 
         $episode = Episode::find($request->id);
 
+
+        if ($file = $request->file('cover')) {
+            Media::updateImage($episode, $file, 'cover');
+        } else {
+            Media::setDefault($episode, 'defaults/images/podcast_cover.png', 'cover');
+        }
+
+
         if ($request->source_format === 'file') {
-            if ($request->file('source')) {
-                $source = FileManager::update($request->file('source'), $episode->source, '/audios/songs/');
-                $file_name = $request->file('source')->getClientOriginalName();
-                $file_size = $request->file_size;
-                $episode->file_size = $file_size;
-                $episode->file_name = $file_name;
-                $episode->source = $source;
-            } else if( !$episode->source ) {
-                $request->validate([
-                    'source' => 'required',
-                ]);
+            if ($file = $request->file('source')) {
+                Media::updateAudio($episode, $file);
             }
         } else if ($request->source_format === 'yt_video') {
             if ($request->source) {
                 // delete audio file if it exists
                 if ($episode->source_format === 'file') {
-                    FileManager::delete($episode->source);
+                    Media::delete($episode, 'mp3');
+                    Media::delete($episode, 'hls');
+                    Media::delete($episode, 'm3u8');
                 }
-                $source = json_encode($request->source);
-                $file_name = null;
-                $file_size = null;
-                $episode->file_name = $file_name;
-                $episode->file_size = $file_size;
-                $episode->source = $source;
-            } else if(!$episode->source ){
-                $request->validate([
-                    'source' => 'required',
-                ]);
+
+                Episode::uploadYoutubeVideo($episode, $request->source, true);
             }
         }
 
@@ -63,7 +59,7 @@ class EpisodeController extends Controller
 
         $episode->save();
 
-        return response()->json(new EpisodeResource($episode), 200);
+        return response()->json(new EpisodeResource_index($episode), 200);
     }
 
     /**
@@ -78,86 +74,25 @@ class EpisodeController extends Controller
             'title' => 'required|max:255|min:1|string',
         ]);
 
-        if( $request->uploaded_by  === 'artist' ) {
+        if ($request->uploaded_by  === 'artist') {
             $available_space = auth()->user()->artist->available_disk_space;
             $used_space = auth()->user()->artist->used_disk_space();
             if (($request->file_size || 0) + $used_space > ($available_space * 1024 * 1024)) {
-                throw new FEException('You have exceeded your space limit', '', 400);        
+                throw new FEException('You have exceeded your space limit', '', 400);
             }
-        } else if ( $request->uploaded_by  === 'user' ) {
+        } else if ($request->uploaded_by  === 'user') {
             $used_space = auth()->user()->used_disk_space();
             // checking the storage space given by the plan
             if ($sub = auth()->user()->active_subscription()->first()) {
                 $user_plan = $sub->plan;
             }
-            if (isSet($user_plan)) {
+            if (isset($user_plan)) {
                 $available_space = auth()->user()->available_disk_space > $user_plan->storage_space  ? auth()->user()->available_disk_space : $user_plan->storage_space;
             } else {
                 $available_space = auth()->user()->available_disk_space;
             }
             if (($request->file_size || 0) + $used_space > ($available_space * 1024 * 1024)) {
-                throw new FEException('You have exceeded your space limit', '', 400);        
-            }
-        }
-
-        if( $request->source_format === 'file' ) {
-            if ($request->file('source')) {
-                $file_name = $request->file('source')->getClientOriginalName();
-                $file_size = $request->file_size;
-                $source = FileManager::store($request, '/audios/episodes/', 'source');
-            } else {
-                $request->validate([
-                    'source' => 'required',
-                ]);
-            }
-        } else if ( $request->source_format === 'yt_video' ) {
-            if( $request->source ) {
-                $source = json_encode($request->source); // source column has type JSON
-                $file_name = null;
-                $file_size = null;
-            } else {
-                $request->validate([
-                    'source' => 'required',
-                ]);
-            }
-        } else if ( $request->source_format === 'audio_url' ) {
-            $request->validate([
-                'source' => 'required|url',
-            ]);
-
-            $url = $request->source;
-
-            if( isset($request->saveFileFromURL) ) {
-                $ch = curl_init($url);
-
-                // Use basename() function to return
-                // the base name of file 
-                $file_name = basename($url);
-                
-                // Save file into file location
-                $save_file_loc = "storage" . '/audios/episodes/' . $file_name;
-            
-                // Open file 
-                $fp = fopen($save_file_loc, 'wb');
-                
-                // It set an option for a cURL transfer
-                curl_setopt($ch, CURLOPT_FILE, $fp);
-                curl_setopt($ch, CURLOPT_HEADER, 0);
-                
-                // Perform a cURL session
-                curl_exec($ch);
-                
-                // Closes a cURL session and frees all resources
-                curl_close($ch);
-                
-                // Close file
-                fclose($fp);
-    
-                $file_size = 0;
-                
-                $source = $save_file_loc;
-            } else {
-                $source = $url;
+                throw new FEException('You have exceeded your space limit', '', 400);
             }
         }
 
@@ -169,17 +104,40 @@ class EpisodeController extends Controller
         // $episode->artist_id = $request->artist_id;
         // $episode->user_id = auth()->user()->id;
         $episode->podcast_id = $request->podcast_id;
-        $episode->source_format = $request->source_format;
-        $episode->file_name = $file_name;
-        $episode->source = $source;
-        $episode->file_size = $file_size;
         $episode->duration = $request->duration;
+        $episode->source_format = $request->source_format;
+        $episode->save();
+        if ($request->source_format === 'file') {
+            if ($request->file('source')) {
+                Episode::upload($episode, $request->file('source'));
+            } else {
+                $request->validate([
+                    'source' => 'required',
+                ]);
+            }
+        } else if ($request->source_format === 'yt_video') {
+            if ($request->source) {
+                Episode::uploadYoutubeVideo($episode, $request->source, true);
+            } else {
+                $request->validate([
+                    'source' => 'required',
+                ]);
+            }
+        }
+
+        if ($file = $request->file('cover')) {
+            Media::updateImage($episode, $file, 'cover');
+        } else {
+            Media::setDefault($episode, 'defaults/images/podcast_cover.png', 'cover');
+        }
+
+
 
         $episode->save();
 
-        return response()->json(new EpisodeResource($episode), 201);
+        return response()->json(new EpisodeResource_index($episode), 201);
     }
-        /**
+    /**
      * Download a episode.
      *
      * @param  \App\episode  $id
@@ -192,6 +150,11 @@ class EpisodeController extends Controller
         $episode->download_count++;
         $episode->save();
         return $file;
+    }
+
+    public function show($id)
+    {
+        return Search::getEpisode($id, false, true);
     }
 
     /**

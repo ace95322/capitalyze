@@ -2,11 +2,8 @@
 
 namespace App\installer\Helpers;
 
-use App\Helpers\FileManager;
 use Exception;
 use Illuminate\Database\SQLiteConnection;
-use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -85,34 +82,35 @@ class DatabaseManager
         ];
     }
 
-    /**
-     * Create the one and only super-admin account.
-     *
-     * @param string $admin_data
-     * @param string $response
-     */
-    private function createAdminAccount($admin_data, $response)
-    {
+    // /**
+    //  * Create the one and only super-admin account.
+    //  *
+    //  * @param string $admin_data
+    //  * @param string $response
+    //  */
+    // private function createAdminAccount($admin_data, $response)
+    // {
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        \App\User::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        $superAdmin = \App\User::create([
-            'name' => 'Admin',
-            'email' => $admin_data->email,
-            'avatar' => FileManager::generateFileData('/storage/defaults/images/user_avatar.png'),
-            'is_admin' => 1,
-            'email_verified_at' => Carbon::now(),
-            'available_disk_space' => 100,
-            'password' => Hash::make($admin_data->password),
-        ]);
-        $superAdmin->roles()->attach(1);
-        foreach (\App\Role::find(1)->available_permissions as $permission) {
-            $superAdmin->permissions()->attach($permission->id);
-        }
-        return redirect()->route('LaravelInstaller::final')
-            ->with(['message' => $response]);
-    }
+    //     DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+    //     \App\User::truncate();
+    //     DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+    //     $superAdmin = \App\User::create([
+    //         'name' => 'Admin',
+    //         'email' => $admin_data->email,
+    //         'is_admin' => 1,
+    //         'email_verified_at' => Carbon::now(),
+    //         'available_disk_space' => 100,
+    //         'password' => Hash::make($admin_data->password),
+    //     ]);
+
+
+    //     $superAdmin->roles()->attach(1);
+    //     foreach (\App\Role::find(1)->available_permissions as $permission) {
+    //         $superAdmin->permissions()->attach($permission->id);
+    //     }
+    //     return redirect()->route('LaravelInstaller::final')
+    //         ->with(['message' => $response]);
+    // }
 
     /**
      * Check database type. If SQLite, then create the database file.

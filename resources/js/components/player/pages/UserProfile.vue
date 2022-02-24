@@ -1,4 +1,3 @@
-
 <template>
     <fixed-left v-if="user">
         <template v-slot:img>
@@ -20,9 +19,17 @@
                     <div class="displayname max-2-lines">
                         {{ user.name }}
                     </div>
-                    <div class="badge" v-if="user.plan" :title="$t('Subscribed to') + ' '  + user.plan.name + ' plan'">
+                    <div
+                        class="badge"
+                        v-if="user.plan"
+                        :title="
+                            $t('Subscribed to') + ' ' + user.plan.name + ' plan'
+                        "
+                    >
                         <v-btn outlined small color="primary">
-                            <v-icon left v-if="user.plan.badge">$vuetify.icons.{{ user.plan.badge }}</v-icon>
+                            <v-icon left v-if="user.plan.badge"
+                                >$vuetify.icons.{{ user.plan.badge }}</v-icon
+                            >
                             {{ user.plan.name }}
                         </v-btn>
                     </div>
@@ -43,9 +50,9 @@
                     class="follow"
                     v-if="
                         $store.getters.getUser &&
-                            $route.params.id != $store.getters.getUser.id &&
-                            friendStatus !== null &&
-                            $store.getters.getSettings.enableFriendshipSystem
+                        $route.params.id != $store.getters.getUser.id &&
+                        friendStatus !== null &&
+                        $store.getters.getSettings.enableFriendshipSystem
                     "
                 >
                     <v-btn
@@ -55,7 +62,7 @@
                         @click="addFriend($route.params.id)"
                         v-if="friendStatus == 'notFriends'"
                     >
-                        {{$t('Add Friend')}}
+                        {{ $t("Add Friend") }}
                     </v-btn>
                     <v-btn
                         class="secondary"
@@ -64,7 +71,7 @@
                         v-else-if="friendStatus == 'requested'"
                         disabled
                     >
-                        {{$t('Friend request sent')}}
+                        {{ $t("Friend request sent") }}
                     </v-btn>
                     <div id="unfriend_button" v-else>
                         <v-btn
@@ -73,7 +80,7 @@
                             rounded
                             small
                         >
-                            {{$t('Friends')}}
+                            {{ $t("Friends") }}
                         </v-btn>
                         <v-btn
                             class="error"
@@ -82,7 +89,7 @@
                             small
                             @click="addFriend($route.params.id)"
                         >
-                            {{$t('Unfriend')}}
+                            {{ $t("Unfriend") }}
                         </v-btn>
                     </div>
                 </div>
@@ -93,14 +100,19 @@
                 class="profile-main-content"
                 v-if="
                     user.mostPlayed.length ||
-                        user.playlists.length ||
-                        user.likes.length
+                    user.playlists.length ||
+                    user.likes.length
                 "
             >
                 <div class="most-played" v-if="user.mostPlayed.length">
-                    <div class="card-title-medium mb-3">{{$t('Most played songs')}}</div>
+                    <div class="card-title-medium mb-3">
+                        {{ $t("Most played songs") }}
+                    </div>
                     <div class="content">
-                        <song-list :songs="mostPlayedSpliced" :options="['like']"></song-list>
+                        <song-list
+                            :songs="mostPlayedSpliced"
+                            :options="['like']"
+                        ></song-list>
                     </div>
                     <div class="more-or-less">
                         <div
@@ -108,7 +120,7 @@
                             @click="nMostPlayed += 3"
                             v-if="nMostPlayed < user.mostPlayed.length"
                         >
-                            {{$t('More')}}
+                            {{ $t("More") }}
                         </div>
                     </div>
                 </div>
@@ -125,10 +137,16 @@
                         />
                     </div>
                 </div> -->
-                <div class="singles" v-if="user.likes.length">
-                    <div class="card-title-medium mb-3">{{$t('Likes')}}</div>
+                <div class="singles" v-if="user.likes && user.likes.length">
+                    <div class="card-title-medium mb-3">{{ $t("Likes") }}</div>
                     <div class="content">
-                        <song-list :songs="LikesSpliced"></song-list>
+                        <List
+                            :isAlbum="true"
+                            :content="LikesSpliced"
+                            class="song-list"
+                            headers="true"
+                            ranked="true"
+                        />
                     </div>
                     <div class="more-or-less">
                         <div
@@ -136,7 +154,7 @@
                             @click="nLikes += 3"
                             v-if="nLikes < user.likes.length"
                         >
-                            {{$t('More')}}
+                            {{ $t("More") }}
                         </div>
                     </div>
                 </div>
@@ -155,7 +173,7 @@
                 </div> -->
                 <div class="users_playlists" v-if="user.playlists.length">
                     <div class="card-title-medium mb-3">
-                        {{ user.name }} {{$t('Playlists')}}
+                        {{ user.name }} {{ $t("Playlists") }}
                     </div>
                     <div class="content content-list-wrapper">
                         <ul>
@@ -165,7 +183,7 @@
                                 @click="
                                     $router.push({
                                         name: 'playlist',
-                                        params: { id: playlist.id }
+                                        params: { id: playlist.id },
                                     })
                                 "
                             >
@@ -216,9 +234,9 @@
         img="peep-68.png"
     >
         <template v-slot:button>
-            <v-btn class="primary" rounded small @click="$router.go(-1)"
-                >{{$t('Go Back')}}</v-btn
-            >
+            <v-btn class="primary" rounded small @click="$router.go(-1)">{{
+                $t("Go Back")
+            }}</v-btn>
         </template>
     </empty-page>
     <empty-page
@@ -228,9 +246,9 @@
         img="peep-68.png"
     >
         <template v-slot:button>
-            <v-btn class="primary" rounded small @click="$router.go(-1)"
-                >{{$t('Go Back')}}</v-btn
-            >
+            <v-btn class="primary" rounded small @click="$router.go(-1)">{{
+                $t("Go Back")
+            }}</v-btn>
         </template>
     </empty-page>
     <page-loading v-else />
@@ -253,9 +271,9 @@ export default {
                         this.$store.getters.getSettings
                             .userProfilePageDescription,
                         "user"
-                    )
-                }
-            ]
+                    ),
+                },
+            ],
         };
     },
     created() {
@@ -267,7 +285,7 @@ export default {
             friendStatus: null,
             nLikes: 3,
             nMostPlayed: 3,
-            errorStatus: null
+            errorStatus: null,
         };
     },
     computed: {
@@ -284,22 +302,24 @@ export default {
             } else {
                 return this.user.mostPlayed;
             }
-        }
+        },
     },
     methods: {
         addFriend(user_id) {
             if (this.friendStatus == "friends") {
                 this.$confirm({
-                    message: `${this.$t("Are you sure you wanna unfriend")}  ${this.user.name}?`,
+                    message: `${this.$t("Are you sure you wanna unfriend")}  ${
+                        this.user.name
+                    }?`,
                     button: {
                         no: this.$t("Cancel"),
-                        yes: this.$t("Yes")
+                        yes: this.$t("Yes"),
                     },
                     /**
                      * Callback Function
                      * @param {Boolean} confirm
                      */
-                    callback: confirm => {
+                    callback: (confirm) => {
                         if (confirm) {
                             this.friendStatus = "notFriends";
                             this.$store
@@ -309,11 +329,13 @@ export default {
                                         group: "foo",
                                         type: "success",
                                         title: this.$t("Removed"),
-                                        text: this.$t('Friend removed successfully.')
+                                        text: this.$t(
+                                            "Friend removed successfully."
+                                        ),
                                     });
                                 });
                         }
-                    }
+                    },
                 });
             } else if (this.friendStatus == "notFriends") {
                 this.friendStatus = "requested";
@@ -322,7 +344,7 @@ export default {
                         group: "foo",
                         type: "success",
                         title: this.$t("Requested"),
-                        text: this.$t('Friend Request sent successfully.')
+                        text: this.$t("Friend Request sent successfully."),
                     });
                 });
             }
@@ -330,15 +352,15 @@ export default {
         fetchUserProfile() {
             axios
                 .get("/api/profile/" + this.$route.params.id)
-                .then(res => (this.user = res.data))
+                .then((res) => (this.user = res.data))
                 .then(() => {
                     this.$store
                         .dispatch("checkFriendStatus", this.$route.params.id)
-                        .then(res => (this.friendStatus = res));
+                        .then((res) => (this.friendStatus = res));
                 })
-                .catch(e => (this.errorStatus = e.response.status));
-        }
-    }
+                .catch((e) => (this.errorStatus = e.response.status));
+        },
+    },
 };
 </script>
 <style lang="scss" scoped>

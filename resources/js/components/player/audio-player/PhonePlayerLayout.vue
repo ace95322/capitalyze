@@ -336,7 +336,7 @@
                                         class="epico_previous-button"
                                         @click="$emit('goPrevious')"
                                         :disabled="
-                                            !playlist[currentAudio.index - 1]
+                                            !playlist[currentAudio.index - 1] || currentAudio.campaign
                                         "
                                         :title="$t('Previous')"
                                     >
@@ -346,6 +346,7 @@
                                     </button>
                                     <button
                                         v-else-if="isPodcastEpisode"
+                                        :disabled="currentAudio.campaign"
                                         class="epico_previous-button epico_rewind-button"
                                         :title="$t('Rewind')"
                                         @click="$emit('rewindAudio', -10)"
@@ -356,6 +357,7 @@
                                     </button>
                                     <button
                                         class="epico_btn epico_play-button epico_no-border"
+                                        :disabled="currentAudio.campaign"
                                     >
                                         <template v-if="isLoading">
                                             <v-progress-circular
@@ -371,7 +373,8 @@
                                                 class="play-button"
                                                 @click="$emit('playPause')"
                                                 :title="$t('Play')"
-                                                v-if="!currentAudio.isPlaying"
+                                                  :disabled="currentAudio.campaign"
+                                                v-if="!currentAudio.isPlaying && !currentAudio.campaign"
                                             >
                                                 <v-icon
                                                     size="60"
@@ -388,6 +391,7 @@
                                                 @click="$emit('playPause')"
                                                 v-else
                                                 :title="$t('Pause')"
+                                                 :disabled="currentAudio.campaign"
                                             >
                                                 <v-icon
                                                     size="60"
@@ -408,7 +412,7 @@
                                         "
                                         class="epico_next-button"
                                         :disabled="
-                                            !playlist[currentAudio.index + 1]
+                                            !playlist[currentAudio.index + 1] || currentAudio.campaign
                                         "
                                         @click="$emit('goNext')"
                                         :title="$t('Next')"
@@ -433,13 +437,11 @@
                         <div class="epico_option-section">
                             <div
                                 class="plus-container"
-                                v-if="
-                                    !isPodcastEpisode && !isCurrentAudioAStream
-                                "
                             >
                                 <song-menu
                                     :item="currentAudio"
                                     icon="plus"
+                                    :disabled="currentAudio.campaign"
                                     :isOnPlayer="true"
                                     :closeOnContentClick="true"
                                     @close="$store.commit('setSongMenu', null)"
@@ -448,11 +450,13 @@
                             <button
                                 class="epico_shuffle-button"
                                 v-if="
-                                    !isPodcastEpisode && !isCurrentAudioAStream
+                                    !isPodcastEpisode && !isCurrentAudioAStream &
+                  !currentAudio.campaign
                                 "
                             >
                                 <v-icon
                                     :title="$t('Shuffle')"
+                                    :disabled="currentAudio.campaign"
                                     @click="$emit('shuffleAudio')"
                                     :color="
                                         buttons.shuffle
@@ -500,6 +504,7 @@
                                 v-if="
                                     !isPodcastEpisode && !isCurrentAudioAStream
                                 "
+                                :disabled="currentAudio.campaign"
                             >
                                 <v-icon
                                     :color="
@@ -516,6 +521,7 @@
                                 <v-btn
                                     @click="$emit('mute', $event)"
                                     icon
+                                    :disabled="currentAudio.campaign"
                                     small
                                 >
                                     <v-icon color="textContMedium"

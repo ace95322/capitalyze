@@ -30,7 +30,7 @@
                             ? 'translateX(' +
                               (rightSidebar ? '0px' : '100%') +
                               ')'
-                            : 'translateX(0)'
+                            : 'translateX(0)',
                 }"
             ></RightSidebar>
         </div>
@@ -39,21 +39,50 @@
             <ShareDialog @close="$store.commit('hideSharingDialog')" />
         </v-dialog>
         <v-dialog
+            v-model="$store.getters.getCurrentCampaign"
+            v-if="
+                $store.getters.getCurrentCampaign &&
+                $store.getters.getCurrentCampaign.banner
+            "
+            max-width="450px"
+            persistent
+        >
+            <v-img
+                :src="$store.getters.getCurrentCampaign.banner"
+                v-if="$store.getters.getCurrentCampaign"
+                max-width="450"
+            ></v-img>
+        </v-dialog>
+        <v-dialog
             v-model="$store.getters['purchase/getCheckoutDialog']"
             persistent
             max-width="800"
         >
-            <checkout v-if="$store.getters['purchase/getCheckoutDialog']"></checkout>
+            <checkout
+                v-if="$store.getters['purchase/getCheckoutDialog']"
+            ></checkout>
         </v-dialog>
-        <v-dialog max-width="700" v-model="PDialog" v-if="$store.getters['purchase/getSellingAsset']">
+        <v-dialog
+            max-width="700"
+            v-model="PDialog"
+            v-if="$store.getters['purchase/getSellingAsset']"
+        >
             <purchase-dialog
                 :asset="$store.getters['purchase/getSellingAsset']"
             >
             </purchase-dialog>
         </v-dialog>
-        <v-dialog max-width="350" max-height="300" v-model="$store.state.chooseLangDialog">
+        <v-dialog
+            max-width="350"
+            max-height="300"
+            v-model="$store.state.chooseLangDialog"
+        >
             <v-list class="panel-color">
-                <v-list-item v-for="lang in $store.getters.getAvailableLanguages" :key="lang.id" @click="$store.dispatch('updateLang', lang)">
+                <v-list-item
+                    v-for="lang in $store.getters.getAvailableLanguages"
+                    :key="lang.id"
+                    @click="$store.dispatch('updateLang', lang)"
+                >
                     <div class="align-center">
                         <div class="img px-2 py-1">
                             <v-img
@@ -61,8 +90,8 @@
                                 height="100%"
                                 :src="
                                     '/storage/defaults/icons/flags/' +
-                                        lang.flag +
-                                        '.svg'
+                                    lang.flag +
+                                    '.svg'
                                 "
                             ></v-img>
                         </div>
@@ -87,50 +116,51 @@ export default {
         addToPlaylist,
         ShareDialog,
         Checkout: () => import("../../dialogs/selling/Checkout.vue"),
-        PurchaseDialog: () => import("../../dialogs/selling/Purchase.vue")
+        PurchaseDialog: () => import("../../dialogs/selling/Purchase.vue"),
     },
     created() {
         window.addEventListener(
             "resize",
-            function() {
+            function () {
                 this.$store.commit("setScreenWidth", window.innerWidth);
             }.bind(this)
         );
-        if( this.$store.getters.getSettings.saas &&  this.$store.getters.getSettings.enable_subscription) {
+        if (
+            this.$store.getters.getSettings.saas &&
+            this.$store.getters.getSettings.enable_subscription
+        ) {
             this.$store.dispatch("fetchPlans");
         }
 
-        window.addEventListener('beforeinstallprompt', (e) => {
+        window.addEventListener("beforeinstallprompt", (e) => {
             // Stash the event so it can be triggered later.
-            this.$store.commit('setInstallPrompt', e);
+            this.$store.commit("setInstallPrompt", e);
         });
 
-        window.addEventListener('appinstalled', () => {
+        window.addEventListener("appinstalled", () => {
             // Hide the app-provided install promotion
             // Clear the deferredPrompt so it can be garbage collected
-            this.$store.commit('setInstallPrompt', null);
+            this.$store.commit("setInstallPrompt", null);
         });
-
-
     },
     computed: {
         windowWidth() {
             return this.$store.getters.getScreenWidth;
         },
         PDialog: {
-            get () {
-                return this.$store.getters['purchase/getSellingAsset']
+            get() {
+                return this.$store.getters["purchase/getSellingAsset"];
             },
-            set (value) {
-               this.$store.commit('purchase/setSellingAsset', value)
-            }
-        }
+            set(value) {
+                this.$store.commit("purchase/setSellingAsset", value);
+            },
+        },
     },
     data() {
         return {
             rightSidebar: false,
             rightSidebarWidth: 0,
-            installButton: false
+            installButton: false,
         };
     },
     methods: {
@@ -138,8 +168,17 @@ export default {
             this.$store.commit("setSongMenu", null);
             this.$store.commit("setSongContextMenu", null);
             this.$store.commit("setSearchResultsPanel", false);
-        }
-    }
+        },
+    },
+    beforeDestroy() {
+        this.$store.commit("setCurrentlyPlayingTypeStatus", "");
+        this.$store.commit("setPlayerStatus", "puase");
+        this.$store.commit("setCurrentlyPlayingType", {
+            type: "",
+            id: "",
+            status: "",
+        });
+    },
 };
 </script>
 <style lang="scss">

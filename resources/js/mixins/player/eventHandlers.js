@@ -39,7 +39,9 @@ export default {
         onended() {
             var index;
             this.canPlay = false;
-            this.$store.commit("setCurrentAudio", null);
+            this.tracks_played++;
+            this.$store.commit("setCurrentlyPlayingTypeStatus", "pause");
+            this.$store.commit("setPlayerStatus", null);
             this.currentAudio.isPlaying = false;
             if (this.$store.getters.getUser && this.$store.getters.getUser.id) {
                 this.$store.dispatch("endPlay");

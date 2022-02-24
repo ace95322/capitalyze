@@ -5,7 +5,7 @@
                 <div class="align-justify-center">
                     <a class="logo-img-container" href="/">
                         <img
-                            src="/images/favicon/logo.png"
+                            :src="$store.getters.getSettings.appLogo"
                             :alt="$t('Logo Image')"
                         />
                     </a>

@@ -47,9 +47,7 @@
                         v-for="radioStation in highlights"
                         :key="radioStation.id"
                         @click="
-                            $store.dispatch('playRadioStation', {
-                                radioStation
-                            })
+                            play(radioStation, true)
                         "
                     >
                         <div class="radio-station__cover">
@@ -58,7 +56,8 @@
                                 :src="radioStation.cover"
                                 width="45"
                                 height="45"
-                            ></v-img>
+                            >
+                            </v-img>
                         </div>
                         <div class="radio-station__details">
                             {{ radioStation.name }}
@@ -311,6 +310,7 @@ export default {
         align-items: center;
         cursor: pointer;
         padding: 0.35em 0.6em;
+        border-radius: 3px;
         &:hover {
             background-color: rgba(223, 223, 223, 0.226);
         }

@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\FileManager;
+use App\Helpers\Media;
+use App\Http\Resources\RoleResource;
 use App\Notifications\Message;
 use Illuminate\Http\Request;
 
 use App\Role;
 use App\Setting;
+use App\User;
 
 class RoleController extends Controller
 {
@@ -18,7 +20,7 @@ class RoleController extends Controller
      */
     public function index()
     {
-        return Role::with('current_permissions')->with('available_permissions')->get();
+        return RoleResource::collection(Role::all());
     }
     /**
      * Reset the roles settings ( default permission ).
@@ -31,6 +33,60 @@ class RoleController extends Controller
             $role->detach_all();
             $role->add_default_permissions();
         }
+        return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
+    public function update(Request $request, $id) 
+    {
+        $request->validate([
+            'name' => 'required|unique:roles,name,' . $id,
+            'current_permissions' => 'required|array|min:1'
+        ]);
+
+        $role = Role::find($id);
+        
+        $role->name = $request->name;
+        if( $request->category ) {
+            $role->category = $request->category;
+        }
+     
+
+        $role->save();
+
+        // update perimissions
+        $role->current_permissions()->sync(array_column($request->current_permissions, 'id'));
+
+        // $role->detach_all();
+        // foreach ($request->permissions  as $permission) {
+        //     $role->current_permissions()->attach($permission['id']);
+        // }
+
+        return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
+    public function store(Request $request) 
+    {
+        $request->validate([
+            'name' => 'required|unique:roles,name',
+            'category' => 'required',
+            'current_permissions' => 'required|array|min:1'
+        ]);
+
+        $role = new Role();
+        
+        $role->name = $request->name;
+        $role->category = $request->category;
+     
+        $role->save();
+
+        // update perimissions
+        $role->current_permissions()->sync(array_column($request->current_permissions, 'id'));
+
+        // $role->detach_all();
+        // foreach ($request->permissions  as $permission) {
+        //     $role->current_permissions()->attach($permission['id']);
+        // }
+
         return response()->json(['message' => 'SUCCESS'], 200);
     }
 
@@ -57,7 +113,7 @@ class RoleController extends Controller
      */
     public function grantUserAdmin(Request $request)
     {
-        $whoWantToMakeAdmin = \Auth::user();
+        $whoWantToMakeAdmin = auth()->user();
         $whoWillHaveAdmin = \App\User::find($request->user_id);
         $adminRole = Role::where('name', 'admin')->first();
         if ($whoWantToMakeAdmin->is_admin === 1) {
@@ -78,7 +134,7 @@ class RoleController extends Controller
      */
     public function revokeUserAdmin(Request $request)
     {
-        $whoWantToRemoveAdmin = \Auth::user();
+        $whoWantToRemoveAdmin = auth()->user();
         $whoWillLoseAdmin = \App\User::find($request->user_id);
         $adminRole = Role::where('name', 'admin')->first();
         if ($whoWantToRemoveAdmin->is_admin === 1) {
@@ -122,7 +178,7 @@ class RoleController extends Controller
         //notify artist that his request was approved
         $from = (object)[
             'name' => auth()->user()->name,
-            'avatar' => FileManager::asset_path(auth()->user()->avatar),
+            'avatar' => Media::get(auth()->user(), 'avatar'),
             'role' => auth()->user()->is_admin ? (__('CEO of') . ' ' . Setting::get('appName')) : __('Admin')
         ];
         $artist->notify(new Message(__('Artist account approved'), '<p></p><h2>Congratulation!</h2><p>your artist account request has been approved. You can access your artist panel from your user menu on the navbar.</p><p></p>', true, $from));
@@ -142,6 +198,31 @@ class RoleController extends Controller
         $user->requested_artist_account = 1;
         $artist->delete();
         \DB::table('notifications')->where('id', $request->notification_id)->delete();
+        return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
+    public function sync() {
+        $users = User::all();
+
+        foreach ($users as $user) {
+            $permissions = [];
+            foreach ($user->roles as $role) {
+                $role_pers = $role->current_permissions()->get()->each(function($row) { return $row->id; });
+                $role_pers_array = array_column($role_pers->toArray(), 'id');
+                $permissions = array_merge($permissions, $role_pers_array);
+            }
+            $user->permissions()->sync($permissions);
+        }
+
+        return response()->json(['message' => 'SUCCESS'], 200);
+    }
+
+    public function destroy(Role $role)
+    {
+        if( $role->custom() ) {
+            $role->delete();
+        }
+
         return response()->json(['message' => 'SUCCESS'], 200);
     }
 }

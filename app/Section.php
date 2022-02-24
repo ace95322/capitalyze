@@ -2,7 +2,7 @@
 
 namespace App;
 
-use App\Http\Resources\GenreResource;
+use App\Http\Resources\Genre\GenreResource_index;
 use App\Traits\Search;
 use App\Traits\SectionContentTrait;
 use Illuminate\Database\Eloquent\Model;
@@ -63,7 +63,7 @@ class Section extends Model
                     else 
                     if ( $relation->item_type === 'genre' && $genre = Genre::find($relation->item_id))
                     {
-                        array_push($content, new GenreResource($genre));
+                        array_push($content, new GenreResource_index($genre));
                     }
                     else 
                     if ( $relation->item_type === 'radio-station' )

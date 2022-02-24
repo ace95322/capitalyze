@@ -2,7 +2,9 @@
     <div class="songs-wrapper">
         <v-card outlined>
             <v-card-title>
-                <v-icon color="primary" x-large>$vuetify.icons.music-note</v-icon>
+                <v-icon color="primary" x-large
+                    >$vuetify.icons.music-note</v-icon
+                >
                 <v-btn
                     class="mx-2"
                     dark
@@ -20,6 +22,26 @@
                     color="primary"
                     @click="exportCSV()"
                 >{{ $t("Export CSV") }}
+                </v-btn>
+                <v-btn
+                    class="mx-2"
+                    small
+                    :disabled="!selected.length"
+                    color="primary"
+                    @click="playlistDialog = true"
+                >
+                    <v-icon>$vuetify.icons.plus</v-icon>
+                    {{ $t("Playlist") }}
+                </v-btn>
+                <v-btn
+                    class="mx-2"
+                    :disabled="!selected.length"
+                    small
+                    color="error"
+                    @click="deleteTracks(selected.map((s) => s.id))"
+                >
+                    <v-icon>$vuetify.icons.delete</v-icon>
+                    {{ $t("Delete") }}
                 </v-btn>
                 <v-spacer></v-spacer>
                 <v-spacer></v-spacer>
@@ -40,6 +62,8 @@
                 :items="songs || []"
                 :loading="!songs"
                 :items-per-page="25"
+                v-model="selected"
+                show-select
                 :search="search"
                 class="elevation-1"
             >
@@ -47,7 +71,7 @@
                     <div class="img-container py-2">
                         <v-img
                             :src="
-                                (item.cover && item.cover.image) || item.cover
+                                (item.thumbnail && item.cover.image) || item.cover
                             "
                             :alt="item.title"
                             class="user-avatar song-cover"
@@ -83,7 +107,10 @@
                         :to="{ name: 'song', params: { id: item.id } }"
                         target="_blank"
                     >
-                        {{ item.title }}<v-icon x-small class="mb-1 ml-1">$vuetify.icons.open-in-new</v-icon>
+                        {{ item.title
+                        }}<v-icon x-small class="mb-1 ml-1"
+                            >$vuetify.icons.open-in-new</v-icon
+                        >
                     </router-link>
                 </template>
                 <template v-slot:item.operations="{ item }">
@@ -97,8 +124,8 @@
                         <v-icon
                             :dark="
                                 $store.state.darkTheme ||
-                                    $store.getters.getSettings.defaultTheme ==
-                                        'dark'
+                                $store.getters.getSettings.defaultTheme ==
+                                    'dark'
                             "
                             >$vuetify.icons.pencil</v-icon
                         >
@@ -114,7 +141,10 @@
                     </v-btn>
                 </template>
                 <template v-slot:item.artists="{ item }">
-                    <artists :showLinker="true" :artists="item.artists"></artists>
+                    <artists
+                        :showLinker="true"
+                        :artists="item.artists"
+                    ></artists>
                 </template>
                 <template v-slot:item.artist="{ item }">
                     <template v-if="item.artist">
@@ -122,7 +152,7 @@
                             class="router-link"
                             :to="{
                                 name: 'artist',
-                                params: { id: item.artist.id }
+                                params: { id: item.artist.id },
                             }"
                             target="_blank"
                         >
@@ -132,7 +162,10 @@
                                 </v-avatar>
                             </div>
                             <div class="artist-name">
-                                {{ item.artist.displayname }} <v-icon x-small class="mb-1 ml-1">$vuetify.icons.open-in-new</v-icon>
+                                {{ item.artist.displayname }}
+                                <v-icon x-small class="mb-1 ml-1"
+                                    >$vuetify.icons.open-in-new</v-icon
+                                >
                             </div>
                         </router-link>
                     </template>
@@ -165,55 +198,67 @@
                 />
             </template>
         </v-dialog>
+        <v-dialog v-model="playlistDialog" max-width="500" persistent>
+            <select-playlist
+                v-if="playlistDialog"
+                @cancel="(playlistDialog = false), (selected = [])"
+                :tracks="selected"
+            ></select-playlist>
+        </v-dialog>
     </div>
 </template>
 <script>
+import SelectPlaylist from "../../dialogs/admin/Playlist/Select.vue";
+
 import editSongDialog from "../../dialogs/edit/Song";
 export default {
     components: {
-        editSongDialog
+        SelectPlaylist,
+        editSongDialog,
     },
     computed: {
         isShowing() {
-            return song_id =>
-                this.songs[this.songs.findIndex(song => song.id === song_id)]
+            return (song_id) =>
+                this.songs[this.songs.findIndex((song) => song.id === song_id)]
                     .isShowing;
-        }
+        },
     },
     data() {
         return {
             songs: null,
             search: "",
+            playlistDialog: false,
+            selected: [],
             headers: [
                 {
                     text: this.$t("Cover"),
                     align: "start",
                     sortable: false,
-                    value: "cover"
+                    value: "cover",
                 },
                 { text: this.$t("Title"), value: "title" },
                 {
                     text: this.$t("Artist") + "(" + this.$t("Account") + ")",
                     value: "artist",
-                    align: "center"
+                    align: "center",
                 },
                 { text: this.$t("Artists"), value: "artists" },
                 { text: this.$t("Plays"), value: "nb_plays", align: "center" },
                 {
                     text: this.$t("Downloads"),
                     value: "nb_downloads",
-                    align: "center"
+                    align: "center",
                 },
                 { text: this.$t("Likes"), value: "nb_likes", align: "center" },
                 { text: this.$t("Created At"), value: "created_at" },
                 {
                     text: this.$t("Operations"),
                     value: "operations",
-                    align: "center"
-                }
+                    align: "center",
+                },
             ],
             editDialog: false,
-            editingSong: null
+            editingSong: null,
         };
     },
     created() {
@@ -221,44 +266,23 @@ export default {
     },
     methods: {
         fetchSongs() {
-            axios.get("/api/admin/songs").then(res => {
+            axios.get("/api/admin/songs").then((res) => {
                 this.songs = res.data;
             });
         },
-        exportCSV() {
-            axios({    
-                url: '/api/admin/songs/exportCSV',
-                method: 'GET',     
-                responseType: 'arraybuffer', 
-            }).then((response) => {
-                var fileURL = window.URL.createObjectURL(newBlob([response]));      
-                var fileLink = document.createElement('a');
-                fileLink.href = fileURL;      
-                fileLink.setAttribute('download', 'Songs.xlsx'); 
-                document.body.appendChild(fileLink);
-                fileLink.click();
-
-                this.$notify({
-                    group: "foo",
-                    type: "success",
-                    title: this.$t("Export"),
-                    text: this.$t("Song data") + " " + this.$t("Exported") + "."
-                });
-            }).catch(() => {});            
-        },
         wakeSongDialog(song_id) {
             this.editDialog = true;
-            let index = this.songs.findIndex(song => song.id === song_id);
+            let index = this.songs.findIndex((song) => song.id === song_id);
             this.$set(this.songs[index], "isShowing", true);
         },
         sleepSongDialog(song_id) {
             this.editDialog = false;
-            let index = this.songs.findIndex(song => song.id === song_id);
+            let index = this.songs.findIndex((song) => song.id === song_id);
             this.$set(this.songs[index], "isShowing", false);
             this.$forceUpdate();
         },
         closeSong(song_id) {
-            let index = this.songs.findIndex(song => song.id === song_id);
+            let index = this.songs.findIndex((song) => song.id === song_id);
             if (this.songs[index].isShowing) {
                 this.editDialog = false;
             }
@@ -276,37 +300,39 @@ export default {
             this.editDialog = false;
         },
         updateProgress(progress, song_id) {
-            let index = this.songs.findIndex(song => song.id === song_id);
+            let index = this.songs.findIndex((song) => song.id === song_id);
             this.$set(this.songs[index], "progress", progress);
         },
         deleteSong(song_id) {
             this.$confirm({
-                message: `${this.$t("Are you sure you wanna delete this") +
+                message: `${
+                    this.$t("Are you sure you wanna delete this") +
                     " " +
                     this.$t("Song") +
-                    "?"}`,
+                    "?"
+                }`,
                 button: {
                     no: this.$t("No"),
-                    yes: this.$t("Yes")
+                    yes: this.$t("Yes"),
                 },
                 /**
                  * Callback Function
                  * @param {Boolean} confirm
                  */
-                callback: confirm => {
+                callback: (confirm) => {
                     if (confirm) {
                         let index = this.songs.findIndex(
-                            song => song.id === song_id
+                            (song) => song.id === song_id
                         );
                         if (this.songs[index].requestSource) {
                             this.songs[index].requestSource.cancel();
                         }
                         axios
                             .delete("/api/songs/" + song_id, {
-                                song_id
+                                song_id,
                             })
                             .then(() => {
-                                this.songs.splice(index, 1)
+                                this.songs.splice(index, 1);
                                 this.$notify({
                                     group: "foo",
                                     type: "success",
@@ -315,12 +341,49 @@ export default {
                                         this.$t("Song") +
                                         " " +
                                         this.$t("Deleted") +
-                                        "."
+                                        ".",
                                 });
                             })
-                            .catch(() => {})
+                            .catch(() => {});
                     }
-                }
+                },
+            });
+        },
+        deleteTracks(ids) {
+            this.$confirm({
+                message: `${
+                    this.$t("Are you sure you wanna delete this") +
+                    " " +
+                    this.$t("Track") +
+                    "?"
+                }`,
+                button: {
+                    no: this.$t("No"),
+                    yes: this.$t("Yes"),
+                },
+                /**
+                 * Callback Function
+                 * @param {Boolean} confirm
+                 */
+                callback: (confirm) => {
+                    if (confirm) {
+                        axios
+                            .post("/api/admin/delete-tracks", {
+                                tracks: ids,
+                            })
+                            .then(() => {
+                                this.$notify({
+                                    group: "foo",
+                                    type: "success",
+                                    title: this.$t("Deleted"),
+                                    text: this.$t("Songs deleted successfully"),
+                                });
+                                this.songs = this.songs.filter(
+                                    (track) => !ids.includes(track.id)
+                                );
+                            });
+                    }
+                },
             });
         },
         editSong(song) {
@@ -337,28 +400,28 @@ export default {
                     nb_likes: 0,
                     public: true,
                     source: "",
-                    source_format: "file"
+                    source_format: "file",
                 });
                 this.editDialog = true;
             } else {
                 this.songs[
-                    this.songs.findIndex(t => t.id === song.id)
+                    this.songs.findIndex((t) => t.id === song.id)
                 ].isActive = true;
                 this.songs[
-                    this.songs.findIndex(t => t.id === song.id)
+                    this.songs.findIndex((t) => t.id === song.id)
                 ].isShowing = true;
                 this.editDialog = true;
             }
         },
         songEdited(song_id) {
-            let index = this.songs.findIndex(song => song.id === song_id);
+            let index = this.songs.findIndex((song) => song.id === song_id);
             this.$set(this.songs[index], "progress", 0);
             this.$set(this.songs[index], "isActive", false);
             this.$notify({
                 group: "foo",
                 type: "success",
                 title: this.$t("Saved"),
-                text: this.$t("Song") + " " + this.$t("Updated") + "."
+                text: this.$t("Song") + " " + this.$t("Updated") + ".",
             });
         },
         songCreated() {
@@ -366,9 +429,40 @@ export default {
                 group: "foo",
                 type: "success",
                 title: this.$t("Created"),
-                text: this.$t("Song") + " " + this.$t("Created") + "."
+                text: this.$t("Song") + " " + this.$t("Created") + ".",
             });
-        }
-    }
+        },
+        exportCSV() {
+            // console.log(this.start_date);
+            // console.log(this.end_date);
+            var url = '/api/admin/songs/export?';
+            // if(this.start_date){
+            //     url += 'start_date='+ this.start_date;
+            // }
+            // if(this.end_date){
+            //     url += 'end_date='+ this.end_date;
+            // }
+            axios({
+                url: url,
+                method: 'GET',
+            }).then((response) => {
+                var fileURL = URL.createObjectURL(new Blob([response.data], {
+                    type: 'text/csv'
+                }));
+                var fileLink = document.createElement('a');
+                fileLink.href = fileURL;
+                fileLink.setAttribute('download', 'Song.csv');
+                document.body.appendChild(fileLink);
+                fileLink.click();
+
+                this.$notify({
+                    group: "foo",
+                    type: "success",
+                    title: this.$t("Export"),
+                    text: this.$t("Song data") + " " + this.$t("Exported") + "."
+                });
+            }).catch(() => {});
+        },
+    },
 };
 </script>

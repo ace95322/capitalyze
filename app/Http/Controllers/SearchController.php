@@ -2,15 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\UserResource;
-use App\Http\Resources\ArtistResource;
-use App\Http\Resources\PlaylistResource;
-use App\Http\Resources\PodcastResource;
-use App\Http\Resources\GenreResource;
-use App\Http\Resources\SongResource;
-use App\Http\Resources\VideoResource;
-use App\Http\Resources\AlbumResource;
+use App\Http\Resources\Genre\GenreResource_index;
+use App\Http\Resources\Playlist\PlaylistResource_basic;
 use App\Http\Resources\RadioStationResource;
+use App\Http\Resources\User\UserResource_Basic;
 use App\Setting;
 use App\Traits\Search;
 
@@ -40,10 +35,10 @@ class SearchController extends Controller
         $albums = Search::albums($keyword,$engines);
         $artists = Search::artists($keyword, $engines);
 
-        $genres = GenreResource::collection(\App\Genre::where('name', 'like', $keyword . '%')->get());
-        $users = UserResource::collection(\App\User::where('name', 'like', $keyword . '%')->where('is_admin', 0)->get());
+        $genres = GenreResource_index::collection(\App\Genre::where('name', 'like', $keyword . '%')->get());
+        $users = UserResource_Basic::collection(\App\User::where('name', 'like', $keyword . '%')->where('is_admin', 0)->get());
         $radioStations = RadioStationResource::collection(\App\RadioStation::where('name', 'like', $keyword . '%')->get());
-        $playlists = PlaylistResource::collection(\App\Playlist::where('title', 'like', $keyword . '%')->where('public', 1)->get());
+        $playlists = PlaylistResource_basic::collection(\App\Playlist::where('title', 'like', $keyword . '%')->where('public', 1)->get());
 
         $results->users = $users;
         $results->radioStations = $radioStations;

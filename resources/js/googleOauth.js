@@ -5,6 +5,7 @@ import store from './store/index';
  * @param {*} googleUser 
  */
 window.onSignIn = function(googleUser) {
+    console.log(googleUser)
     var profile = {
         email: googleUser.getBasicProfile().getEmail(),
         name: googleUser.getBasicProfile().getName(),

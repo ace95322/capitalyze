@@ -45,19 +45,18 @@
         v-model="settings.google_oauth_client_id"
         hint="xxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
       ></v-text-field>
-      <!-- <v-divider></v-divider> -->
-      <!-- <v-row class="pl-4">
+        </v-col>
+      <v-col cols="12">
         <v-switch
           v-model="settings.enableFacebookLogin"
          :label="$t('Facebook Login')"
         ></v-switch>
-      </v-row>
       <v-text-field
        :label="$t('Facebook Client ID')"
         outlined=""
         v-if="settings.enableFacebookLogin"
         v-model="settings.facebook_oauth_client_id"
-      ></v-text-field> -->
+      ></v-text-field>
         </v-col>
       </v-row>
     </v-container>

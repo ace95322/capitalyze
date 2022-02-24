@@ -158,6 +158,30 @@
                     v-model="settings.podcastsPageDescription"
                   />
                 </v-col>
+                <v-col
+                  md="6"
+                  cols="12"
+                >
+                  <v-textarea
+                    outlined
+                    dense
+                    rows="3"
+                   :label="$t('Radio stations Page Title')"
+                    v-model="settings.radioStationPageTitle"
+                  />
+                </v-col>
+                <v-col
+                  md="6"
+                  cols="12"
+                >
+                  <v-textarea
+                    outlined
+                    dense
+                    rows="3"
+                   :label="$t('Radio stations Page Description')"
+                    v-model="settings.radioStationPageDescription"
+                  />
+                </v-col>
               </v-row>
             </v-col>
             <v-col cols="12">
@@ -178,7 +202,7 @@
                     outlined
                     dense
                     rows="3"
-                   :label="$t('Descriptiion')"
+                   :label="$t('Description')"
                     v-model="settings.artistPageDescription"
                   />
                 </v-col>
@@ -202,7 +226,7 @@
                     outlined
                     dense
                     rows="3"
-                   :label="$t('Descriptiion')"
+                   :label="$t('Description')"
                     v-model="settings.songPageDescription"
                   />
                 </v-col>
@@ -226,7 +250,7 @@
                     outlined
                     dense
                     rows="3"
-                   :label="$t('Descriptiion')"
+                   :label="$t('Description')"
                     v-model="settings.albumPageDescription"
                   />
                 </v-col>
@@ -250,7 +274,7 @@
                     outlined
                     dense
                     rows="3"
-                   :label="$t('Descriptiion')"
+                   :label="$t('Description')"
                     v-model="settings.podcastPageDescription"
                   />
                 </v-col>
@@ -274,7 +298,7 @@
                     outlined
                     dense
                     rows="3"
-                   :label="$t('Descriptiion')"
+                   :label="$t('Description')"
                     v-model="settings.genrePageDescription"
                   />
                 </v-col>
@@ -298,7 +322,7 @@
                     outlined
                     dense
                     rows="3"
-                   :label="$t('Descriptiion')"
+                   :label="$t('Description')"
                     v-model="settings.playlistPageDescription"
                   />
                 </v-col>
@@ -322,7 +346,7 @@
                     outlined
                     dense
                     rows="3"
-                   :label="$t('Descriptiion')"
+                   :label="$t('Description')"
                     v-model="settings.podcastGenrePageDescription"
                   />
                 </v-col>
@@ -346,7 +370,7 @@
                     outlined
                     dense
                     rows="3"
-                   :label="$t('Descriptiion')"
+                   :label="$t('Description')"
                     v-model="settings.userProfilePageDescription"
                   />
                 </v-col>

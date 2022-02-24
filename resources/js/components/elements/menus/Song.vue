@@ -8,6 +8,7 @@
       <v-btn
         icon
         :dark="dark"
+        :disabled="disabled"
         v-bind="attrs"
         v-on="on"
         class="m-0"
@@ -45,7 +46,7 @@
           </div>
         </div>
         <div class="actions d-flex justify-space-around align-center">
-          <v-btn x-small fab color="primary" @click="play(item)">
+          <v-btn x-small fab color="primary" @click="play(item, false)">
             <v-icon>$vuetify.icons.play</v-icon>
           </v-btn>
           <div v-if="isLikable(item.type)">
@@ -208,7 +209,7 @@
 <script>
 import Billing from "../../../mixins/billing/billing";
 export default {
-  props: ["item", "icon", "isOnPlayer", "closeOnContentClick", "dark"],
+  props: ["item", "icon", "isOnPlayer", "closeOnContentClick", "dark", "disabled"],
   mixins: [Billing],
   computed: {
     isLikable() {
@@ -245,21 +246,6 @@ export default {
         type: this.item.type,
         artist: this.getMainArtist(this.item),
       });
-    },
-    play(item) {
-      if (item.type === "album") {
-        this.$store.dispatch("playAlbum", { album: item, reset: true });
-      } else if (item.type === "song") {
-        this.$store.dispatch("playSong", { song: item, reset: true });
-      } else if (item.type === "playlist") {
-        this.$store.dispatch("playPlaylist", { playlist: item, reset: true });
-      } else if (item.type === "podcast") {
-        this.$store.dispatch("playPodcast", { podcast: item, reset: true });
-      } else if (item.type === "radio-station") {
-        this.$store.dispatch("playRadioStation", {
-          radioStation: item,
-        });
-      }
     },
     follow(item) {
       this.$store.dispatch("follow", item).then(() => {

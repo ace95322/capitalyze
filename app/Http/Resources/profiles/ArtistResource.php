@@ -2,10 +2,11 @@
 
 namespace App\Http\Resources\profiles;
 
-use App\Http\Resources\SongResource;
-use App\Http\Resources\AlbumResource;
+use App\Helpers\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Helpers\FileManager;
+use App\Http\Resources\Album\AlbumResource_basic;
+use App\Http\Resources\Song\SongResource_basictoplay;
+
 class ArtistResource extends JsonResource
 {
 
@@ -15,13 +16,14 @@ class ArtistResource extends JsonResource
         'id' => $this->id,
         'type' => 'artist',
         'displayname' => $this->displayname,
-        'avatar' => FileManager::asset_path($this->avatar),
+        'avatar' => Media::get($this, 'avatar'),
+        'thumbnail' => Media::getConversion($this, 'avatar', 'thumbnail'),
         'nb_albums' => $this->featuredAlbums->count(),
-        'latest'  => new SongResource ($this->featuredSongs()->orderBy('created_at')->first()),
-        'top_tracks'  => SongResource::collection($this->featuredSongs()->withCount('plays')->orderBy('plays_count','desc')->take(5)->get()),
-        'songs'  => SongResource::collection($this->ownSongs),
+        'latest'  => new SongResource_basictoplay ($this->featuredSongs()->orderBy('created_at')->first()),
+        'top_tracks'  => SongResource_basictoplay::collection($this->featuredSongs()->withCount('plays')->orderBy('plays_count','desc')->take(5)->get()),
+        'songs'  => SongResource_basictoplay::collection($this->ownSongs),
         'plays'  => $this->featuredSongs()->with('plays')->get()->pluck('plays')->collapse()->count(),
-        'albums'  => AlbumResource::collection($this->featuredAlbums),
+        'albums'  => AlbumResource_basic::collection($this->featuredAlbums),
         'nb_followers' => $this->followers->count()
         ];
     }
