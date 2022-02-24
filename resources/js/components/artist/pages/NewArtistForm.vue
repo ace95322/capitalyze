@@ -2,7 +2,7 @@
     <div class="new-artist-account">
         <div class="header_and_sub_title">
             <div class="header_and_sub_title__header">
-                {{ $t("Welcome to your artist account") }}
+                {{ $t("Welcome to your content owner account") }}
             </div>
             <div class="header_and_sub_title__sub">
                 {{ $t("Firstly, fill your information") }}
@@ -52,6 +52,13 @@
                         v-model="artist.phone"
                         hint="+xxxxxxxxxx"
                     ></v-text-field>
+                    <v-select
+                        :label="$t('Type')"
+                        :items="content_owner_types"
+                        v-model="artist.content_owner_type"
+                        item-text="text"
+                        item-value="value"
+                    ></v-select>
                 </v-col>
                 <v-col cols="12">
                     <edit-external-links
@@ -92,7 +99,33 @@ export default {
             artist: {},
             loading: false,
             countriesList,
-            defaultCoverPath: "/storage/defaults/images/artist_avatar.png"
+            defaultCoverPath: "/storage/defaults/images/artist_avatar.png",
+            content_owner_types: [
+                {
+                    text: 'Artist',
+                    value: "Artist"
+                },
+                {
+                    text: 'TV',
+                    value: "TV"
+                },
+                {
+                    text: 'Label',
+                    value: "Label"
+                },
+                {
+                    text: 'Film',
+                    value: "Film"
+                },
+                {
+                    text: 'Radio',
+                    value: "Radio"
+                },
+                {
+                    text: 'Advertisement',
+                    value: "Advertisement"
+                }
+            ],
         };
     },
     methods: {
@@ -108,6 +141,7 @@ export default {
             formData.append("phone", this.artist.phone || "");
             formData.append("email", this.artist.email || "");
             formData.append("address", this.artist.address || "");
+            formData.append("content_owner_type", this.artist.content_owner_type || "");
             formData.append("spotify_link", this.artist.spotify_link || "");
             formData.append("youtube_link", this.artist.youtube_link || "");
             formData.append(

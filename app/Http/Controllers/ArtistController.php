@@ -15,6 +15,7 @@ use App\Setting;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 
 class ArtistController extends Controller
 {
@@ -65,7 +66,7 @@ class ArtistController extends Controller
           'avatar' => Media::get(auth()->user()->artist, 'avatar'),
           'role' => __('Artist')
       ];
-      
+
       Notification::send($admins, new ArtistMessage($request->title, $request->message, $request->important,  $from));
 
       return response()->json([], 200);
@@ -118,7 +119,7 @@ class ArtistController extends Controller
             // $admins = User::whereHas('roles', function ($query) {
             //     $query->where('name', 'admin');
             // })->orWhere('is_admin', 1)->get();
-    
+
             // Notification::send($admins, new Message($user, new ArtistResource($artist)));
         });
 
@@ -209,7 +210,7 @@ class ArtistController extends Controller
 
             $artist = Artist::find($id);
 
-     
+
             if ($file = $request->file('avatar')) {
                 Media::updateImage($artist, $file, 'avatar', 200);
             }
@@ -230,7 +231,7 @@ class ArtistController extends Controller
             $artist->deezer_link = $request->deezer_link;
 
             $artist->save();
-            
+
             return response()->json(null, 202);
         } else {
             $request->validate([
@@ -240,7 +241,8 @@ class ArtistController extends Controller
                 'country' => 'required',
                 'email' => 'required|email',
                 'phone' => 'required',
-                'address' => 'required'
+                'address' => 'required',
+                'content_owner_type' => Rule::in(['Artist', 'Label', 'TV','Film','Radio', 'Advertisement'])
             ]);
 
 
@@ -258,6 +260,7 @@ class ArtistController extends Controller
                 'youtube_link' => $request->youtube_link,
                 'soundcloud_link' => $request->soundcloud_link,
                 'itunes_link' => $request->itunes_link,
+                'content_owner_type' => $request->content_owner_type
             ]);
 
             if ($file = $request->file('avatar')) {
@@ -307,7 +310,7 @@ class ArtistController extends Controller
         $artist->deezer_link = $request->deezer_link;
 
         $artist->save();
-    
+
         return response()->json(null, 201);
     }
 
@@ -343,11 +346,11 @@ class ArtistController extends Controller
         $artist->soundcloud_link = $request->soundcloud_link;
         $artist->itunes_link = $request->itunes_link;
         $artist->deezer_link = $request->deezer_link;
-        
+
         $artist->save();
         return response()->json(null, 202);
     }
-    
+
     /**
      * Remove the specified resource from storage.
      *
