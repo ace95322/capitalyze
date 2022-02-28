@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Helpers\Content\ListenNotes\ListenNotes;
+use App\Helpers\UserHelper;
 use App\Http\Resources\Album\AlbumResource_index;
 use DB;
 use Spotify;
@@ -11,8 +12,10 @@ use App\Http\Resources\Podcast\PodcastResource_index;
 use App\Http\Resources\Song\SongResource_basictoplay;
 use App\Http\Resources\Spotify\AlbumResource as SpotifyAlbumResource;
 use App\Setting;
+use App\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Log;
 
 trait SectionContentTrait
 {
@@ -35,7 +38,7 @@ trait SectionContentTrait
                 ->orderBy('likes', 'desc')
                 ->take($nb_items)
                 ->get();
-        
+
         return $this->getSongs($likes);
     }
     /**
@@ -56,7 +59,7 @@ trait SectionContentTrait
                 ->orderBy('likes', 'desc')
                 ->take($nb_items)
                 ->get();
-        
+
         return $this->getAlbums($likes);
     }
 
@@ -72,24 +75,42 @@ trait SectionContentTrait
 
         if( $source === 'local' || $source === '*')
         {
-            $latest_local_albums = \App\Album::orderBy('release_date', 'desc')->take($nb_items)->get();
+            /**
+             * 3.5 Login User Plan type
+             */
+            $is_user_plan_type_free = UserHelper::getIsUserPlanTypeFree();
+
+            $query_local_albums = \App\Album::orderBy('release_date', 'desc');
+
+            if($is_user_plan_type_free){
+                $query_local_albums->where('is_only_for_subscriber', '=', 0);
+            }
+
+            $latest_local_albums = $query_local_albums->take($nb_items)->get();
             $local_albums = AlbumResource_index::collection($latest_local_albums);
             if( $nb_items >  count($latest_local_albums)) {
-                $latest_local_songs = \App\Song::orderBy('created_at', 'desc')->take($nb_items - count($latest_local_albums))->get();
-                $local_songs =  SongResource_basictoplay::collection($latest_local_songs);
+                $latest_local_songs = \App\Song::orderBy('created_at', 'desc')->take($nb_items - count($latest_local_albums));
+
+
+                if($is_user_plan_type_free){
+                    $latest_local_songs->where('is_only_for_subscriber', '=', 0);
+                }
+
+                $result = $latest_local_songs->get();
+                $local_songs =  SongResource_basictoplay::collection($result);
                 $collection = $collection->toBase()->merge($local_songs);
             }
             $collection = $collection->toBase()->merge($local_albums);
         }
 
         if( ($source === 'spotify' || $source === '*') && Setting::get('provider_spotify') )
-        {   
+        {
             $spotify_new_releases = Cache::remember('spotify-new-releases' . $nb_items , 240000, function() use ($nb_items) {
                 return Spotify::newReleases()->limit($nb_items)->get();
             });
             $spotify_new_releases =  SpotifyAlbumResource::collection(collect(((object)$spotify_new_releases['albums']['items'])));
             $collection = $collection->toBase()->merge($spotify_new_releases);
-        } 
+        }
 
        return $collection->take($nb_items);
     }
@@ -184,7 +205,7 @@ trait SectionContentTrait
         } else {
             return response()->json([], 500);
         }
-       
+
     }
     private function getSongs($_songs)
     {
@@ -209,7 +230,7 @@ trait SectionContentTrait
         }
         return $albums;
     }
-    
+
     private function getPodcasts($_podcasts)
     {
         $podcasts = [];

@@ -29,17 +29,18 @@ class SongResource_basictoplay extends JsonResource
             'file_name' => Media::getFileName($this, 'mp3'),
             'file_size' => Media::getFileSize($this, 'mp3'),
             'source' => $this->source_format == 'yt_video' ? $this->source : '/api/stream/song/' . $this->id,
-            'cover' => Media::get($this, 'cover'), 
+            'cover' => Media::get($this, 'cover'),
             'thumbnail' => Media::getConversion($this, 'cover', 'thumbnail'),
-            'hls' => $this->hls,       
+            'hls' => $this->hls,
             // new update V2.1
             'isProduct' => $this->isProduct == "0" ? false : true,
             'isExclusive' => $this->isExclusive == "0" ? false : true,
-            'isExplicit' => $this->isExplicit == "0" ? false : true,              
+            'isExplicit' => $this->isExplicit == "0" ? false : true,
+            'is_only_for_subscriber' => $this->is_only_for_subscriber == "0" ? false : true,
             //
-            'sampleSeconds' => $this->sampleSeconds,    
-            'playSample' => $this->playSample == "0" ? false : true,   
-            
+            'sampleSeconds' => $this->sampleSeconds,
+            'playSample' => $this->playSample == "0" ? false : true,
+
             $this->mergeWhen($this->album_id,[
                 'album' => $this->album()->select('title','id')->first()
             ]),

@@ -8,7 +8,9 @@ use App\Helpers\Media;
 use App\Http\Resources\Genre\GenreResource_index;
 use App\Http\Resources\Song\SongResource_basictoplay;
 use App\Http\Resources\VideoResource;
+use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 class GenreController extends Controller
@@ -42,7 +44,27 @@ class GenreController extends Controller
      */
     public function songs($genre_id)
     {
-        return SongResource_basictoplay::collection(Genre::find($genre_id)->songs);
+        /**
+         * V3.5 Changes : For subscribe user premium songs also available
+         */
+        $genre = Genre::find($genre_id)->songs;
+
+        // $query = collect($genre);
+        // Log::info('User => '. print_r(auth('api')->user(), true));
+        if(auth('api')->user()){
+            // $query = "";
+            $user = User::find(auth('api')->user()->id);
+            $user->load('active_subscription', 'active_subscription.plan');
+
+            if($user->active_subscription->plan->free){
+                $genre->where('is_only_for_subscriber', '=', 0);
+
+            }
+        }
+
+        $result = $genre;
+
+        return SongResource_basictoplay::collection($result);
     }
     /**
      * Matches the genre based on the given keyword (search).

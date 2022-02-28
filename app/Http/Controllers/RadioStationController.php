@@ -6,6 +6,7 @@ use App\Exceptions\FEException;
 use App\Exports\RadioStationExport;
 use App\Helpers\Media;
 use App\Helpers\Radio\Radio;
+use App\Helpers\UserHelper;
 use App\Http\Resources\RadioStationResource;
 use App\RadioStation;
 use Illuminate\Http\Request;
@@ -106,7 +107,16 @@ class RadioStationController extends Controller
      */
     public function highlights()
     {
-        return RadioStationResource::collection(RadioStation::where('highlight', 1)->get());
+        $radio_station = RadioStation::where('highlight', 1);
+        /**
+         * V3.5 changes
+         */
+        $is_user_plan_type_free = UserHelper::getIsUserPlanTypeFree();
+        if($is_user_plan_type_free){
+            $radio_station->where('is_only_for_subscriber', '=', 0);
+        }
+        $result = $radio_station->get();
+        return RadioStationResource::collection($result);
     }
     /**
      * Update the specified resource in storage.
