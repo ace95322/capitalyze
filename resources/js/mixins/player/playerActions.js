@@ -26,7 +26,7 @@ export default {
                     this.$store.commit("setCurrentAudio",{ id: this.currentAudio.id, type: this.currentAudio.type });
                     this.$store.commit("setCurrentlyPlayingTypeStatus", 'play');
                     this.currentAudio.isPlaying = true;
-                    if (this.videoPlayer.getCurrentTime() === 0) {
+                    /*if (this.videoPlayer.getCurrentTime() === 0) {
                         this.$store.dispatch("registerPlay", {
                             id: this.currentAudio.id,
                             type: this.isPodcastEpisode ? "episode" : "song",
@@ -35,7 +35,7 @@ export default {
                             duration: this.currentAudio.duration,
                             origin: 'youtube'
                         });
-                    }
+                    }*/
                 } else if (this.videoPlayer.getCurrentTime() > 0) {
                     this.currentAudio.isPlaying = false;
                     this.$store.commit("setCurrentlyPlayingTypeStatus", 'pause');
@@ -69,7 +69,7 @@ export default {
                             clearInterval(int);
                         }
                     }, 200);
-                    if (this.audioPlayer.currentTime === 0) {
+                    /*if (this.audioPlayer.currentTime === 0) {
                         this.$store.dispatch("registerPlay", {
                             id: this.currentAudio.id,
                             type: this.isPodcastEpisode ? "episode" : "song",
@@ -78,7 +78,7 @@ export default {
                             duration: this.currentAudio.duration,
                             origin: this.currentAudio.origin
                         });
-                    }
+                    }*/
                 } else if (this.audioPlayer.currentTime > 0) {
                     this.currentAudio.isPlaying = false;
                     this.$store.commit("setCurrentAudio", null);
@@ -103,13 +103,13 @@ export default {
                         this.$store.commit("setCurrentlyPlayingTypeStatus", 'play');
                         this.$store.commit("setCurrentAudio", { id: this.currentAudio.id, type: this.currentAudio.type });
                         this.currentAudio.isPlaying = true;
-                        if (this.audioPlayer.currentTime === 0) {
+                        /*if (this.audioPlayer.currentTime === 0) {
                             this.$store.dispatch("registerPlay", {
                                 id: this.currentAudio.id,
                                 type: "radio-sation",
                                 label: this.currentAudio.title
                             });
-                        }
+                        }*/
                     } else {
                         this.currentAudio.isPlaying = false;
                         // this.$store.commit("setCurrentAudio", null);

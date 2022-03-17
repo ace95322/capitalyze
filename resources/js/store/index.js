@@ -89,7 +89,6 @@ export default new Vuex.Store({
             state.showSharingDialog = false;
         },
         updateQueue(state, songs) {
-          
             state.queue = songs;
         },
         setSongMenu(state, id) {

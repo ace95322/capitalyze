@@ -83,7 +83,7 @@
                                                               'pending'
                                                             ? 'warning'
                                                             : payout.status === 'cancelled' ?
-                                                            'error'  
+                                                            'error'
                                                             : 'success'
                                                     "
                                                 >
@@ -386,6 +386,81 @@
                                                 </v-container>
                                             </v-card>
                                         </v-col>
+                                        <v-col cols="12">
+                                            <v-card>
+                                                <v-container>
+                                                    <v-row>
+                                                        <v-col cols="12">
+                                                            <v-card-title>
+                                                                {{
+                                                                    $t(
+                                                                        "Additional Pay"
+                                                                    )
+                                                                }}
+                                                                <v-spacer></v-spacer>
+                                                                <v-spacer></v-spacer>
+                                                                <div
+                                                                    class="total-earnings__value price small bold success--text"
+                                                                >
+                                                                    {{
+                                                                        price(
+                                                                            totalAdditionalPay
+                                                                        ) +
+                                                                            defaultCurrency.symbol
+                                                                    }}
+                                                                </div>
+                                                            </v-card-title>
+
+                                                            <v-divider></v-divider>
+                                                        </v-col>
+                                                        <v-col cols="12">
+                                                            <v-simple-table>
+                                                                <template
+                                                                    v-slot:default
+                                                                >
+                                                                    <thead>
+                                                                        <tr>
+
+                                                                            <th
+                                                                                class="text-left"
+                                                                            >
+                                                                                {{
+                                                                                    $t(
+                                                                                        "Price"
+                                                                                    )
+                                                                                }}
+                                                                            </th>
+
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr
+                                                                            v-for="(additional_pay,
+                                                                            i) in artist.additional_pay"
+                                                                            :key="
+                                                                                i
+                                                                            "
+                                                                        >
+
+                                                                            <td>
+                                                                                <div
+                                                                                    class="price success--text bold"
+                                                                                >
+                                                                                     {{
+                                                                                        (additional_pay.price/100) +
+                                                                                            defaultCurrency.symbol
+                                                                                    }}
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </template>
+                                                            </v-simple-table>
+                                                        </v-col>
+                                                    </v-row>
+                                                </v-container>
+                                            </v-card>
+                                        </v-col>
                                     </v-row>
                                 </v-container>
                             </div>
@@ -505,6 +580,15 @@ export default {
                 (acc, val) => acc + val.total_royalties * (val.price / 100),
                 0
             );
+        },
+        totalAdditionalPay(){
+            let total_price = 0;
+            if(this.artist.additional_pay.length > 0){
+                this.artist.additional_pay.map(function(value, key) {
+                    total_price += value.price / 100;
+                });
+            }
+            return total_price;
         }
     },
     methods: {

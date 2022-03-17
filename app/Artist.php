@@ -108,6 +108,16 @@ class Artist extends Model implements HasMedia
         return $this->hasMany(Royalty::class);
     }
 
+    /**
+     * Additional pay relation load
+     *
+     * @return void
+     */
+    public function additional_pay()
+    {
+        return $this->hasMany(AdditionalPay::class, 'artist_id');
+    }
+
     public function payout_method() {
         return $this->belongsToMany(PayoutMethod::class, 'payout_method_artist', 'artist_id', 'payout_method_id')->withPivot('payout_details');
     }

@@ -8,7 +8,7 @@ class UserHelper
 {
 
     public static function getIsUserPlanTypeFree(){
-        if($user = auth('api')->user()){
+        if(isset(auth('api')->user()->is_admin) && $user = auth('api')->user()->is_admin != 1){
             $sub = $user->active_subscription()->first();
             Log::info("Active plans => ".print_r($sub->plan->free, true));
             return $sub->plan->free;

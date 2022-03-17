@@ -209,7 +209,6 @@ export default {
     isPurchasable() {
       return this.currentAudio.product && !this.isPurchased(this.currentAudio);
     },
-        
     isOwned() {
       return (
         (this.currentAudio.artist &&
@@ -247,7 +246,7 @@ export default {
       }
     },
     initPlayer() {
-   
+
       this.hls = new Hls();
       // this.audioPlayer = new Audio();
       this.audioPlayer = document.getElementById("audio-player");

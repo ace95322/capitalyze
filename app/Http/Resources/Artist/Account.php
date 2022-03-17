@@ -42,7 +42,8 @@ class Account extends JsonResource
             'payouts' => $this->payouts()->orderBy('created_at', 'desc')->get(),
             'payout_method' => $this->payout_method()->first() ?: [
                 'pivot' => []
-            ]
+            ],
+            'additional_pay' => $this->additional_pay,
         ];
     }
 }

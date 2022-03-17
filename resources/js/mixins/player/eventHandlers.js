@@ -9,6 +9,7 @@ export default {
             this.audioPlayer.onended = this.onended;
             this.audioPlayer.onwaiting = this.onwaiting;
             this.audioPlayer.oncanplaythrough = this.oncanplay;
+            this.is_register_play_count = false;
         },
         onloadstart() {
             this.isLoading = true;
@@ -35,6 +36,39 @@ export default {
                 this.audioPlayer.currentTime,
                 this.audioPlayer.duration
             );
+            this.onapiCallRegisterPlayCount();
+        },
+        onapiCallRegisterPlayCount(){
+            if(this.audioPlayer.currentTime >= 59 && this.audioPlayer.currentTime <= 60 && !this.is_register_play_count)
+            {
+                if (this.currentAudio.source_format === "yt_video") {
+                    this.$store.dispatch("registerPlay", {
+                        id: this.currentAudio.id,
+                        type: this.isPodcastEpisode ? "episode" : "song",
+                        label: this.currentAudio.title,
+                        artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : '',
+                        duration: this.currentAudio.duration,
+                        origin: 'youtube'
+                    });
+                } else if (this.currentAudio.source_format === "file") {
+                    this.$store.dispatch("registerPlay", {
+                        id: this.currentAudio.id,
+                        type: this.isPodcastEpisode ? "episode" : "song",
+                        label: this.currentAudio.title,
+                        artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : '',
+                        duration: this.currentAudio.duration,
+                        origin: this.currentAudio.origin
+                    });
+                } else {
+                    this.$store.dispatch("registerPlay", {
+                        id: this.currentAudio.id,
+                        type: "radio-sation",
+                        label: this.currentAudio.title
+                    });
+                }
+
+                this.is_register_play_count = true;
+            }
         },
         onended() {
             var index;

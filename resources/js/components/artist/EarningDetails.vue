@@ -262,6 +262,102 @@
                                 </v-container>
                             </v-card>
                         </v-col>
+                        <v-col cols="12" lg="6">
+                            <v-card>
+                                <v-container>
+                                    <v-row>
+                                        <v-col cols="12">
+                                            <v-card-title>
+                                                {{ $t("Additional Pay") }}
+                                                <v-spacer></v-spacer>
+                                                <v-spacer></v-spacer>
+                                                <div
+                                                    class="total-earnings__value price small bold success--text"
+                                                >
+                                                    {{
+                                                        totalAdditionalPay
+                                                        +
+                                                        defaultCurrency.symbol
+                                                    }}
+                                                </div>
+                                            </v-card-title>
+                                            <v-divider></v-divider>
+                                        </v-col>
+                                        <v-col cols="12" sm="12">
+                                            <template>
+                                                <v-text-field
+                                                    :label="$t('Price')"
+                                                    v-model="additional_pay.price"
+                                                    hint="Important: the amount should be in cents ( 1$ = 100 )"
+                                                    type="number"
+                                                ></v-text-field>
+                                                <v-btn
+                                                    @click="storeAdditionalPay()">
+                                                    ADD
+                                                </v-btn>
+                                            </template>
+                                        </v-col>
+                                        <v-col cols="12">
+                                            <v-simple-table>
+                                                <template v-slot:default>
+                                                    <thead>
+                                                        <tr>
+                                                            <!-- <th class="text-left">
+                                                                {{
+                                                                    $t(
+                                                                        "Id"
+                                                                    )
+                                                                }}
+                                                            </th> -->
+                                                            <th class="text-left">
+                                                                {{
+                                                                    $t("Price")
+                                                                }}
+                                                            </th>
+                                                            <!-- <th class="text-left">
+                                                                {{
+                                                                    $t("Action")
+                                                                }}
+                                                            </th> -->
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr
+                                                            v-for="(additional_pay,
+                                                            i) in artist
+                                                                .additional_pay"
+                                                            :key="i"
+                                                        >
+                                                            <!-- <td>
+                                                                {{
+                                                                    additional_pay.id
+                                                                }}
+                                                            </td> -->
+
+                                                            <td>
+                                                                <div
+                                                                    class="price success--text bold"
+                                                                >
+                                                                    {{
+                                                                        (additional_pay.price/100) +
+                                                                            defaultCurrency.symbol
+                                                                    }}
+                                                                </div>
+                                                            </td>
+                                                            <!-- <td>
+                                                                <a @click="deleteAdditionalPay(additional_pay.id, index)">
+                                                                    Delete
+                                                                </a>
+                                                            </td> -->
+                                                        </tr>
+                                                    </tbody>
+                                                </template>
+                                            </v-simple-table>
+                                        </v-col>
+                                    </v-row>
+                                </v-container>
+                            </v-card>
+                        </v-col>
                         <v-col cols="12">
                             <v-card>
                                 <v-card-title>
@@ -364,6 +460,11 @@ import Billing from '@mixins/billing/billing'
 export default {
     props: ['artist'],
     mixins: [Billing],
+    data: function() {
+       return {
+          additional_pay: {}
+        }
+  },
     computed: {
         totalSalesProfit() {
             return this.artist.sales.reduce(
@@ -381,7 +482,84 @@ export default {
             return this.artist.payouts.filter(
                 payout => payout.status === "payed"
             );
+        },
+        totalAdditionalPay(){
+            let total_price = 0;
+            if(this.artist.additional_pay.length > 0){
+                this.artist.additional_pay.map(function(value, key) {
+                    total_price += value.price / 100;
+                });
+            }
+            return total_price;
         }
-    }
+    },
+    methods: {
+        getAdditionalPay(){
+            console.log('artist_id', this.artist)
+        },
+        deleteAdditionalPay(id, index){
+            var formData = new FormData();
+            axios.post("/api/admin/additional-pay/"+id, formData, {
+                        headers: {
+                            "Content-Type": "multipart/form-data"
+                        }
+                    })
+                    .then(res => {
+                        // this.artist = res.data;
+                        this.artist.additional_pay.splice(index, 1);
+                        this.$emit("updated");
+                        this.isLoading = false;
+                    })
+                    .catch(e => {
+                        this.isLoading = false;
+                        this.errors = e.response.data.errors;
+                        // this.$notify({
+                        //     group: "foo",
+                        //     type: "error",
+                        //     title: this.$t("Error"),
+                        //     text: Object.values(e.response.data.errors).join(
+                        //         "<br />"
+                        //     )
+                        // });
+                    });
+        },
+        storeAdditionalPay(){
+            var formData = new FormData();
+            formData.append("price", this.additional_pay.price || "");
+            formData.append("artist_id", this.artist.id || "");
+            axios.post("/api/admin/additional-pay", formData, {
+                        headers: {
+                            "Content-Type": "multipart/form-data"
+                        }
+                    })
+                    .then(res => {
+                        console.log("response =>", res);
+                        console.log("push to array")
+                        console.log("artist => ", this.artist);
+                        this.artist.additional_pay.push(res.data);
+                        // this.artist.funds += this.additional_pay.price;
+                        this.additional_pay.price = null;
+                        // this.artist = res.data;
+                        this.$emit("updated");
+                        this.isLoading = false;
+                    })
+                    .catch(e => {
+                        this.isLoading = false;
+                        this.errors = e.response.data.errors;
+                        // this.$notify({
+                        //     group: "foo",
+                        //     type: "error",
+                        //     title: this.$t("Error"),
+                        //     text: Object.values(e.response.data.errors).join(
+                        //         "<br />"
+                        //     )
+                        // });
+                    });
+        }
+
+    },
+    beforeMount(){
+        this.getAdditionalPay()
+    },
 };
 </script>

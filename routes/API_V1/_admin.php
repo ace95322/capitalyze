@@ -131,4 +131,7 @@ Route::group(['middleware' => 'demo'], function() {
         Route::post('/make-admin', 'AdminController@grantUserAdmin');
         Route::post('/take-admin', 'AdminController@RevokeUserAdmin');
     });
+
+    Route::post('/additional-pay', 'AdditionalPayController@store');
+    Route::post('/additional-pay/{id}', 'AdditionalPayController@destroy');
 });
