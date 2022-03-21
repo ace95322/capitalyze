@@ -725,7 +725,10 @@ const router = new VueRouter({
                         import(
                             /* webpackChunkName: "player" */ "./components/player/pages/CustomPage.vue"
                         ),
-                    name: "custom-page"
+                    name: "custom-page",
+                    meta: {
+                        requiresAuth: true
+                    },
                 }
             ]
         }
