@@ -538,6 +538,13 @@ const router = new VueRouter({
                     ]
                 },
                 {
+                    path: "/video",
+                    component: () =>
+                        import(
+                            /* webpackChunkName: "browse" */ "./components/player/pages/video/Video.vue"
+                        ),
+                },
+                {
                     path: "genre/:id/:genre_name",
                     name: "genre-page",
                     component: () =>

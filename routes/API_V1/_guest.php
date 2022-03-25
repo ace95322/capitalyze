@@ -93,3 +93,5 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::get('/download-song/{id}', 'SongController@download');
     Route::get('/download-episode/{id}', 'EpisodeController@download');
 });
+
+Route::get('/videos', 'VideoController@index');

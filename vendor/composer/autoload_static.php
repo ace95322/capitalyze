@@ -1064,6 +1064,7 @@ class ComposerStaticInit2c98af0fa1d5a2a459710aa1d4d4dff9
         'App\\Helpers\\Radio\\Radio' => __DIR__ . '/../..' . '/app/Helpers/Radio/Radio.php',
         'App\\Helpers\\UserHelper' => __DIR__ . '/../..' . '/app/Helpers/UserHelper.php',
         'App\\Helpers\\YoutubeAPI' => __DIR__ . '/../..' . '/app/Helpers/YoutubeAPI.php',
+        'App\\Http\\Controllers\\AdditionalPayController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdditionalPayController.php',
         'App\\Http\\Controllers\\AdminController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminController.php',
         'App\\Http\\Controllers\\AlbumController' => __DIR__ . '/../..' . '/app/Http/Controllers/AlbumController.php',
         'App\\Http\\Controllers\\AnalyticsController' => __DIR__ . '/../..' . '/app/Http/Controllers/AnalyticsController.php',

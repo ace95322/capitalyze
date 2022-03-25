@@ -114,6 +114,7 @@ return array(
     'App\\Helpers\\Radio\\Radio' => $baseDir . '/app/Helpers/Radio/Radio.php',
     'App\\Helpers\\UserHelper' => $baseDir . '/app/Helpers/UserHelper.php',
     'App\\Helpers\\YoutubeAPI' => $baseDir . '/app/Helpers/YoutubeAPI.php',
+    'App\\Http\\Controllers\\AdditionalPayController' => $baseDir . '/app/Http/Controllers/AdditionalPayController.php',
     'App\\Http\\Controllers\\AdminController' => $baseDir . '/app/Http/Controllers/AdminController.php',
     'App\\Http\\Controllers\\AlbumController' => $baseDir . '/app/Http/Controllers/AlbumController.php',
     'App\\Http\\Controllers\\AnalyticsController' => $baseDir . '/app/Http/Controllers/AnalyticsController.php',
