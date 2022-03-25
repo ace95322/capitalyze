@@ -3,7 +3,7 @@
 /resources/views/welcome.blade.php
 /storage/*.key
 .env.backup
-.env
+/.env
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
@@ -13,3 +13,4 @@ yarn-error.log
 /package-lock.json
 .problems
 .roadmap
+/vendor/*
