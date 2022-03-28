@@ -83,7 +83,8 @@ class VideoController extends Controller
      */
     public function store(Request $request)
     {
-        ini_set('post_max_size', '100MB');
+        ini_set('post_max_size', '500MB');
+        ini_set('upload_max_filesize', '500MB');
         $request->validate([
             'title' => 'required|max:255|min:1|string',
         ]);
@@ -272,7 +273,8 @@ class VideoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        ini_set('post_max_size', '100MB');
+        ini_set('post_max_size', '500MB');
+        ini_set('upload_max_filesize', '500MB');
         $request->validate([
             'title' => 'required|max:255',
         ]);
