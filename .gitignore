@@ -2,8 +2,9 @@
 /public/hot
 /resources/views/welcome.blade.php
 /storage/*.key
-.env.backup
+/vendor
 .env
+.env.backup
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
@@ -13,4 +14,3 @@ yarn-error.log
 /package-lock.json
 .problems
 .roadmap
-vendor
