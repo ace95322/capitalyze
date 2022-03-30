@@ -51,7 +51,7 @@ export default {
                 return this.$store.getters.getSettings.saas;
             } else {
                 return 1;
-            } 
+            }
         });
     },
     data() {
@@ -79,6 +79,12 @@ export default {
                     icon: "music-note",
                     text: this.$t('Songs'),
                     name: "songs"
+                },
+                {
+                    path: "/artist/videos",
+                    icon: "music-note",
+                    text: this.$t('Videos'),
+                    name: "videos"
                 },
                 {
                     path: "/artist/podcasts",

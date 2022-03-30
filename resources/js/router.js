@@ -441,6 +441,14 @@ const router = new VueRouter({
                     name: "artist.songs"
                 },
                 {
+                    path: "videos",
+                    component: () =>
+                        import(
+                            /* webpackChunkName: "artist" */ "./components/artist/pages/videos.vue"
+                        ),
+                    name: "artist.videos"
+                },
+                {
                     path: "albums",
                     component: () =>
                         import(

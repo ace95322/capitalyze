@@ -17,9 +17,11 @@ use App\Http\Resources\Spotify\VideoResource as SpotifyVideoResource;
 use App\Price;
 use App\Product;
 use App\Setting;
+use App\User;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 class VideoController extends Controller
@@ -31,7 +33,24 @@ class VideoController extends Controller
      */
     public function index()
     {
-        return VideoResource::collection(\App\Video::orderBy('created_at', 'desc')->get());
+        $video = \App\Video::orderBy('created_at', 'desc');
+
+        if(auth('api')->user()->is_admin == 0){
+            // $query = "";
+            $user = User::find(auth('api')->user()->id);
+            $user->load('active_subscription', 'active_subscription.plan');
+
+            $active_subscription_plan = $user->active_subscription->first();
+            // Log::info('Plan => '. print_r($active_subscription_plan->plan, true));
+            if(isset($active_subscription_plan->plan->free) && $active_subscription_plan->plan->free == 0){
+                Log::info('is only for subscriber => '. print_r($active_subscription_plan));
+                $video->where('is_only_for_subscriber', '=', 0);
+
+            }
+        }
+
+        $result = $video->get();
+        return VideoResource::collection($result);
     }
     /**
      * Get all the videos for the current logged artist.

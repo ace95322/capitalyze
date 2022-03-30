@@ -56,7 +56,12 @@ class GenreController extends Controller
             $user = User::find(auth('api')->user()->id);
             $user->load('active_subscription', 'active_subscription.plan');
 
-            if(isset($user->active_subscription->plan->free)){
+            /**
+             * Get Subscription
+             */
+            $active_subscription_plan = $user->active_subscription->first();
+
+            if(isset($active_subscription_plan->plan->free)){
                 $genre->where('is_only_for_subscriber', '=', 0);
 
             }
