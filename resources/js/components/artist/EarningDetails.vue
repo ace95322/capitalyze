@@ -283,7 +283,7 @@
                                             </v-card-title>
                                             <v-divider></v-divider>
                                         </v-col>
-                                        <v-col cols="12" sm="12">
+                                        <v-col cols="6" sm="6">
                                             <template>
                                                 <v-text-field
                                                     :label="$t('Price')"
@@ -291,6 +291,22 @@
                                                     hint="Important: the amount should be in cents ( 1$ = 100 )"
                                                     type="number"
                                                 ></v-text-field>
+
+
+                                            </template>
+                                        </v-col>
+                                        <v-col cols="6" sm="6">
+                                            <template>
+                                                <v-text-field
+                                                    :label="$t('Description')"
+                                                    v-model="additional_pay.description"
+                                                    type="text"
+                                                ></v-text-field>
+
+                                            </template>
+                                        </v-col>
+                                        <v-col cols="12" sm="12">
+                                            <template>
                                                 <v-btn
                                                     @click="storeAdditionalPay()">
                                                     ADD
@@ -312,6 +328,11 @@
                                                             <th class="text-left">
                                                                 {{
                                                                     $t("Price")
+                                                                }}
+                                                            </th>
+                                                            <th class="text-left">
+                                                                {{
+                                                                    $t("Description")
                                                                 }}
                                                             </th>
                                                             <!-- <th class="text-left">
@@ -341,6 +362,15 @@
                                                                     {{
                                                                         (additional_pay.price/100) +
                                                                             defaultCurrency.symbol
+                                                                    }}
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div
+                                                                    class="bold"
+                                                                >
+                                                                    {{
+                                                                        additional_pay.description
                                                                     }}
                                                                 </div>
                                                             </td>
@@ -526,6 +556,7 @@ export default {
         storeAdditionalPay(){
             var formData = new FormData();
             formData.append("price", this.additional_pay.price || "");
+            formData.append("description", this.additional_pay.description || "");
             formData.append("artist_id", this.artist.id || "");
             axios.post("/api/admin/additional-pay", formData, {
                         headers: {
@@ -539,6 +570,7 @@ export default {
                         this.artist.additional_pay.push(res.data);
                         // this.artist.funds += this.additional_pay.price;
                         this.additional_pay.price = null;
+                        this.additional_pay.description = null;
                         // this.artist = res.data;
                         this.$emit("updated");
                         this.isLoading = false;

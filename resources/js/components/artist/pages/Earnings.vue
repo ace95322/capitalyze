@@ -430,6 +430,15 @@
                                                                                     )
                                                                                 }}
                                                                             </th>
+                                                                            <th
+                                                                                class="text-left"
+                                                                            >
+                                                                                {{
+                                                                                    $t(
+                                                                                        "Description"
+                                                                                    )
+                                                                                }}
+                                                                            </th>
 
                                                                         </tr>
                                                                     </thead>
@@ -449,6 +458,15 @@
                                                                                      {{
                                                                                         (additional_pay.price/100) +
                                                                                             defaultCurrency.symbol
+                                                                                    }}
+                                                                                </div>
+                                                                            </td>
+                                                                            <td>
+                                                                                <div
+                                                                                    class="bold"
+                                                                                >
+                                                                                     {{
+                                                                                        additional_pay.description
                                                                                     }}
                                                                                 </div>
                                                                             </td>

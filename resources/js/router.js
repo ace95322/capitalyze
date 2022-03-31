@@ -822,6 +822,8 @@ function isPageAllowedToAccessByAdmin(to) {
         to.name === "admin.plans"
     ) {
         return store.getters.getSettings.saas;
+    } else if (to.name === "admin.videos") {
+        return hasPermission("CED Videos") ? 1 : 0;
     } else {
         return 1;
     }

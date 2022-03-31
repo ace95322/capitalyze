@@ -47,6 +47,8 @@ export default {
                 return this.hasPermission("CED albums(artist)") ? 1 : 0;
             } else if (item.name === "songs") {
                 return this.hasPermission("CED songs(artist)") ? 1 : 0;
+            } else if (item.name === "videos") {
+                return this.hasPermission("CED Videos(artist)") ? 1 : 0;
             } else if (item.name === "earnings") {
                 return this.$store.getters.getSettings.saas;
             } else {

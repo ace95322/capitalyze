@@ -18,6 +18,7 @@ class AdditionalPayController extends Controller
 
         $additional_pay->artist_id =  $request->artist_id;
         $additional_pay->price =  (double)$request->price;
+        $additional_pay->description = $request->description;
         $additional_pay->save();
 
         /**
