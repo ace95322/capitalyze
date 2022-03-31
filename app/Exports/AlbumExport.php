@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Album;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -39,7 +40,7 @@ class AlbumExport implements FromCollection, WithHeadings, WithMapping
         }
 
         $result = $query->orderBy('created_at', 'desc')->get();
-
+        Log::info('get result => '.print_r($result->toArray(), true));
         return $result;
     }
 

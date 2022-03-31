@@ -42,8 +42,8 @@ class VideoController extends Controller
 
             $active_subscription_plan = $user->active_subscription->first();
             // Log::info('Plan => '. print_r($active_subscription_plan->plan, true));
-            if(isset($active_subscription_plan->plan->free) && $active_subscription_plan->plan->free == 0){
-                Log::info('is only for subscriber => '. print_r($active_subscription_plan));
+            if(isset($active_subscription_plan->plan->free) && $active_subscription_plan->plan->free == 1){
+                // Log::info('is only for subscriber => '. print_r($active_subscription_plan));
                 $video->where('is_only_for_subscriber', '=', 0);
 
             }

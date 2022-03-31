@@ -23,7 +23,7 @@ class PlaylistExport implements FromCollection, WithHeadings, WithMapping
     */
     public function collection()
     {
-        $query = Playlist::where('id', '<>', null);
+        $query = Playlist::where('id', '<>', null)->with(['followers', 'user']);
 
         /**
          * Set Date Filter Logic
@@ -44,9 +44,9 @@ class PlaylistExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             $playlist->title,
-            null,
-            null,
-            null
+            $playlist->user->name,
+            $playlist->public == 1 ? "Yes" : "NO",
+            $playlist->followers->count()
         ];
     }
 

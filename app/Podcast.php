@@ -16,13 +16,16 @@ class Podcast extends Model implements HasMedia
     /**
     * the attributes that are mass assignable.
     * @var array
-    */ 
+    */
     // protected $fillable = [ 'title','cover','description','artist_id','genre_id'];
     protected $guarded = [];
 
     public function artist()
     {
         return Search::getArtist($this->artist_id, false);
+    }
+    public function artist_relation(){
+        return $this->belongsTo(Artist::class, 'artist_id');
     }
     public function episodes()
     {
@@ -42,8 +45,8 @@ class Podcast extends Model implements HasMedia
     }
     public static function boot() {
         parent::boot();
-        static::deleting(function($model) { 
-            // delete the podcast data after deletion         
+        static::deleting(function($model) {
+            // delete the podcast data after deletion
 
             $model->episodes()->delete();
             $model->follows()->delete();

@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Podcast;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -23,7 +24,7 @@ class PodcastExport implements FromCollection, WithHeadings, WithMapping
     */
     public function collection()
     {
-        $query = Podcast::where('id', '<>', null);
+        $query = Podcast::where('id', '<>', null)->with(['follows', 'artist_relation']);
 
         /**
          * Set Date Filter Logic
@@ -44,9 +45,9 @@ class PodcastExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             $podcast->title,
-            null,
-            null,
-            null
+            $podcast->artist_relation->firstname,
+            $podcast->follows->count(),
+            Carbon::parse($podcast->created_at)->format('M d Y')
         ];
     }
 

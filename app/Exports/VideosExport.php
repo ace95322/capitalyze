@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Video;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -23,7 +24,7 @@ class VideosExport implements FromCollection, WithHeadings, WithMapping
     */
     public function collection()
     {
-        $query = Video::where('id', '<>', null);
+        $query = Video::where('id', '<>', null)->with(['artist']);
 
         /**
          * Set Date Filter Logic
@@ -44,19 +45,16 @@ class VideosExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             $video->title,
-            null,
-            null,
-            null,
-            null,
-            null,
-            $video->created_at
+            isset($video->artist->firstname) ? $video->artist->firstname.' '.$video->artist->lastname : null,
+
+            Carbon::parse($video->created_at)->format('M d Y')
         ];
     }
 
     public function headings(): array
     {
         return [
-            'Title', 'Artist (Account)', 'Artist', 'Plays', 'Downloads', 'Likes', 'Created At'
+            'Title', 'Artist',  'Created At' //'Plays', 'Downloads', 'Likes',
         ];
     }
 }

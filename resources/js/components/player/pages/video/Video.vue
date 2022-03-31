@@ -12,6 +12,10 @@
             </div>
         </div>
         <div class="songs" >
+            <div v-if="selected_video" >
+                <iframe id="video_player" :src="selected_video.custom_source" controls width="420" height="315">
+                </iframe>
+            </div>
             <div class="grid-layout">
                 <div class="item" v-for="video in videos" :key="video.id">
                     <div class="content-item" v-if="video" >
@@ -96,10 +100,7 @@
                     </div>
                 </div>
             </div>
-            <div v-if="selected_video" >
-                <video id="video_player" :src="selected_video.source" controls width="100%">
-                </video>
-            </div>
+
             <div class="empty" v-if="videos && !videos.length">
                 <empty-page
                     :headline="$t('No Content!')"
@@ -130,14 +131,17 @@ export default {
     },
     methods: {
         playVideo(video){
-            alert()
             this.selected_video = video;
-
+            this.selected_video.custom_source = video.source;
+            if(this.selected_video.source_format == 'yt_video'){
+                this.selected_video.custom_source = 'https://www.youtube.com/embed/'+video.source;
+            }
+            // console.log("selected video => ", this.selected_video);
         },
         fetchVideos() {
             axios.get("/api/videos").then((res) => {
                 this.videos = res.data;
-                console.log('this.videos', this.videos)
+                // console.log('this.videos', this.videos)
             });
         },
     }

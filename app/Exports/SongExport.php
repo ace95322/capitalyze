@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Song;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -26,7 +27,7 @@ class SongExport implements FromCollection, WithHeadings, ShouldAutoSize, WithMa
     */
     public function collection()
     {
-        $query = Song::where('id', '<>', null);
+        $query = Song::where('id', '<>', null)->with(['artist','likes', 'plays']);
 
         /**
          * Set Date Filter Logic
@@ -47,11 +48,11 @@ class SongExport implements FromCollection, WithHeadings, ShouldAutoSize, WithMa
     {
         return [
             $song->title,
-            null,
-            null,
+            isset($song->artist->firstname) ? $song->artist->firstname.' '.$song->artist->lastname : null,
+            $song->plays->count(),
             $song->download_count,
-            null,
-            $song->created_at
+            $song->likes->count(),
+            Carbon::parse($song->created_at)->format('M d Y')
         ];
     }
 
