@@ -22,9 +22,17 @@ class RadioStationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return RadioStationResource::collection(RadioStation::all());
+        $radio_station = RadioStation::orderBy('created_at', 'desc');
+        if($request->get('start_date', null)){
+            $radio_station->whereDate('created_at', '>=', $request->get('start_date'));
+        }
+        if($request->get('end_date', null)){
+            $radio_station->whereDate('created_at', '<=', $request->get('end_date'));
+        }
+        $result = $radio_station->get();
+        return RadioStationResource::collection($result);
     }
 
     /**

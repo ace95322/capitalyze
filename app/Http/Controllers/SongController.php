@@ -33,9 +33,17 @@ class SongController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return SongResource_index::collection(\App\Song::orderBy('created_at', 'desc')->get());
+        $song = \App\Song::orderBy('created_at', 'desc');
+        if($request->get('start_date', null)){
+            $song->whereDate('created_at', '>=', $request->get('start_date'));
+        }
+        if($request->get('end_date', null)){
+            $song->whereDate('created_at', '<=', $request->get('end_date'));
+        }
+        $result = $song->get();
+        return SongResource_index::collection($result);
     }
     /**
      * Get all the songs for the current logged artist.

@@ -31,7 +31,7 @@ class VideoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $video = \App\Video::orderBy('created_at', 'desc');
 
@@ -47,6 +47,13 @@ class VideoController extends Controller
                 $video->where('is_only_for_subscriber', '=', 0);
 
             }
+        }
+
+        if($request->get('start_date', null)){
+            $video->whereDate('created_at', '>=', $request->get('start_date'));
+        }
+        if($request->get('end_date', null)){
+            $video->whereDate('created_at', '<=', $request->get('end_date'));
         }
 
         $result = $video->get();

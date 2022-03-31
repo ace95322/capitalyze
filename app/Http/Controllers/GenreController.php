@@ -20,9 +20,17 @@ class GenreController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return GenreResource_index::collection(Genre::all());
+        $genre = Genre::orderBy('created_at', 'DESC');
+        if($request->get('start_date', null)){
+            $genre->whereDate('created_at', '>=', $request->get('start_date'));
+        }
+        if($request->get('end_date', null)){
+            $genre->whereDate('created_at', '<=', $request->get('end_date'));
+        }
+        $result = $genre->get();
+        return GenreResource_index::collection($result);
     }
     /**
      * Display the specified resource.

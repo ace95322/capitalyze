@@ -13,6 +13,18 @@
                     <v-icon>$vuetify.icons.plus</v-icon>
                     {{ $t("New") }}
                 </v-btn>
+                <v-text-field
+                    type='date'
+                    v-model="start_date"
+                    @input="fetchVideos()"
+                    placeholder="Start date">
+                </v-text-field>
+                <v-text-field
+                    v-model="end_date"
+                    @input="fetchVideos()"
+                    type='date'
+                    placeholder="End date">
+                </v-text-field>
                 <v-btn
                     class="mx-2"
                     dark
@@ -182,6 +194,8 @@ export default {
     },
     data() {
         return {
+            start_date: null,
+            end_date: null,
             videos: null,
             search: "",
             headers: [
@@ -220,8 +234,19 @@ export default {
         this.fetchVideos();
     },
     methods: {
+        getDateFilter(){
+            var query_string = "";
+            if(this.start_date){
+                query_string += '?start_date='+this.start_date;
+            }
+            if(this.end_date){
+                query_string += '&end_date='+this.end_date;
+            }
+            return query_string;
+        },
         fetchVideos() {
-            axios.get("/api/admin/videos").then(res => {
+            var query_string = this.getDateFilter();
+            axios.get("/api/admin/videos"+query_string).then(res => {
                 this.videos = res.data;
             });
         },
@@ -351,7 +376,8 @@ export default {
         exportCSV() {
             // console.log(this.start_date);
             // console.log(this.end_date);
-            var url = '/api/admin/video/export?';
+            var query_string = this.getDateFilter();
+            var url = '/api/admin/video/export'+query_string;
             // if(this.start_date){
             //     url += 'start_date='+ this.start_date;
             // }

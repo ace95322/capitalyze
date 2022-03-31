@@ -12,13 +12,13 @@
                 >
                     <v-icon>$vuetify.icons.plus</v-icon> {{ $t("New") }}
                 </v-btn>
-                <v-btn
+                <!-- <v-btn
                     class="mx-2"
                     dark
                     small
                     color="primary"
                 >{{ $t("Export CSV") }}
-                </v-btn>
+                </v-btn> -->
                 <v-spacer></v-spacer>
                 <v-spacer></v-spacer>
                 <div class="admin-search-bar">

@@ -14,6 +14,18 @@
                 >
                     <v-icon>$vuetify.icons.plus</v-icon> {{ $t("New") }}
                 </v-btn>
+                <v-text-field
+                    type='date'
+                    v-model="start_date"
+                    @input="fetchRadioStations()"
+                    placeholder="Start date">
+                </v-text-field>
+                <v-text-field
+                    v-model="end_date"
+                    @input="fetchRadioStations()"
+                    type='date'
+                    placeholder="End date">
+                </v-text-field>
                 <v-btn
                     class="mx-2"
                     dark
@@ -129,6 +141,8 @@ export default {
     },
     data() {
         return {
+            start_date: null,
+            end_date : null,
             radioStations: [],
             search: "",
             headers: [
@@ -164,8 +178,19 @@ export default {
         this.fetchRadioStations();
     },
     methods: {
+        getDateFilter(){
+            var query_string = "";
+            if(this.start_date){
+                query_string += '?start_date='+this.start_date;
+            }
+            if(this.end_date){
+                query_string += '&end_date='+this.end_date;
+            }
+            return query_string;
+        },
         fetchRadioStations() {
-            axios.get("/api/admin/radio-stations").then((res) => {
+            var query_string = this.getDateFilter();
+            axios.get("/api/admin/radio-stations"+query_string).then((res) => {
                 this.radioStations = res.data;
             });
         },

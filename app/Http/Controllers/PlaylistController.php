@@ -31,9 +31,17 @@ class PlaylistController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return PlaylistResource_basic::collection(\App\Playlist::orderBy('created_at', 'desc')->get());
+        $playlist = \App\Playlist::orderBy('created_at', 'desc');
+        if($request->get('start_date', null)){
+            $playlist->whereDate('created_at', '>=', $request->get('start_date'));
+        }
+        if($request->get('end_date', null)){
+            $playlist->whereDate('created_at', '<=', $request->get('end_date'));
+        }
+        $result = $playlist->get();
+        return PlaylistResource_basic::collection($result);
     }
     /**
      * Display the specified resource (fetch the data for the frontend).

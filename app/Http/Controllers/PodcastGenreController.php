@@ -21,9 +21,17 @@ class PodcastGenreController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return PodcastGenreResource::collection(PodcastGenre::all());
+        $podcast_genre = PodcastGenre::orderBy('created_at', 'DESC');
+        if($request->get('start_date', null)){
+            $podcast_genre->whereDate('created_at', '>=', $request->get('start_date'));
+        }
+        if($request->get('end_date', null)){
+            $podcast_genre->whereDate('created_at', '<=', $request->get('end_date'));
+        }
+        $result = $podcast_genre->get();
+        return PodcastGenreResource::collection($result);
     }
     /**
      * Get all the genre podcasts.

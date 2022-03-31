@@ -12,6 +12,18 @@
         >
           <v-icon>$vuetify.icons.plus</v-icon> {{ $t('New') }}
         </v-btn>
+        <v-text-field
+           type='date'
+           v-model="start_date"
+           @input="fetchAlbums()"
+           placeholder="Start date">
+        </v-text-field>
+        <v-text-field
+            v-model="end_date"
+           @input="fetchAlbums()"
+           type='date'
+           placeholder="End date">
+        </v-text-field>
         <v-btn
             class="mx-2"
             dark
@@ -147,6 +159,8 @@ export default {
     data() {
     return {
       albums: null,
+      start_date: null,
+      end_date:null,
       search: "",
             editingAlbum: {},
       headers: [
@@ -171,10 +185,21 @@ export default {
     this.fetchAlbums();
   },
   methods: {
+    getDateFilter(){
+        var query_string = "";
+        if(this.start_date){
+            query_string += '?start_date='+this.start_date;
+        }
+        if(this.end_date){
+            query_string += '&end_date='+this.end_date;
+        }
+        return query_string;
+    },
     fetchAlbums() {
-      return axios.get("/api/admin/albums").then((res) => {
-        this.albums = res.data;
-      });
+        var query_string = this.getDateFilter();
+        return axios.get("/api/admin/albums"+query_string).then((res) => {
+            this.albums = res.data;
+        });
     },
     deleteAlbum(album_id) {
       this.$confirm({
@@ -244,15 +269,7 @@ export default {
       });
     },
     exportCSV() {
-        // console.log(this.start_date);
-        // console.log(this.end_date);
-        var url = '/api/admin/album/export?';
-        // if(this.start_date){
-        //     url += 'start_date='+ this.start_date;
-        // }
-        // if(this.end_date){
-        //     url += 'end_date='+ this.end_date;
-        // }
+        var url = '/api/admin/album/export'+this.getDateFilter();
         axios({
             url: url,
             method: 'GET',

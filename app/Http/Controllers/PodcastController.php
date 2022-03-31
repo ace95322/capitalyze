@@ -27,9 +27,17 @@ class PodcastController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return PodcastResource_index::collection(\App\Podcast::orderBy('created_at', 'desc')->get());
+        $podcast = \App\Podcast::orderBy('created_at', 'desc');
+        if($request->get('start_date', null)){
+            $podcast->whereDate('created_at', '>=', $request->get('start_date'));
+        }
+        if($request->get('end_date', null)){
+            $podcast->whereDate('created_at', '<=', $request->get('end_date'));
+        }
+        $result = $podcast->get();
+        return PodcastResource_index::collection($result);
     }
     /**
      * Display a listing of the resource for the current logged artist.

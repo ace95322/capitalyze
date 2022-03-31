@@ -23,9 +23,17 @@ class AlbumController extends Controller
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function index()
+    public function index(Request $request)
     {
-        return AlbumResource_index::collection(\App\Album::orderBy('created_at', 'desc')->get());
+        $album = \App\Album::orderBy('created_at', 'desc');
+        if($request->get('start_date', null)){
+            $album->whereDate('created_at', '>=', $request->get('start_date'));
+        }
+        if($request->get('end_date', null)){
+            $album->whereDate('created_at', '<=', $request->get('end_date'));
+        }
+        $result = $album->get();
+        return AlbumResource_index::collection($result);
     }
 
     /**
