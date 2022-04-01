@@ -413,6 +413,8 @@ export default {
                 formData.append("S3Secret", this.settings.S3Secret);
                 // }
                 if (this.settings.storageDisk.name === "Wasabi S3") {
+                    /*console.log("before => ", this.settings);
+                    console.log("before formData => ", formData);
                     formData.append(
                         "S3Endpoint",
 
@@ -420,7 +422,15 @@ export default {
                             "s3.",
                             "s3." + this.settings.S3Bucket + ".wasabisys.com"
                         )
-                    );
+                    );*/
+                    var s3_endpoint = "s3." + this.settings.S3Bucket + ".wasabisys.com";
+                    formData.append("S3Endpoint", s3_endpoint);
+                    this.settings.storageDisk.endpoint.replace(
+                            "s3.",
+                            s3_endpoint
+                        );
+                    // console.log("after formData => ", formData);
+                    // console.log("after => ", this.settings);
                 } else {
                     formData.append(
                         "S3Endpoint",
