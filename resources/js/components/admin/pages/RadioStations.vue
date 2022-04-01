@@ -262,15 +262,8 @@ export default {
             this.fetchRadioStations();
         },
         exportCSV() {
-            // console.log(this.start_date);
-            // console.log(this.end_date);
-            var url = '/api/admin/radiostation/export?';
-            // if(this.start_date){
-            //     url += 'start_date='+ this.start_date;
-            // }
-            // if(this.end_date){
-            //     url += 'end_date='+ this.end_date;
-            // }
+            var query_string = this.getDateFilter();
+            var url = '/api/admin/radiostation/export'+query_string;
             axios({
                 url: url,
                 method: 'GET',
