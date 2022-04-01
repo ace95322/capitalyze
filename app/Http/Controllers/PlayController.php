@@ -31,7 +31,7 @@ class PlayController extends Controller
             }
             $play = Play::find($play_id);
             if( $play &&  ($play->content_type === 'song' || $play->content_type === 'episode') ) {
-                if( Carbon::now() >= $play->end_play_expectation ) { 
+                if( Carbon::now() >= $play->end_play_expectation ) {
                     if( Setting::get('saas') && Setting::get('enable_artist_account') && Setting::get('royalties')) {
                         //increase the artist funds if artist is the seller of the product
                             if( $artist_id = $play->artist_id ) {
@@ -53,7 +53,7 @@ class PlayController extends Controller
     }
     /**
      * When a user play a song his status is gonna be updated ( is_playing ),
-     * this function updates the recent status and increase the played 
+     * this function updates the recent status and increase the played
      * song count.
      *
      * @return \Illuminate\Http\Response
@@ -68,7 +68,7 @@ class PlayController extends Controller
                 auth()->user()->save();
                 try {
                     broadcast(new HearingEvent(auth()->user()->id, $played_content));
-                } catch (Exception $e) {} 
+                } catch (Exception $e) {}
             }
         }
         $play = Play::create([
@@ -77,7 +77,7 @@ class PlayController extends Controller
             'artist_id' => $request->artist_id,
             'content_id' => $request->id,
             'content_source' => isset($request->origin)? $request->origin : 'local' ,
-            'end_play_expectation' => $request->duration ? Carbon::now()->addSeconds($request->duration - 10): Carbon::now()->addHours(1),
+            'end_play_expectation' => $request->duration ? Carbon::now()->addSeconds($request->duration - 60): Carbon::now()->addHours(1),
         ]);
         return $play->id;
     }
