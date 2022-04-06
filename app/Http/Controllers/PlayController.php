@@ -71,13 +71,17 @@ class PlayController extends Controller
                 } catch (Exception $e) {}
             }
         }
+        /**
+         * Manage Play Count on timer
+         * change end_play_expectation
+         */
         $play = Play::create([
             'user_id' => $user_id,
             'content_type' => $request->type,
             'artist_id' => $request->artist_id,
             'content_id' => $request->id,
             'content_source' => isset($request->origin)? $request->origin : 'local' ,
-            'end_play_expectation' => $request->duration ? Carbon::now()->addSeconds($request->duration - 60): Carbon::now()->addHours(1),
+            'end_play_expectation' => $request->duration ? Carbon::now()->addSeconds(60): Carbon::now()->addHours(1), //Carbon::now()->addSeconds($request->duration - 60)
         ]);
         return $play->id;
     }

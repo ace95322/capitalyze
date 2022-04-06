@@ -36,9 +36,9 @@ export default {
                 this.audioPlayer.currentTime,
                 this.audioPlayer.duration
             );
-            this.onapiCallRegisterPlayCount();
+            // this.onapiCallRegisterPlayCount();
         },
-        onapiCallRegisterPlayCount(){
+        /*onapiCallRegisterPlayCount(){
             if(this.audioPlayer.currentTime >= 59 && this.audioPlayer.currentTime <= 60 && !this.is_register_play_count)
             {
                 if (this.currentAudio.source_format === "yt_video") {
@@ -69,7 +69,7 @@ export default {
 
                 this.is_register_play_count = true;
             }
-        },
+        },*/
         onended() {
             var index;
             this.canPlay = false;
