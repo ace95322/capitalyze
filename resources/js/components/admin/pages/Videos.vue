@@ -235,12 +235,15 @@ export default {
     },
     methods: {
         getDateFilter(){
-            var query_string = "";
+            var query_string = "?";
             if(this.start_date){
-                query_string += '?start_date='+this.start_date;
+                query_string += '&start_date='+this.start_date;
             }
             if(this.end_date){
                 query_string += '&end_date='+this.end_date;
+            }
+            if(this.search){
+                query_string += '&search='+this.search;
             }
             return query_string;
         },

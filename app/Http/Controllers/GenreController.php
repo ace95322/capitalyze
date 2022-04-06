@@ -180,7 +180,7 @@ class GenreController extends Controller
      */
     public function exportCSV(Request $request)
     {
-        $export = new GenreExport($request->get('start_date', null),  $request->get('end_date', null));
+        $export = new GenreExport($request->get('start_date', null), $request->get('end_date', null), $request->get('search', null));
         return Excel::download($export, 'Genre.csv');
     }
 }

@@ -308,7 +308,7 @@ class AlbumController extends Controller
      */
     public function exportCSV(Request $request)
     {
-        $export = new AlbumExport($request->get('start_date', null),  $request->get('end_date', null));
+        $export = new AlbumExport($request->get('start_date', null),  $request->get('end_date', null), $request->get('search', null));
         return Excel::download($export, 'Albums.csv');
     }
 }

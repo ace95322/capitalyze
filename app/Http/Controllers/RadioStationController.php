@@ -193,7 +193,7 @@ class RadioStationController extends Controller
      */
     public function exportCSV(Request $request)
     {
-        $export = new RadioStationExport($request->get('start_date', null),  $request->get('end_date', null));
+        $export = new RadioStationExport($request->get('start_date', null),  $request->get('end_date', null), $request->get('search', null));
         return Excel::download($export, 'RadioStation.csv');
     }
 }

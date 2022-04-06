@@ -15,11 +15,13 @@ class AlbumExport implements FromCollection, WithHeadings, WithMapping
 {
     public $start_date;
     public $end_date;
+    public $search;
 
-    public function __construct($start_date = null, $end_date = null)
+    public function __construct($start_date = null, $end_date = null, $search = null)
     {
         $this->start_date = $start_date;
         $this->end_date = $end_date;
+        $this->search = $search;
     }
 
     /**
@@ -37,6 +39,10 @@ class AlbumExport implements FromCollection, WithHeadings, WithMapping
         }
         if($this->end_date){
             $query->whereDate('created_at', '<=', $this->end_date);
+        }
+
+        if($this->search){
+            $query->where('title', 'LIKE', '%'.$this->search.'%');
         }
 
         $result = $query->orderBy('created_at', 'desc')->get();

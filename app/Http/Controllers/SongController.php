@@ -672,7 +672,7 @@ class SongController extends Controller
      */
     public function exportCSV(Request $request)
     {
-        $export = new SongExport($request->get('start_date', null),  $request->get('end_date', null));
+        $export = new SongExport($request->get('start_date', null), $request->get('end_date', null), $request->get('search', null));
         return Excel::download($export, 'Song.csv');
     }
 }

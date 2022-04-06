@@ -147,7 +147,7 @@ class PodcastGenreController extends Controller
      * @return void
      */
     public function exportCSV(Request $request){
-        $export = new PodcastGenreExport($request->get('start_date', null),  $request->get('end_date', null));
+        $export = new PodcastGenreExport($request->get('start_date', null), $request->get('end_date', null), $request->get('search', null));
         return Excel::download($export, 'PodcastGenre.csv');
     }
 }

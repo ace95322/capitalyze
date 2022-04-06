@@ -12,11 +12,13 @@ class PodcastExport implements FromCollection, WithHeadings, WithMapping
 {
     public $start_date;
     public $end_date;
+    public $search;
 
-    public function __construct($start_date = null, $end_date = null)
+    public function __construct($start_date = null, $end_date = null, $search = null)
     {
         $this->start_date = $start_date;
         $this->end_date = $end_date;
+        $this->search = $search;
     }
 
     /**
@@ -36,6 +38,10 @@ class PodcastExport implements FromCollection, WithHeadings, WithMapping
             $query->whereDate('created_at', '<=', $this->end_date);
         }
 
+        if($this->search){
+            $query->where('title', 'LIKE', '%'.$this->search.'%');
+        }
+
         $result = $query->orderBy('created_at', 'desc')->get();
 
         return $result;
@@ -45,7 +51,7 @@ class PodcastExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             $podcast->title,
-            $podcast->artist_relation->firstname,
+            isset($podcast->artist_relation->firstname) ? $podcast->artist_relation->firstname : null,
             $podcast->follows->count(),
             Carbon::parse($podcast->created_at)->format('M d Y')
         ];
