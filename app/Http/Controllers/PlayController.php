@@ -47,6 +47,23 @@ class PlayController extends Controller
                 } else {
                     $play->delete();
                 }
+            }else if( $play &&  ($play->content_type === 'video' || $play->content_type === 'episode') ) {
+                if( Carbon::now() >= $play->end_play_expectation ) {
+                    if( Setting::get('saas') && Setting::get('enable_artist_account') && Setting::get('royalties')) {
+                        //increase the artist funds if artist is the seller of the product
+                            if( $artist_id = $play->artist_id ) {
+                                $play_royalty = Royalty::create([
+                                    'artist_id' => $artist_id,
+                                    'price' => Setting::get('artist_royalty')
+                                ]);
+                                $artist = Artist::find( $artist_id );
+                                $artist->funds += $play_royalty->price / 100;
+                                $artist->save();
+                            }
+                        }
+                } else {
+                    $play->delete();
+                }
             }
         }
         return response()->json(['message' => 'SUCCESS'], 200);
