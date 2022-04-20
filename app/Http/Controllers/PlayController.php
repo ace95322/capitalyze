@@ -47,7 +47,8 @@ class PlayController extends Controller
                 } else {
                     $play->delete();
                 }
-            }else if( $play &&  $play->content_type === 'video' ) {
+            }
+            /*else if( $play &&  $play->content_type === 'video' ) {
                 if( Carbon::now() >= $play->end_play_expectation ) {
                     if( Setting::get('saas') && Setting::get('enable_artist_account') && Setting::get('royalties')) {
                         //increase the artist funds if artist is the seller of the product
@@ -64,7 +65,7 @@ class PlayController extends Controller
                 } else {
                     $play->delete();
                 }
-            }
+            }*/
         }
         return response()->json(['message' => 'SUCCESS'], 200);
     }
