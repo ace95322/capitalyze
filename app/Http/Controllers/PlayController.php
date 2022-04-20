@@ -47,7 +47,7 @@ class PlayController extends Controller
                 } else {
                     $play->delete();
                 }
-            }else if( $play &&  ($play->content_type === 'video' || $play->content_type === 'episode') ) {
+            }else if( $play &&  $play->content_type === 'video' ) {
                 if( Carbon::now() >= $play->end_play_expectation ) {
                     if( Setting::get('saas') && Setting::get('enable_artist_account') && Setting::get('royalties')) {
                         //increase the artist funds if artist is the seller of the product
