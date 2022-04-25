@@ -542,6 +542,43 @@ export default new Vuex.Store({
                     });
             });
         },
+        registerPlayAndRoyaltyCount(
+            context,
+            { id, type, label, duration, origin, artist_id = "" }
+        ) {
+            if (
+                context.getters.getSettings.ga4 &&
+                context.getters.getSettings.analytics_play_event
+            ) {
+                emitAnalyticsEvent({
+                    action: "play",
+                    category: type,
+                    label: label
+                });
+            }
+            return new Promise((resolve, reject) => {
+                axios
+                    .post(
+                        "/api" +
+                            (context.getters.getUser ? "/user" : "") +
+                            "/register-play-royalty-count",
+                        {
+                            id,
+                            type,
+                            artist_id,
+                            duration,
+                            origin
+                        }
+                    )
+                    .then(res => {
+                        context.commit("setRegistredPlayID", res.data);
+                        resolve(res);
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
+            });
+        },
         /**
          * Play an album.
          * @param {*} context

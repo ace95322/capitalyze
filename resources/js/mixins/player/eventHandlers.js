@@ -12,6 +12,7 @@ export default {
             this.is_register_play_count = false;
         },
         onloadstart() {
+            this.is_register_play_count = false;
             this.isLoading = true;
         },
         onerror() {
@@ -36,31 +37,31 @@ export default {
                 this.audioPlayer.currentTime,
                 this.audioPlayer.duration
             );
-            // this.onapiCallRegisterPlayCount();
+            this.onapiCallRegisterPlayCount();
         },
-        /*onapiCallRegisterPlayCount(){
-            if(this.audioPlayer.currentTime >= 59 && this.audioPlayer.currentTime <= 60 && !this.is_register_play_count)
+        onapiCallRegisterPlayCount(){
+            if(this.audioPlayer.currentTime >= 59 && !this.is_register_play_count)
             {
                 if (this.currentAudio.source_format === "yt_video") {
-                    this.$store.dispatch("registerPlay", {
+                    this.$store.dispatch("registerPlayAndRoyaltyCount", {
                         id: this.currentAudio.id,
                         type: this.isPodcastEpisode ? "episode" : "song",
                         label: this.currentAudio.title,
-                        artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : '',
                         duration: this.currentAudio.duration,
-                        origin: 'youtube'
+                        origin: 'youtube',
+                        artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : ''
                     });
                 } else if (this.currentAudio.source_format === "file") {
-                    this.$store.dispatch("registerPlay", {
+                    this.$store.dispatch("registerPlayAndRoyaltyCount", {
                         id: this.currentAudio.id,
                         type: this.isPodcastEpisode ? "episode" : "song",
                         label: this.currentAudio.title,
-                        artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : '',
                         duration: this.currentAudio.duration,
-                        origin: this.currentAudio.origin
+                        origin: this.currentAudio.origin,
+                        artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : ''
                     });
                 } else {
-                    this.$store.dispatch("registerPlay", {
+                    this.$store.dispatch("registerPlayAndRoyaltyCount", {
                         id: this.currentAudio.id,
                         type: "radio-sation",
                         label: this.currentAudio.title
@@ -69,7 +70,7 @@ export default {
 
                 this.is_register_play_count = true;
             }
-        },*/
+        },
         onended() {
             var index;
             this.canPlay = false;
@@ -77,9 +78,9 @@ export default {
             this.$store.commit("setCurrentlyPlayingTypeStatus", "pause");
             this.$store.commit("setPlayerStatus", null);
             this.currentAudio.isPlaying = false;
-            if (this.$store.getters.getUser && this.$store.getters.getUser.id) {
+            /*if (this.$store.getters.getUser && this.$store.getters.getUser.id) {
                 this.$store.dispatch("endPlay");
-            }
+            }*/
             if (!this.buttons.loop) {
                 if (this.buttons.shuffle && this.playlist.length > 1) {
                     index = this.getRandomAudio(

@@ -50,6 +50,8 @@ Route::group(['prefix' => 'user'], function () {
     Route::post('/register-play', 'PlayController@userPlay');
     Route::post('/end-play/{play_id}', 'PlayController@endPLay');
 
+    Route::post('/register-play-royalty-count', 'PlayController@userPlay');
+
     Route::get('/', 'UserController@account');
 
     Route::post('/playing', 'UserController@playing')->name(Str::random(40));

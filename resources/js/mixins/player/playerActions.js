@@ -26,16 +26,16 @@ export default {
                     this.$store.commit("setCurrentAudio",{ id: this.currentAudio.id, type: this.currentAudio.type });
                     this.$store.commit("setCurrentlyPlayingTypeStatus", 'play');
                     this.currentAudio.isPlaying = true;
-                    if (this.videoPlayer.getCurrentTime() === 0) {
+                    /*if (this.videoPlayer.getCurrentTime() === 0) {
                         this.$store.dispatch("registerPlay", {
                             id: this.currentAudio.id,
                             type: this.isPodcastEpisode ? "episode" : "song",
                             label: this.currentAudio.title,
-                            artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : '',
                             duration: this.currentAudio.duration,
-                            origin: 'youtube'
+                            origin: 'youtube',
+                            artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : '',
                         });
-                    }
+                    }*/
                 } else if (this.videoPlayer.getCurrentTime() > 0) {
                     this.currentAudio.isPlaying = false;
                     this.$store.commit("setCurrentlyPlayingTypeStatus", 'pause');
@@ -69,16 +69,16 @@ export default {
                             clearInterval(int);
                         }
                     }, 200);
-                    if (this.audioPlayer.currentTime === 0) {
+                    /*if (this.audioPlayer.currentTime === 0) {
                         this.$store.dispatch("registerPlay", {
                             id: this.currentAudio.id,
                             type: this.isPodcastEpisode ? "episode" : "song",
                             label: this.currentAudio.title,
-                            artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : '',
                             duration: this.currentAudio.duration,
-                            origin: this.currentAudio.origin
+                            origin: this.currentAudio.origin,
+                            artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : ''
                         });
-                    }
+                    }*/
                 } else if (this.audioPlayer.currentTime > 0) {
                     this.currentAudio.isPlaying = false;
                     this.$store.commit("setCurrentAudio", null);
@@ -132,13 +132,13 @@ export default {
                         });
                         this.$store.commit("setCurrentAudio", { id: this.currentAudio.id, type: this.currentAudio.type });
                         this.$store.commit("setCurrentlyPlayingTypeStatus", 'play');
-                        if (this.audioPlayer.currentTime === 0) {
+                        /*if (this.audioPlayer.currentTime === 0) {
                             this.$store.dispatch("registerPlay", {
                                 id: this.currentAudio.id,
                                 type: "radio-sation",
                                 label: this.currentAudio.title
                             });
-                        }
+                        }*/
                     } else if (this.audioPlayer.currentTime > 0) {
                         this.currentAudio.isPlaying = false;
                         // emitAnalyticsTime({
