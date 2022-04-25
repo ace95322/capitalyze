@@ -11,6 +11,7 @@ use App\Setting;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PlayController extends Controller
 {
@@ -157,16 +158,23 @@ class PlayController extends Controller
             'end_play_expectation' => $request->duration ? Carbon::now()->subSeconds(60) : Carbon::now()->subSeconds(60), //Carbon::now()->addSeconds($request->duration - 60)
         ]);
 
+        // Log::info("Create play to table ");
         if ($play &&  ($play->content_type === 'song' || $play->content_type === 'episode')) {
+            // Log::info("If content type song ");
             if (Setting::get('saas') && Setting::get('enable_artist_account') && Setting::get('royalties')) {
+                // Log::info("Enable saas ");
                 //increase the artist funds if artist is the seller of the product
                 if ($artist_id = $play->artist_id) {
+                    // Log::info("after artist id ");
                     $play_royalty = Royalty::create([
                         'artist_id' => $artist_id,
                         'price' => Setting::get('artist_royalty')
                     ]);
                     $artist = Artist::find($artist_id);
+                    // Log::info("before funds => ".$artist->funds);
                     $artist->funds += $play_royalty->price / 100;
+                    // Log::info("play royalty price => ".$play_royalty->price);
+                    // Log::info("after funds increase=> ".$artist->funds);
                     $artist->save();
                 }
             }

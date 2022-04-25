@@ -12,7 +12,7 @@ class UserHelper
             $user = auth('api')->user();
             $user->load('active_subscription');
             $sub = $user->active_subscription()->first();
-            Log::info("Active plans => ".print_r($sub->plan->free, true));
+            // Log::info("Active plans => ".print_r($sub->plan->free, true));
             return $sub->plan->free;
         }
         return 0;

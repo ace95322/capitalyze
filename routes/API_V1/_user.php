@@ -50,7 +50,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::post('/register-play', 'PlayController@userPlay');
     Route::post('/end-play/{play_id}', 'PlayController@endPLay');
 
-    Route::post('/register-play-royalty-count', 'PlayController@userPlay');
+    Route::post('/register-play-royalty-count', 'PlayController@playCountAndAddRoyalties');
 
     Route::get('/', 'UserController@account');
 
