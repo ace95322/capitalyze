@@ -159,7 +159,7 @@ class PlayController extends Controller
         ]);
 
         // Log::info("Create play to table ");
-        if ($play &&  ($play->content_type === 'song' || $play->content_type === 'episode')) {
+        if ($play &&  ($play->content_type === 'song' || $play->content_type === 'episode' || $play->content_type === 'video')) {
             // Log::info("If content type song ");
             if (Setting::get('saas') && Setting::get('enable_artist_account') && Setting::get('royalties')) {
                 // Log::info("Enable saas ");
@@ -173,7 +173,7 @@ class PlayController extends Controller
                     $artist = Artist::find($artist_id);
                     // Log::info("before funds => ".$artist->funds);
                     $artist->funds += $play_royalty->price / 100;
-                    // Log::info("play royalty price => ".$play_royalty->price);
+                    Log::info("play royalty price => ".$play_royalty->price / 100);
                     // Log::info("after funds increase=> ".$artist->funds);
                     $artist->save();
                 }

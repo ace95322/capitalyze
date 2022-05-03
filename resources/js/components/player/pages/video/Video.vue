@@ -182,8 +182,8 @@ export default {
         this.selected_video.custom_source =
           "https://www.youtube.com/embed/" + video.source;
       }
-      console.log("this.videoPlayer => ", this.videoPlayer);
-      this.createPlayCount();
+    //   console.log("this.videoPlayer => ", this.videoPlayer);
+    //   this.createPlayCount();
     },
     createPlayCount() {
       if (this.selected_video.source_format === "yt_video") {

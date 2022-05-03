@@ -6,30 +6,24 @@ export default {
             // this.videoPlayer.onEnded = this.onEnded;
 
             // this.videoPlayer.onloadstart = this.onloadstart;
-            // this.videoPlayer.onloadstart = this.onloadstart;
             // this.videoPlayer.onerror = this.onerror;
             // this.videoPlayer.onloadedmetadata = this.onloadmetadata;
             // this.videoPlayer.oncanplay = this.oncanplay;
-            // this.videoPlayer.ontimeupdate = this.ontimeupdate;
-            this.videoPlayer.onended = this.onended;
             // this.videoPlayer.onwaiting = this.onwaiting;
             // this.videoPlayer.oncanplaythrough = this.oncanplay;
-            // this.is_register_play_count = false;
+
+            this.is_register_play_count = false;
+            this.videoPlayer.onloadstart = this.onloadstart;
+            this.videoPlayer.ontimeupdate = this.ontimeupdate;
+            this.videoPlayer.onended = this.onended;
         },
-        // onLoad(){
-        //     alert('on load event')
-        // },
-        // onStateChange(){
-        //     alert("Video ended")
-        // },
-        // onEnded(){
-        //     console.log("Video Ended")
-        // }
-        /*onloadstart() {
+
+        onloadstart() {
+            this.is_register_play_count = false;
             this.isLoading = true;
             console.log("on load start")
         },
-        onerror() {
+        /*onerror() {
             if (!this.isRadioStation) {
                 // this.failedToPlay();
             }
@@ -44,48 +38,42 @@ export default {
         oncanplay() {
             this.canPlay = true;
             this.isLoading = false;
-        },
+        },*/
         ontimeupdate() {
             // this.currentAudio.isPlaying = true
             // this.updateTime(
             //     this.videoPlayer.currentTime,
             //     this.videoPlayer.duration
             // );
-            console.log("on time update", this.videoPlayer.duration);
-            // this.onapiCallRegisterPlayCount();
-        },*/
-        /*onapiCallRegisterPlayCount(){
-            if(this.audioPlayer.currentTime >= 59 && this.audioPlayer.currentTime <= 60 && !this.is_register_play_count)
+            // console.log("on time currentTime", this.videoPlayer.currentTime);
+            this.onapiCallRegisterPlayCount();
+        },
+        onapiCallRegisterPlayCount(){
+            if(this.videoPlayer.currentTime >= 59 && this.videoPlayer.currentTime <= 60 && !this.is_register_play_count)
             {
-                if (this.currentAudio.source_format === "yt_video") {
-                    this.$store.dispatch("registerPlay", {
-                        id: this.currentAudio.id,
-                        type: this.isPodcastEpisode ? "episode" : "song",
-                        label: this.currentAudio.title,
-                        artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : '',
-                        duration: this.currentAudio.duration,
-                        origin: 'youtube'
+                if (this.selected_video.source_format === "yt_video") {
+                    this.$store.dispatch("registerPlayAndRoyaltyCount", {
+                        id: this.selected_video.id,
+                        type: this.isPodcastEpisode ? "episode" : "video",
+                        label: this.selected_video.title,
+                        duration: this.selected_video.duration,
+                        origin: 'youtube',
+                        artist_id: this.selected_video.artist ? this.selected_video.artist.id : ''
                     });
-                } else if (this.currentAudio.source_format === "file") {
-                    this.$store.dispatch("registerPlay", {
-                        id: this.currentAudio.id,
-                        type: this.isPodcastEpisode ? "episode" : "song",
-                        label: this.currentAudio.title,
-                        artist_id: this.currentAudio.artist ? this.currentAudio.artist.id : '',
-                        duration: this.currentAudio.duration,
-                        origin: this.currentAudio.origin
-                    });
-                } else {
-                    this.$store.dispatch("registerPlay", {
-                        id: this.currentAudio.id,
-                        type: "radio-sation",
-                        label: this.currentAudio.title
+                } else if (this.selected_video.source_format === "file") {
+                    this.$store.dispatch("registerPlayAndRoyaltyCount", {
+                        id: this.selected_video.id,
+                        type: this.isPodcastEpisode ? "episode" : "video",
+                        label: this.selected_video.title,
+                        duration: this.selected_video.duration,
+                        origin: this.selected_video.origin,
+                        artist_id: this.selected_video.artist ? this.selected_video.artist.id : ''
                     });
                 }
 
                 this.is_register_play_count = true;
             }
-        },*/
+        },
         onended() {
             /*alert("Ended Data");
             var index;
@@ -94,10 +82,10 @@ export default {
             this.$store.commit("setCurrentlyPlayingTypeStatus", "pause");
             this.$store.commit("setPlayerStatus", null);
             this.currentAudio.isPlaying = false;*/
-            if (this.$store.getters.getUser && this.$store.getters.getUser.id) {
-                alert("End Data");
-                this.$store.dispatch("endPlay");
-            }
+            // if (this.$store.getters.getUser && this.$store.getters.getUser.id) {
+            //     alert("End Data");
+            //     this.$store.dispatch("endPlay");
+            // }
             /*if (!this.buttons.loop) {
                 if (this.buttons.shuffle && this.playlist.length > 1) {
                     index = this.getRandomAudio(
