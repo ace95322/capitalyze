@@ -12,12 +12,21 @@
     <div class="songs">
       <div v-show="selected_video.custom_source">
         <video
+          v-show="this.selected_video.source_format != 'yt_video'"
           id="video_player"
           :src="selected_video.custom_source"
           controls
+          autoplay
           width="420"
           height="315"
         ></video>
+        <div v-show="this.selected_video.source_format == 'yt_video'" id="yt-player" autoplay></div>
+        <!-- <youtube
+         v-show="this.selected_video.source_format == 'yt_video'"
+         :video-id="selected_video.source"
+         @playing="playing"
+         @ready="ready"
+         :player-vars="{autoplay: 1}"></youtube> -->
       </div>
       <div class="grid-layout">
         <div class="item" v-for="video in videos" :key="video.id">
@@ -127,6 +136,7 @@
 //../../../mixins/player/videoE
 // import videoEventHandlers from "../../../mixins/player/videoEventHandlers";
 import videoEventHandlers from "../../../../mixins/player/videoEventHandlers";
+
 export default {
   mixins: [videoEventHandlers],
   data() {
@@ -138,6 +148,7 @@ export default {
       selected_video: {
         custom_source: "",
       },
+      youtubePlayer: null,
       videoPlayer: null,
       currentVideo: {
         source: null,
@@ -162,8 +173,10 @@ export default {
   },
   async created() {
     this.fetchVideos();
+    // this.onYouTubeIframeAPIReady();
   },
   async mounted() {
+    window.videocompo = this;
     this.initPlayer();
   },
   methods: {
@@ -175,15 +188,16 @@ export default {
     },
     playVideo(video) {
       this.selected_video = video;
-      console.log(video)
+      // console.log(video);
       this.selected_video.custom_source = video.source;
-
+      destroyPlayer();
       if (this.selected_video.source_format == "yt_video") {
         this.selected_video.custom_source =
           "https://www.youtube.com/embed/" + video.source;
+        newVideoInitialize(video.source);
       }
-    //   console.log("this.videoPlayer => ", this.videoPlayer);
-    //   this.createPlayCount();
+      //   console.log("this.videoPlayer => ", this.videoPlayer);
+      //   this.createPlayCount();
     },
     createPlayCount() {
       if (this.selected_video.source_format === "yt_video") {
@@ -200,7 +214,7 @@ export default {
       } else if (this.selected_video.source_format === "file") {
         this.$store.dispatch("registerPlay", {
           id: this.selected_video.id,
-          type: "video",//this.isPodcastEpisode ? "episode" : "video"
+          type: "video", //this.isPodcastEpisode ? "episode" : "video"
           label: this.selected_video.title,
           artist_id: this.selected_video.artist
             ? this.selected_video.artist.id
@@ -222,25 +236,88 @@ export default {
         // console.log('this.videos', this.videos)
       });
     },
+    ready(event) {
+      this.youtubePlayer = event.target;
+    },
+    playing(event) {
+      console.log("Playing => ", this.youtubePlayer);
+    },
+    youtubeRoyaltiesCount() {
+      this.$store.dispatch("registerPlayAndRoyaltyCount", {
+        id: this.selected_video.id,
+        type: this.isPodcastEpisode ? "episode" : "video",
+        label: this.selected_video.title,
+        duration: this.selected_video.duration,
+        origin: "youtube",
+        artist_id: this.selected_video.artist
+          ? this.selected_video.artist.id
+          : "",
+      });
+    },
+    // onYouTubeIframeAPIReady() {
+    //   console.log("onYouTubeIframeAPIReady");
+    //   loadPlayer("Xa0Q0J5tOP0");
+    // },
+    onPlayerStateChange(playerobj, data) {
+      console.log("state chnge");
+      //   console.log("playerobj",playerobj);
+      //   console.log("data",data)
+      //   playerobj.getCurrenttime()
+    },
   },
 };
+
+var player;
+function loadPlayer(videoId) {
+  console.log("load player");
+  //   window.onYouTubeIframeAPIReady = function () {
+  // onYouTubePlayer();
+//   console.log("onYouTubePlayerAPIReady", YT);
+  player = new YT.Player("yt-player", {
+    // videoId: "Xa0Q0J5tOP0",
+    videoId: videoId,
+    events: {
+      onStateChange: onStateChange,
+      // window.videocompo.onPlayerStateChange(player)
+    },
+  });
+  //   };
+  function onStateChange(evnt) {
+    // console.log("evnt", evnt);
+    // console.log("player", player.getCurrentTime());
+    // if playing then call api after 60 seconds
+    var myTimeout;
+    var timer = 60;
+    if(evnt.data == 1){
+
+        if(player.getCurrentTime() < 60){
+            myTimeout = setTimeout(function(){
+                // alert("10 second over");
+                // window.videocompo.testMethod()
+                window.videocompo.youtubeRoyaltiesCount()
+            }, (player.getCurrentTime() < 1 ? timer : (60 - Math.round(player.getCurrentTime())))*1000);
+        }
+
+
+    }else if(evnt.data == 2 || evnt.data == 3 || evnt.data == 0){ // paused & check playinng seconds & check timer second & call api
+        clearTimeout(myTimeout);
+    }
+  }
+}
+
+function newVideoInitialize(videoId) {
+  if(player){
+      player.destroy();
+  }
+
+  loadPlayer(videoId);
+}
+
+function destroyPlayer(){
+  if(player){
+      player.destroy();
+  }
+}
+
+// loadPlayer();
 </script>
-
-<style lang="scss" scoped>
-// @import "../../../../sass/player/pages/404-page";
-// @import "../../../../sass/variables";
-// .icon-header {
-//     .cover {
-//         background: linear-gradient(45deg, $color-secondary, $color-primary);
-//     }
-// }
-
-// .gradient {
-//     height: 40vh;
-//     background: linear-gradient(180deg, rgba(13,0,36,0.2805497198879552) 0%, rgba(179,122,218,0.5018382352941176) 47%, rgba(232,215,244,1) 92%, rgba(255,255,255,1) 100%);
-//     position: absolute;
-//     top: 0;
-//     left: 0;
-//     right: 0;
-// }
-</style>

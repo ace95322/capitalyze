@@ -12,7 +12,7 @@ import './plugins/axios';
 import VueSocialSharing from 'vue-social-sharing'
 
 import DatetimePicker from 'vuetify-datetime-picker'
- 
+
 Vue.use(DatetimePicker)
 
 Vue.use(VueSocialSharing);
@@ -34,7 +34,7 @@ window.Hls = Hls;
 import helpers from './helpers';
 
 // Vue mixin includes all the global methods that needs to be available among all the comps
-import globalMixin from './globalMixin'; 
+import globalMixin from './globalMixin';
 
 
 // initials settings on the store
@@ -44,7 +44,7 @@ helpers.updateSettings();
 // if (process.env.MIX_ENV_MODE === 'production') {
 //     Vue.config.devtools = false;
 //     Vue.config.debug = false;
-//     Vue.config.silent = true; 
+//     Vue.config.silent = true;
 // }
 
 
