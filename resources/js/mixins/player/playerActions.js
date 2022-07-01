@@ -2,6 +2,7 @@
 export default {
     methods: {
         playPause() {
+            console.log("playPause",this.currentAudio);
             if (this.currentAudio.source_format === "yt_video") {
                 if (!this.$store.getters.getSettings.allowVideos) {
                     this.$notify({
