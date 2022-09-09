@@ -69,6 +69,15 @@ export default {
                         origin: this.selected_video.origin,
                         artist_id: this.selected_video.artist ? this.selected_video.artist.id : ''
                     });
+                } else if (this.selected_video.source_format === "video_url") {
+                    this.$store.dispatch("registerPlayAndRoyaltyCount", {
+                        id: this.selected_video.id,
+                        type: this.isPodcastEpisode ? "episode" : "video",
+                        label: this.selected_video.title,
+                        duration: this.selected_video.duration,
+                        origin: this.selected_video.origin,
+                        artist_id: this.selected_video.artist ? this.selected_video.artist.id : ''
+                    });
                 }
 
                 this.is_register_play_count = true;

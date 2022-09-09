@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Helpers\Content\ListenNotes\ListenNotes;
+use App\Helpers\UserHelper;
 use App\Http\Resources\Album\AlbumResource_basic;
 use App\Http\Resources\Album\AlbumResource_index;
 use App\Http\Resources\Artist\ArtistResource_basic;
@@ -150,7 +151,7 @@ trait Search
     //     if( true ) {
     //         $collection = self::playlist_collection(Spotify::searchPlaylists($keyword)->limit(5)->get());
     //         $spotify_playlists = SpotifyPlaylistResource::collection($collection);
-    //     } 
+    //     }
     //     $local_playlists =  PlaylistResource::collection(\App\Playlist::where('title', 'like', $keyword . '%')->get());
     //     return collect($local_playlists)->merge(collect($spotify_playlists));
     // }
@@ -161,6 +162,7 @@ trait Search
      */
     public static function songs($keyword, $engines = ['local'])
     {
+        $is_user_plan_type_free = UserHelper::getIsUserPlanTypeFree();
         $collection = new Collection();
         if (self::canSearchThrough('spotify', $engines) && self::isSpotifyAllowed()) {
             $tracks = self::track_collection(Spotify::searchTracks($keyword)->limit(5)->get());
@@ -168,7 +170,11 @@ trait Search
             $collection = $collection->toBase()->merge($spotify_tracks);
         }
         if (self::canSearchThrough('local', $engines)) {
-            $local_tracks =  SongResource_basictoplay::collection(\App\Song::where('title', 'like', $keyword . '%')->limit(5)->get());
+            if($is_user_plan_type_free){
+                $local_tracks =  SongResource_basictoplay::collection(\App\Song::where('title', 'like', $keyword . '%')->where('is_only_for_subscriber', '=', 0)->limit(5)->get());
+            } else {
+                $local_tracks =  SongResource_basictoplay::collection(\App\Song::where('title', 'like', $keyword . '%')->limit(5)->get());
+            }
             $collection = $collection->toBase()->merge($local_tracks);
         }
 
@@ -206,13 +212,13 @@ trait Search
     {
         if( $id ) {
             if ($artist = \App\Artist::find($id)) {
-                if( $profile ) 
+                if( $profile )
                 {
                     return new ProfilesArtistResource($artist);
                 } else {
                     return new ArtistResource_basic($artist);
                 }
-                
+
             } else {
                 if (self::isSpotifyAllowed()) {
                     try {
@@ -234,7 +240,7 @@ trait Search
         }
         return null;
     }
-    
+
     public static function getSong($id, $page, $resource = true)
     {
         if ($song = \App\Song::find($id)) {
@@ -254,7 +260,7 @@ trait Search
                     } else {
                         return $song;
                     }
-                  
+
                 } catch (\Exception $e) {}
             }
             if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
@@ -276,7 +282,7 @@ trait Search
             if (self::isListenNotesAllowed()) {
                 try {
                     $episode = ListenNotes::episode($id);
-                    
+
                     if( $resource ) {
                         return new ListenNotesEpisodeResource($episode);
                     } else {
@@ -292,7 +298,7 @@ trait Search
         }
         return null;
     }
-    
+
     public static function getAlbum($id, $page = false, $resource = true)
     {
         if ($album = \App\Album::find($id)) {
@@ -312,7 +318,7 @@ trait Search
                     } else {
                         return $album;
                     }
-                   
+
                 } catch (\Exception $e) {}
             }
             if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
@@ -350,7 +356,7 @@ trait Search
             } catch (\Exception $e) {}
         }
         if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
-        
+
         return null;
         }
     }
@@ -363,7 +369,7 @@ trait Search
             return null;
         }
     }
-    
+
     public static function getPlaylist($id, $page)
     {
         if ($podcast = \App\Playlist::find($id)) {

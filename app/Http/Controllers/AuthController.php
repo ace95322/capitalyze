@@ -25,7 +25,9 @@ class AuthController extends Controller
         if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             throw new FEException(__('Your credentials are incorrect. Please try again'), '', 500);
         }
-        return $this->login(Auth::user());
+		
+        return $this->login(Auth::user());;
+
     }
     /**
      * Login a user.
@@ -49,8 +51,9 @@ class AuthController extends Controller
             throw new FEException(__('Your credentials are incorrect. Please try again'), '', 500);
         }
         $scopes = $this->userScopes(Auth::user());
+		Auth::user()->tokens()->delete();
         $token = Auth::user()->createToken('access_token', $scopes)->accessToken;
-
+   
         return response(['access_token' => $token]);
     }
 

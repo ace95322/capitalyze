@@ -14,7 +14,7 @@ return [
      * The maximum file size of an item in bytes.
      * Adding a larger file will result in an exception.
      */
-    'max_file_size' => 10000000,
+    'max_file_size' => 1024 * 1024 * 1000,
 
     /*
      * This queue will be used to generate derived and responsive images.

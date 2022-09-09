@@ -183,7 +183,7 @@ export default {
                 this.contentLength = res.data.length;
                 this.$emit("contentLength", res.data.length ? 0 : -1);
                 this.$emit("content");
-            })  
+            })
             .catch(() => {
                 this.contents = [];
                 this.serverError = true
@@ -214,7 +214,7 @@ export default {
 .song-expo-skeleton {
     padding: .3em;
 }
-.swiper-section 
+.swiper-section
 .vue-content-placeholders-img
 {
     padding-top: 100%;

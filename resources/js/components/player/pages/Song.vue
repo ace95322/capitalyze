@@ -94,7 +94,7 @@
           color="primary"
           x-large
           rounded
-          @click="play(song, true)"
+          @click="playAble(song)"
           v-else
         >
           <v-icon size="25" left>$vuetify.icons.play</v-icon>
@@ -233,6 +233,7 @@
 </template>
 <script>
 import PurchaseButton from "../../elements/other/ProductBtn.vue";
+import Vue from "vue";
 export default {
   components: { PurchaseButton },
   metaInfo() {
@@ -340,6 +341,30 @@ export default {
         this.$store.dispatch("like", song);
       }
     },
+    async playAble(song) {
+      if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
+        await this.loginOrCancel();
+      } if (this.$store.getters.getUser && this.$store.getters.isLogged && song.is_only_for_subscriber && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin) {
+        return new Promise((res, rej) => {
+            Vue.$confirm({
+                message: `You need to subscribe to play this song.`,
+                button: {
+                    no: "Cancel",
+                    yes: "Subscribe"
+                },
+                callback: confirm => {
+                    if (confirm) {
+                      res(this.$router.push({ name: "subscription" }));
+                    } else {
+                      rej();
+                    }
+                }
+            });
+        });
+      } else {
+        this.play(song, true);
+      }
+    }
   },
 };
 </script>

@@ -471,7 +471,7 @@ export default {
     }
     // remove the YouTube link option if the Youtube Plugin was disabled
     if (!this.$store.getters.getSettings.youtubePlugin) {
-      this.sourceFormats.splice(2, 1);
+      this.sourceFormats.splice(1, 1);
     }
   },
   data() {
@@ -499,16 +499,16 @@ export default {
           icon: "file-chart",
         },
         {
-          value: "audio_url",
-          text: this.$t("Audio URL"),
-          icon: "link",
-        },
-        {
           value: "yt_video",
           text: this.$t("YouTube Video"),
           icon: "youtube",
         },
       ],
+		/* {
+          value: "audio_url",
+          text: this.$t("Audio URL"),
+          icon: "link",
+        }, */
       rules: {
         fileSize: (file) =>
           file
