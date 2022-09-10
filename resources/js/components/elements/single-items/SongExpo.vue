@@ -1,6 +1,6 @@
 <template>
     <div class="content-item" v-if="song" :class="{ hovered: imIPlayingNow }">
-        <div class="content-item__header" @click="play(song, true)">
+        <div class="content-item__header" @click="playAble(song)">
             <slot name="control-layer"></slot>
             <div
                 class="control-layer"
@@ -38,7 +38,7 @@
                     <button
                         class="button button-play mx-3"
                         v-else
-                        @click.stop="play(song, true)"
+                        @click.stop="playAble(song)"
                     >
                         <v-icon size="55" dark>$vuetify.icons.play-circle</v-icon>
                     </button>
@@ -118,6 +118,7 @@
 </template>
 <script>
 import Song from "../../dialogs/edit/Song.vue";
+import Vue from "vue";
 export default {
     components: { Song },
     props: ["song", "admin"],
@@ -165,6 +166,30 @@ export default {
         },
         addSongToPlaylist(song_id) {
             this.$store.commit("setAddSongToPlaylist", song_id);
+        },
+        async playAble(song) {
+            if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
+                await this.loginOrCancel();
+            } if (this.$store.getters.getUser && this.$store.getters.isLogged && song.is_only_for_subscriber && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin) {
+                return new Promise((res, rej) => {
+                    Vue.$confirm({
+                        message: `You need to subscribe to play this song.`,
+                        button: {
+                            no: "Cancel",
+                            yes: "Subscribe"
+                        },
+                        callback: confirm => {
+                            if (confirm) {
+                            res(this.$router.push({ name: "subscription" }));
+                            } else {
+                            rej();
+                            }
+                        }
+                    });
+                });
+            } else {
+                this.play(song, true);
+            }
         }
     }
 };

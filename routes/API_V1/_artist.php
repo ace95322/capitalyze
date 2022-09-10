@@ -50,7 +50,7 @@ Route::group(['prefix' => 'artist'], function () {
     Route::get('/notifications', 'ArtistController@notifications');
     Route::get('/analytics', 'AnalyticsController@artistIndex');
     Route::get('/plays/{duration}', 'AnalyticsController@getArtistPlays');
-    Route::get('/match-songs/{keyword}', 'SongController@matchArtistSongs');
+    Route::get('/match-songs', 'SongController@matchArtistSongs');
     Route::get('songs', 'SongController@artistIndex');
     Route::get('videos', 'VideoController@artistIndex');
     Route::get('albums', 'AlbumController@artistIndex');

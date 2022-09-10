@@ -37,7 +37,7 @@ use App\Setting;
 use Illuminate\Database\Eloquent\Collection;
 use App\Playing;
 
-class UserController extends Controller 
+class UserController extends Controller
 {
     /**
      * Get the account informations of the current logged user.
@@ -58,10 +58,10 @@ class UserController extends Controller
     {
         $user = auth()->user();
         $plan = Plan::find($request->plan['id']);
-        
+
         if( $subscription = $user->active_subscription()->first() ) {
             $this->cancelCurrentSubscription($subscription->id);
-        } 
+        }
         // creating the subscription on Stripe if the plan is not free and the connection is set
         $this->createSubscription($user, $plan, $request->all());
 
@@ -106,7 +106,9 @@ class UserController extends Controller
         return response()->json(['message' => 'SUCCESS'], 200);
     }
     public function playing( Request $request ) {
-        
+        if (!auth()->check()){
+            throw new FEException('Your session expired please login again.', '',400);
+        }
         if( !auth()->user()->playing ) {
             Playing::create([
                 'user_id' => auth()->id()
@@ -204,7 +206,7 @@ class UserController extends Controller
             'name' => 'required|unique:users',
             'password' => 'required|min:8',
         ]);
-        
+
 
 
         $user = User::create([
@@ -222,7 +224,7 @@ class UserController extends Controller
         // attaching the roles
         if (isset($request->roles)) {
             foreach (json_decode($request->roles) as $role) {
-                if( $role->id != '3') { 
+                if( $role->id != '3') {
                     // the user role id is 3 will be attached after
                     // the creation of the user automatically
                     $user->roles()->attach($role->id);
@@ -343,7 +345,7 @@ class UserController extends Controller
         if ($file = $request->file('avatar')) {
             Media::updateImage($user, $file, 'avatar', 200);
         }
-        
+
         $user->name = $request->name;
         $user->lang = $request->lang;
         $user->hide_activity = $request->hide_activity ? 1 : 0;
@@ -366,7 +368,7 @@ class UserController extends Controller
             'phone' => 'required',
             'address' => 'required'
         ]);
-        
+
         $artist = Artist::create([
             'firstname' => $request->firstname,
             'lastname' => $request->lastname,
@@ -418,7 +420,7 @@ class UserController extends Controller
     public function follows($type)
     {
         $collection = new Collection();
-        $localIds = 
+        $localIds =
             \DB::table('follows')
                 ->select(\DB::raw('followed_id as id'))
                 ->where('user_id', auth()->user()->id)
@@ -438,7 +440,7 @@ class UserController extends Controller
         }
 
         if( Setting::get('provider_spotify') ) {
-        $spotifyIds = 
+        $spotifyIds =
             \DB::table('follows')
                 ->select(\DB::raw('followed_id as id'))
                 ->where('user_id', auth()->user()->id)
@@ -454,7 +456,7 @@ class UserController extends Controller
     }
     // disabled to limit the API requests
         // if( Setting::get('provider_listenNotes') ) {
-        //     $listenNotesIds = 
+        //     $listenNotesIds =
         //     \DB::table('follows')
         //         ->select(\DB::raw('followed_id as id'))
         //         ->where('user_id', auth()->user()->id)
@@ -468,7 +470,7 @@ class UserController extends Controller
         //     $collection = $collection->toBase()->merge($listenNotes_follows);
         // }
         // }
-       
+
         return $collection;
     }
     /**
@@ -604,7 +606,7 @@ class UserController extends Controller
     }
 
     public function purchases() {
-        
+
         $sales = auth()->user()->purchases()->with('products.productable')->get();
         // possible product types V2.1
         $songs = [];

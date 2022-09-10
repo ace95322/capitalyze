@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Song;
 use App\Helpers\Media;
+use App\Helpers\FileManager;
 use App\Http\Resources\Artist\ArtistResource_basic;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\User\UserResource_Basic;
@@ -18,7 +19,7 @@ class SongResource_index extends JsonResource
     public function toArray($request)
     {
         return [
-            'source' => '/api/stream/song/' . $this->id,
+            //'source' => '/api/stream/song/' . $this->id,
             'cover' => Media::get($this, 'cover'),
             'thumbnail' => Media::getConversion($this, 'cover', 'thumbnail'),
             'hls' => $this->hls,
@@ -32,7 +33,9 @@ class SongResource_index extends JsonResource
             'description' => $this->description,
             'duration' => $this->duration,
             'source_format' => $this->source_format,
-            'source' => $this->source_format == 'yt_video' ? $this->source : '/api/stream/song/' . $this->id,
+            //'source' => $this->source_format === 'file' || $this->source_format == 'yt_video' ? $this->source : '/api/stream/song/' . $this->id,
+            //'source' => $this->source_format === 'file' || $this->source_format === 'audio_url' ? FileManager::asset_path($this->source) :  json_decode($this->source),
+            'source' => $this->source_format === 'audio_url' ? FileManager::asset_path($this->source) : ($this->source_format == 'yt_video' ? $this->source : '/api/stream/song/' . $this->id),
             'file_name' => Media::getFileName($this, 'mp3'),
             'file_size' => Media::getFileSize($this, 'mp3'),
             'genres' => $this->genres,

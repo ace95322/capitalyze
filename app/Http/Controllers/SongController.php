@@ -83,9 +83,9 @@ class SongController extends Controller
      * @param  $keyword
      * @return \Illuminate\Http\Response
      */
-    public function matchArtistSongs($keyword)
+    public function matchArtistSongs(Request $request)
     {
-        return SongResource_index::collection(Song::where('title', 'like', '%' . $keyword . '%')->where('public', 1)->where('artist_id', auth()->user()->artist->id)->get());
+        return SongResource_index::collection(Song::where('title', 'like', '%' . $request->get('query') . '%')->where('public', 1)->where('artist_id', auth()->user()->artist->id)->get());
     }
     /**
      * store the specified resource.
@@ -155,7 +155,7 @@ class SongController extends Controller
         $song->sampleSeconds = $request->sampleSeconds;
         $song->playSample = $request->playSample;
         //
-        $song->save();
+        // $song->save();
 
 
         // return response()->download($tempImage, $filename);
@@ -167,6 +167,7 @@ class SongController extends Controller
                     'source' => 'required',
                 ]);
             }
+			$source = "";
         } else if ($request->source_format === 'yt_video') {
             if ($request->source) {
                 Song::uploadYoutubeVideo($song, $request->source);
@@ -220,6 +221,7 @@ class SongController extends Controller
             }
         }
 
+		$song->source = $source;
         $song->save();
 
         if ($file = $request->file('cover')) {
@@ -542,6 +544,7 @@ class SongController extends Controller
      */
     public function nextSongs()
     {
+
         $id = request()->query('id');
         $origin = request()->query('origin');
 

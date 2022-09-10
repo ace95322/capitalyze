@@ -279,7 +279,11 @@ export default {
                     genres: [],
                     isActive: true,
                     isShowing: true,
+<<<<<<< HEAD
  		    is_only_for_subscriber: true,
+=======
+                    is_only_for_subscriber: true,
+>>>>>>> eec3fa802bf56054ff399d4ce1f3a538a75bfdac
                     nb_plays: 0,
                     nb_likes: 0,
                     public: true,

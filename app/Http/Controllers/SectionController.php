@@ -88,7 +88,7 @@ class SectionController extends Controller
      * @param int $nb_items
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function MostLikedSongs(Request $request) 
+    public function MostLikedSongs(Request $request)
     {
         $nb_items = $request->query('nb_items');
         $origin = $request->query('src');
@@ -100,7 +100,7 @@ class SectionController extends Controller
      * @param int $nb_items
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function MostLikedAlbums(Request $request) 
+    public function MostLikedAlbums(Request $request)
     {
         $nb_items = $request->query('nb_items');
         $origin = $request->query('src');
