@@ -46,7 +46,7 @@
           </div>
         </div>
         <div class="actions d-flex justify-space-around align-center">
-          <v-btn x-small fab color="primary" @click="play(item, false)">
+          <v-btn x-small fab color="primary" @click="playAble(item)">
             <v-icon>$vuetify.icons.play</v-icon>
           </v-btn>
           <div v-if="isLikable(item.type)">
@@ -208,6 +208,7 @@
 
 <script>
 import Billing from "../../../mixins/billing/billing";
+import Vue from "vue";
 export default {
   props: ["item", "icon", "isOnPlayer", "closeOnContentClick", "dark", "disabled"],
   mixins: [Billing],
@@ -302,6 +303,30 @@ export default {
           ),
         });
       });
+    },
+    async playAble(song) {
+        if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
+            await this.loginOrCancel();
+        } if (this.$store.getters.getUser && this.$store.getters.isLogged && song.is_only_for_subscriber && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin) {
+            return new Promise((res, rej) => {
+                Vue.$confirm({
+                    message: `You need to subscribe to play this song.`,
+                    button: {
+                        no: "Cancel",
+                        yes: "Subscribe"
+                    },
+                    callback: confirm => {
+                        if (confirm) {
+                        res(this.$router.push({ name: "subscription" }));
+                        } else {
+                        rej();
+                        }
+                    }
+                });
+            });
+        } else {
+            this.play(song, true);
+        }
     },
   },
 };

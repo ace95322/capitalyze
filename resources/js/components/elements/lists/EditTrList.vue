@@ -13,7 +13,7 @@
     <tr
         v-else-if="item"
         :class="{ isAlbum }"
-        @click="!isOnEditPage ? play(item, true) : ''"
+        @click="!isOnEditPage ? playAble(item) : ''"
         class="data-table-tr"
     >
         <td class="pl-2">
@@ -147,6 +147,7 @@
 
 <script>
 import purchaseBtn from "../../elements/other/ProductBtn.vue";
+import Vue from "vue";
 export default {
     components: {
         purchaseBtn
@@ -191,6 +192,30 @@ export default {
         //         params
         //     );
         // },
+        async playAble(song) {
+            if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
+                await this.loginOrCancel();
+            } if (this.$store.getters.getUser && this.$store.getters.isLogged && song.is_only_for_subscriber && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin) {
+                return new Promise((res, rej) => {
+                    Vue.$confirm({
+                        message: `You need to subscribe to play this song.`,
+                        button: {
+                            no: "Cancel",
+                            yes: "Subscribe"
+                        },
+                        callback: confirm => {
+                            if (confirm) {
+                            res(this.$router.push({ name: "subscription" }));
+                            } else {
+                            rej();
+                            }
+                        }
+                    });
+                });
+            } else {
+                this.play(song, true);
+            }
+        },
         detachSong(song_id, origin, song_title) {
             this.$confirm({
                 message: `${this.$t(
