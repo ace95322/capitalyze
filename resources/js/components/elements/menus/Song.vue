@@ -46,8 +46,11 @@
           </div>
         </div>
         <div class="actions d-flex justify-space-around align-center">
-          <v-btn x-small fab color="primary" @click="playAble(item)">
+          <v-btn x-small fab color="primary" @click="playAble(item)" v-if="!isCurrentlyPlaying(item)">
             <v-icon>$vuetify.icons.play</v-icon>
+          </v-btn>
+          <v-btn x-small fab color="primary" v-else @click.stop="pause">
+            <v-icon>$vuetify.icons.pause</v-icon>
           </v-btn>
           <div v-if="isLikable(item.type)">
             <v-icon

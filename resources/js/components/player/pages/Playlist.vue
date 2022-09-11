@@ -27,7 +27,7 @@
               <ul class="abs-menu-container__list">
                 <li
                   @click="
-                    $store.commit('pushIntoQueue', playlist.songs);
+                    playAble(playlist.songs, true)
                     showMenu = false;
                   "
                 >
@@ -278,10 +278,10 @@ export default {
           });
         });
     },
-    async playAble(song) {
+    async playAble(playlist, shouldQueue) {
         if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
             await this.loginOrCancel();
-        } if (this.$store.getters.getUser && this.$store.getters.isLogged && song.is_only_for_subscriber && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin) {
+        } if (this.$store.getters.getUser && this.$store.getters.isLogged && (playlist.songs?.[0].is_only_for_subscriber !== 'undefined') && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin) {
             return new Promise((res, rej) => {
                 Vue.$confirm({
                     message: `You need to subscribe to play this song.`,
@@ -290,17 +290,19 @@ export default {
                         yes: "Subscribe"
                     },
                     callback: confirm => {
-                        if (confirm) {
+                      if (confirm) {
                         res(this.$router.push({ name: "subscription" }));
-                        } else {
+                      } else {
                         rej();
-                        }
+                      }
                     }
                 });
             });
-        } else {
-            this.play(song, true);
-        }
+      } else if(shouldQueue){
+          this.$store.commit('pushIntoQueue', playlist);
+      } else {
+          this.play(playlist, true);
+      }
     },
   },
 };
