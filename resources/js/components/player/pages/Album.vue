@@ -73,7 +73,7 @@
               color="primary"
               rounded
               small
-              @click="play(album, true)"
+              @click="playAble(album)"
               v-else
             >
               <v-icon left>$vuetify.icons.play</v-icon>
@@ -159,6 +159,7 @@
 </template>
 <script>
 import ProductBtn from "../../elements/other/ProductBtn.vue";
+import Vue from "vue";
 export default {
   metaInfo() {
     return {
@@ -242,6 +243,30 @@ export default {
             origin: this.album.origin,
           })
           .catch(() => {});
+      }
+    },
+    async playAble(album) {
+        if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
+            await this.loginOrCancel();
+        } if (this.$store.getters.getUser && this.$store.getters.isLogged && (album.songs?.[0].is_only_for_subscriber !== 'undefined') && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin) {
+            return new Promise((res, rej) => {
+                Vue.$confirm({
+                    message: `You need to subscribe to play this song.`,
+                    button: {
+                        no: "Cancel",
+                        yes: "Subscribe"
+                    },
+                    callback: confirm => {
+                      if (confirm) {
+                        res(this.$router.push({ name: "subscription" }));
+                      } else {
+                        rej();
+                      }
+                    }
+                });
+            });
+      } else {
+          this.play(album, true);
       }
     },
   },
