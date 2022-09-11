@@ -27,7 +27,7 @@
               <ul class="abs-menu-container__list">
                 <li
                   @click="
-                    $store.commit('pushIntoQueue', playlist.songs);
+                    playAble(playlist.songs, true)
                     showMenu = false;
                   "
                 >
@@ -57,7 +57,7 @@
             color="primary"
             rounded
             small
-            @click="play(playlist, true)"
+            @click="playAble(playlist)"
             :disabled="loading"
             v-else
           >
@@ -177,6 +177,7 @@
 <script>
 import playlistSongList from "../../elements/lists/playlistSongs";
 import EditPlaylistDialog from "../../dialogs/EditPlaylist";
+import Vue from "vue";
 export default {
   metaInfo() {
     return {
@@ -276,6 +277,32 @@ export default {
             text: this.$t("Something went wrong. Please try again."),
           });
         });
+    },
+    async playAble(playlist, shouldQueue) {
+        if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
+            await this.loginOrCancel();
+        } if (this.$store.getters.getUser && this.$store.getters.isLogged && (playlist.songs?.[0].is_only_for_subscriber !== 'undefined') && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin) {
+            return new Promise((res, rej) => {
+                Vue.$confirm({
+                    message: `You need to subscribe to play this song.`,
+                    button: {
+                        no: "Cancel",
+                        yes: "Subscribe"
+                    },
+                    callback: confirm => {
+                      if (confirm) {
+                        res(this.$router.push({ name: "subscription" }));
+                      } else {
+                        rej();
+                      }
+                    }
+                });
+            });
+      } else if(shouldQueue){
+          this.$store.commit('pushIntoQueue', playlist);
+      } else {
+          this.play(playlist, true);
+      }
     },
   },
 };
