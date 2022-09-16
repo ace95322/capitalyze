@@ -94,7 +94,7 @@ class HomeController extends Controller
 
             if ($album) {
                 $album = (object)$album;
-
+                $artist_name = "";
                 if(isset(((object)$album)->artist)) {
                     $artist_name = $album->artist->displayname;
                 } else if( $album->uri && $album->artists && count($album->artists) ) {
