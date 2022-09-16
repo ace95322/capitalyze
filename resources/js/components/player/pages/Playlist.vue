@@ -129,6 +129,7 @@
           :playlist_id="playlist.id"
           @deleted="spliceSong($event)"
           :content="playlist.songs"
+          :subscriptionCheck="shouldCheckSubs"
           class="song-list"
           headers="true"
           ranked="true"
@@ -211,6 +212,7 @@ export default {
       showMenu: false,
       editPlaylist: false,
       errorStatus: null,
+      shouldCheckSubs: false,
     };
   },
   computed: {
@@ -281,7 +283,7 @@ export default {
     async playAble(playlist, shouldQueue) {
         if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
             await this.loginOrCancel();
-        } if (this.$store.getters.getUser && this.$store.getters.isLogged && (playlist.songs?.[0].is_only_for_subscriber !== 'undefined') && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin) {
+        } if (this.$store.getters.getUser && this.$store.getters.isLogged && (playlist.songs?.[0].is_only_for_subscriber !== 'undefined') && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin && this.shouldCheckSubs) {
             return new Promise((res, rej) => {
                 Vue.$confirm({
                     message: `You need to subscribe to play this song.`,

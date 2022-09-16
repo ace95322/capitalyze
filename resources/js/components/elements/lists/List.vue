@@ -45,6 +45,7 @@
                         :playlist_id="playlist_id"
                         :isAlbum="true"
                         :isPlaylistOwner="isPlaylistOwner"
+                        :subscriptionCheck="subscriptionCheck"
                         @deleted="$emit('deleted', $event)"
                     ></TROW>
                 </template>
@@ -105,6 +106,10 @@ export default {
         },
         playlist_id: {
             type: Number
+        },
+        subscriptionCheck: {
+            type: Boolean,
+            default: true
         },
     },
     created() {
