@@ -1,5 +1,6 @@
 /node_modules
 /public/hot
+/public/*
 /resources/views/welcome.blade.php
 /storage/*.key
 /vendor
