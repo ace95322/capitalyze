@@ -19,8 +19,9 @@ class AlbumResource_basic extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'artist' => $this->artist,
-            'cover' => Media::get($this, 'cover'), 
-            'thumbnail' => Media::getConversion($this, 'cover', 'thumbnail')
+            'cover' => Media::get($this, 'cover'),
+            'thumbnail' => Media::getConversion($this, 'cover', 'thumbnail'),
+            'type' => 'album'
         ];
     }
 }
