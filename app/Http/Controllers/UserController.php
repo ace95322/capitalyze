@@ -36,6 +36,7 @@ use App\Podcast;
 use App\Setting;
 use Illuminate\Database\Eloquent\Collection;
 use App\Playing;
+use App\Role;
 
 class UserController extends Controller
 {
@@ -102,6 +103,12 @@ class UserController extends Controller
             'gateway_id' => isSet($gateway_id) ? $gateway_id : null,
             // 'renews_at' => isSet($stripe_subscription) ? Carbon::createFromTimestamp($stripe_subscription->current_period_end)->toDateTimeString() : null
         ]);
+
+        /**
+         * After create subscription add new user role called subscriber.
+         */
+        $role = Role::where('name', 'Subscribers')->first()->id;
+        $user->roles()->attach($role);
 
         return response()->json(['message' => 'SUCCESS'], 200);
     }
