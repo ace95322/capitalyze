@@ -4,9 +4,9 @@ namespace App;
 
 use App\Helpers\FileManager;
 use App\Traits\Search;
-use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Spotify;
+use Illuminate\Support\Facades\DB;
+
 class Video extends Model
 {
     /**
@@ -26,16 +26,16 @@ class Video extends Model
     public function artists()
     {
         $artists = [];
-        $pivots = \DB::table('artist_video')->where('video_id', $this->id)->get();
+        $pivots = DB::table('artist_video')->where('video_id', $this->id)->get();
         foreach ($pivots as $pivot) {
             $artist = Search::getArtist($pivot->artist_id, false);
             array_push($artists, $artist);
         }
-        return array_filter($artists, function($item) {
+        return array_filter($artists, function ($item) {
             return $item;
         });
     }
-    
+
     public function artist()
     {
         return $this->belongsTo(Artist::class);
@@ -74,9 +74,9 @@ class Video extends Model
         parent::boot();
         static::deleting(function ($video) {
             // delete the song data after deletion
-            if( $video->source_format === 'file' && $video->source) {
+            if ($video->source_format === 'file' && $video->source) {
                 FileManager::delete($video->source);
-            } 
+            }
             FileManager::delete($video->cover);
             $video->likes()->delete();
             $video->product()->delete();

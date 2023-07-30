@@ -27,6 +27,8 @@ use App\Http\Resources\Spotify\ArtistResource as SpotifyArtistResource;
 use App\Http\Resources\Spotify\PlaylistResource as SpotifyPlaylistResource;
 use App\Http\Resources\Spotify\SongResource as SpotifySongResource;
 use App\Http\Resources\Spotify\Profiles\ArtistResource as SpotifyArtistResourceProfile;
+use App\Http\Resources\Video\VideoResourceBasic;
+use App\Http\Resources\VideoResource;
 use App\RadioStation;
 use App\Setting;
 use Illuminate\Database\Eloquent\Collection;
@@ -79,6 +81,7 @@ trait Search
 
         return $collection;
     }
+
     /**
      * Match the albums based for the gives keyword ( search ).
      * @param $keyword
@@ -100,6 +103,7 @@ trait Search
 
         return $collection;
     }
+
     /**
      * Match the podcasts based for the gives keyword ( search ).
      * @param $keyword
@@ -113,11 +117,11 @@ trait Search
             $podcasts = [];
             $episodes = [];
             foreach ($rows as $row) {
-                if($row->audio) {
+                if ($row->audio) {
                     array_push($episodes, new ListenNotesEpisodeResource($row));
                 } else {
-                    if( $search ) {
-                        array_push($podcasts, new PodcastSearchResource($row)) ;
+                    if ($search) {
+                        array_push($podcasts, new PodcastSearchResource($row));
                     } else {
                         array_push($podcasts, new ListenNotesPodcastResource($row));
                     }
@@ -155,6 +159,8 @@ trait Search
     //     $local_playlists =  PlaylistResource::collection(\App\Playlist::where('title', 'like', $keyword . '%')->get());
     //     return collect($local_playlists)->merge(collect($spotify_playlists));
     // }
+
+
     /**
      * Match the tracks based for the gives keyword ( search ).
      * @param $keyword
@@ -166,11 +172,12 @@ trait Search
         $collection = new Collection();
         if (self::canSearchThrough('spotify', $engines) && self::isSpotifyAllowed()) {
             $tracks = self::track_collection(Spotify::searchTracks($keyword)->limit(5)->get());
+            dd($tracks);
             $spotify_tracks = SpotifySongResource::collection($tracks);
             $collection = $collection->toBase()->merge($spotify_tracks);
         }
         if (self::canSearchThrough('local', $engines)) {
-            if($is_user_plan_type_free){
+            if ($is_user_plan_type_free) {
                 $local_tracks =  SongResource_basictoplay::collection(\App\Song::where('title', 'like', $keyword . '%')->where('is_only_for_subscriber', '=', 0)->limit(5)->get());
             } else {
                 $local_tracks =  SongResource_basictoplay::collection(\App\Song::where('title', 'like', $keyword . '%')->limit(5)->get());
@@ -180,6 +187,24 @@ trait Search
 
         return $collection;
         // return SongResource::collection(Song::where('displayname', 'like', '%' . $keyword . '%')->get());
+    }
+
+
+    /**
+     * Match the tracks based for the gives keyword ( search ).
+     * @param $keyword
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function videos($keyword, $engines = ['local'])
+    {
+        $is_user_plan_type_free = UserHelper::getIsUserPlanTypeFree();
+        if ($is_user_plan_type_free) {
+            $collection =  VideoResourceBasic::collection(\App\Video::where('title', 'like', $keyword . '%')->where('is_only_for_subscriber', '=', 0)->limit(5)->get());
+        } else {
+            $collection =  VideoResourceBasic::collection(\App\Video::where('title', 'like', $keyword . '%')->limit(5)->get());
+        }
+
+        return $collection;
     }
 
 
@@ -210,33 +235,34 @@ trait Search
 
     public static function getArtist($id, $profile)
     {
-        if( $id ) {
+        if ($id) {
             if ($artist = \App\Artist::find($id)) {
-                if( $profile )
-                {
+                if ($profile) {
                     return new ProfilesArtistResource($artist);
                 } else {
                     return new ArtistResource_basic($artist);
                 }
-
             } else {
                 if (self::isSpotifyAllowed()) {
                     try {
-                        $artist = Cache::remember('spotify-artist-' . $id, 500000, function() use ($id) {
+                        $artist = Cache::remember('spotify-artist-' . $id, 500000, function () use ($id) {
                             return Spotify::artist($id)->get();
                         });
                         if (!$profile)
                             return new SpotifyArtistResource($artist);
                         else
                             return new SpotifyArtistResourceProfile($artist);
-                    } catch (\Exception $e) {}
+                    } catch (\Exception $e) {
+                    }
                 }
-                if( $profile ) {
+                if ($profile) {
                     return response()->json(['message' => 'NOT_FOUND'], 404);
                 }
                 return null;
             }
-            if( $profile ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
+            if ($profile) {
+                return response()->json(['message' => 'NOT_FOUND'], 404);
+            }
         }
         return null;
     }
@@ -244,7 +270,7 @@ trait Search
     public static function getSong($id, $page, $resource = true)
     {
         if ($song = \App\Song::find($id)) {
-            if( !$resource ) {
+            if (!$resource) {
                 return $song;
             } else {
                 return new SongSongResource_index($song);
@@ -252,28 +278,48 @@ trait Search
         } else {
             if (self::isSpotifyAllowed()) {
                 try {
-                    $song = Cache::remember('spotify-track-' . $id, 500000, function() use ($id) {
+                    $song = Cache::remember('spotify-track-' . $id, 500000, function () use ($id) {
                         return Spotify::track($id)->get();
                     });
-                    if( $resource ) {
+                    if ($resource) {
                         return new SpotifySongResource($song);
                     } else {
                         return $song;
                     }
-
-                } catch (\Exception $e) {}
+                } catch (\Exception $e) {
+                }
             }
-            if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
+            if ($page) {
+                return response()->json(['message' => 'NOT_FOUND'], 404);
+            }
             return null;
         }
-        if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
+        if ($page) {
+            return response()->json(['message' => 'NOT_FOUND'], 404);
+        }
         return null;
     }
 
-    public static function getEpisode($id, $page=false, $resource=false)
+    public static function getVideo($id, $page, $resource = true)
+    {
+        if ($video = \App\Video::find($id)) {
+            if (!$resource) {
+                return $video;
+            } else {
+                return new VideoResource($video);
+            }
+        }
+
+        if ($page) {
+            return response()->json(['message' => 'NOT_FOUND'], 404);
+        }
+        return null;
+    }
+
+    public static function getEpisode($id, $page = false, $resource = false)
     {
         if ($episode = \App\Episode::find($id)) {
-            if( !$resource ) {
+            if (!$resource) {
                 return $episode;
             } else {
                 return new EpisodeResource_index($episode);
@@ -283,13 +329,15 @@ trait Search
                 try {
                     $episode = ListenNotes::episode($id);
 
-                    if( $resource ) {
+                    if ($resource) {
                         return new ListenNotesEpisodeResource($episode);
                     } else {
-                       return $episode;
+                        return $episode;
                     }
                 } catch (\Exception $e) {
-                    if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
+                    if ($page) {
+                        return response()->json(['message' => 'NOT_FOUND'], 404);
+                    }
                     return null;
                 }
             }
@@ -302,7 +350,7 @@ trait Search
     public static function getAlbum($id, $page = false, $resource = true)
     {
         if ($album = \App\Album::find($id)) {
-            if( $resource ) {
+            if ($resource) {
                 return new AlbumResource_index($album);
             } else {
                 return $album;
@@ -310,54 +358,61 @@ trait Search
         } else {
             if (self::isSpotifyAllowed()) {
                 try {
-                    $album = Cache::remember('spotify-album-' . $id, 500000, function() use ($id) {
+                    $album = Cache::remember('spotify-album-' . $id, 500000, function () use ($id) {
                         return Spotify::album($id)->get();
                     });
-                    if( $resource ) {
+                    if ($resource) {
                         return new SpotifyAlbumResource($album);
                     } else {
                         return $album;
                     }
-
-                } catch (\Exception $e) {}
+                } catch (\Exception $e) {
+                }
             }
-            if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
+            if ($page) {
+                return response()->json(['message' => 'NOT_FOUND'], 404);
+            }
             return null;
         }
-        if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
+        if ($page) {
+            return response()->json(['message' => 'NOT_FOUND'], 404);
+        }
         return null;
     }
 
     public static function getPodcast($id, $page = false, $resource = true)
     {
         if ($podcast = \App\Podcast::find($id)) {
-            if( $resource ) {
+            if ($resource) {
                 return new PodcastResource_index($podcast);
             } else {
                 return $podcast;
             }
         } else {
-        if (self::isListenNotesAllowed()) {
-            try {
-                $podcast = ListenNotes::podcast($id);
-                if( $page ) {
-                    if( $resource ) {
-                        return new PagesPodcastResource($podcast);
+            if (self::isListenNotesAllowed()) {
+                try {
+                    $podcast = ListenNotes::podcast($id);
+                    if ($page) {
+                        if ($resource) {
+                            return new PagesPodcastResource($podcast);
+                        } else {
+                            return $podcast;
+                        }
                     } else {
-                        return $podcast;
+                        if ($resource) {
+                            return new ListenNotesPodcastResource($podcast);
+                        } else {
+                            return $podcast;
+                        }
                     }
-                } else {
-                    if( $resource ) {
-                        return new ListenNotesPodcastResource($podcast);
-                    } else {
-                        return $podcast;
-                    }
+                } catch (\Exception $e) {
                 }
-            } catch (\Exception $e) {}
-        }
-        if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
+            }
+            if ($page) {
+                return response()->json(['message' => 'NOT_FOUND'], 404);
+            }
 
-        return null;
+            return null;
         }
     }
 
@@ -378,8 +433,11 @@ trait Search
             try {
                 $podcast = Spotify::playlist($id)->get();
                 return new SpotifyPlaylistResource($podcast);
-            } catch (\Exception $e) {}
-            if( $page ) {return response()->json(['message' => 'NOT_FOUND'], 404);}
+            } catch (\Exception $e) {
+            }
+            if ($page) {
+                return response()->json(['message' => 'NOT_FOUND'], 404);
+            }
             return null;
         }
     }

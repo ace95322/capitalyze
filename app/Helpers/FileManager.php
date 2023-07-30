@@ -21,7 +21,7 @@ class FileManager
             $decoded_source = json_decode($source);
             if ($decoded_source) {
                 if (isset($decoded_source->url)) {
-                    // if $url then the file is stored on the cloud 
+                    // if $url then the file is stored on the cloud
                     return $decoded_source->url;
                 } else {
                     // else it is on the local storage ( generating the URL dynamically in this case so if the
@@ -99,7 +99,7 @@ class FileManager
         return self::generateFileData($final_path, $disk_name, $url);
     }
 
-    // update the file  
+    // update the file
     static function update($new_file, $old_file, $path)
     {
         $disk_name = json_decode(Setting::get('storageDisk'))->disk;

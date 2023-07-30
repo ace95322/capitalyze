@@ -8,6 +8,7 @@ use App\Http\Resources\RadioStationResource;
 use App\Http\Resources\User\UserResource_Basic;
 use App\Setting;
 use App\Traits\Search;
+use App\Video;
 
 class SearchController extends Controller
 {
@@ -31,7 +32,7 @@ class SearchController extends Controller
         $results = new \stdClass();
 
         $songs = Search::songs($keyword, $engines);
-        // $videos = Search::videos($keyword, $engines);
+        $videos = Search::videos($keyword, $engines);
         $albums = Search::albums($keyword,$engines);
         $artists = Search::artists($keyword, $engines);
 
@@ -43,7 +44,7 @@ class SearchController extends Controller
         $results->users = $users;
         $results->radioStations = $radioStations;
         $results->songs = $songs;
-        // $results->videos = $videos;
+        $results->videos = $videos;
         $results->albums = $albums;
         $results->playlists = $playlists;
         $results->artists = $artists;

@@ -22,7 +22,7 @@ class VideoResource extends JsonResource
             'origin' => 'local',
             'id' => $this->id,
             'title' => $this->title,
-            'artists' => $this->artists(),
+            // 'artists' => $this->artists(),
             'artist' => new ArtistOnlyBasic($this->artist),
             'description' => $this->description,
             'duration' => $this->duration,

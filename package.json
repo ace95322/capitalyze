@@ -35,6 +35,7 @@
     "icecast-metadata-stats": "^0.1.1",
     "laravel-echo": "^1.11.3",
     "moment": "^2.29.1",
+    "ovenplayer": "^0.10.30",
     "pusher-js": "^7.0.3",
     "sass-migrator": "^1.4.5",
     "swiper": "^5.4.5",

@@ -8,10 +8,10 @@ use Spotify;
 use Illuminate\Http\Request;
 use App\Http\Resources\VideoResource;
 use App\Video;
-use FileManager;
 use App\Traits\Search;
 use App\Exceptions\FEException;
 use App\Exports\VideosExport;
+use App\Helpers\FileManager;
 use App\Helpers\YoutubeAPI;
 use App\Http\Resources\Spotify\VideoResource as SpotifyVideoResource;
 use App\Price;
@@ -36,7 +36,6 @@ class VideoController extends Controller
         $video = \App\Video::orderBy('created_at', 'desc');
 
         if(auth('api')->user()->is_admin == 0){
-            // $query = "";
             $user = User::find(auth('api')->user()->id);
             $user->load('active_subscription', 'active_subscription.plan');
 
@@ -444,7 +443,7 @@ class VideoController extends Controller
         //
         $video->save();
         // reset genres
-        \DB::table('genre_video')->where('video_id', $video->id)->delete();
+        DB::table('genre_video')->where('video_id', $video->id)->delete();
         if (isset($request->genres)) {
             foreach (json_decode($request->genres) as $genre) {
                 $video->genres()->attach($genre->id);
@@ -452,7 +451,7 @@ class VideoController extends Controller
         }
 
         // reset artists
-        \DB::table('artist_video')->where('video_id', $video->id)->delete();
+        DB::table('artist_video')->where('video_id', $video->id)->delete();
         if (isset($request->artists)) {
             foreach (json_decode($request->artists) as $artist) {
                 DB::table('artist_video')->insert([

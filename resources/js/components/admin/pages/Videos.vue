@@ -336,7 +336,7 @@ export default {
                     id: Math.floor(Math.random() * (100000 - 5000) + 100000),
                     new: true,
                     artists: [],
-                    cover: "/storage/defaults/images/song_cover.png",
+                    cover: "/storage/defaults/images/video_cover.jpg",
                     genres: [],
                     isActive: true,
                     isShowing: true,

@@ -464,7 +464,7 @@ export default {
       saveFileFromURL: false,
       previousPrices: [],
       videoFile: null,
-      defaultCoverPath: "/storage/defaults/images/song_cover.png",
+      defaultCoverPath: "/storage/defaults/images/video_cover.jpg",
       videoSourceLoading: false,
       artistsFocused: false,
       attachArtistDialog: false,
