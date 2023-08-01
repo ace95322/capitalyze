@@ -21,7 +21,8 @@ class VideoResourceBasic extends JsonResource
             'artist' => $this->artist ? $this->artist : (is_array($this->artists()) && count($this->artists()) ? $this->artists()[0] : '') ,
             'duration' => $this->duration,
             'cover' => FileManager::asset_path($this->cover),
-            'thumbnail' => ''
+            'thumbnail' => FileManager::asset_path($this->cover),
+            'type' => 'video',
         ];
     }
 }

@@ -353,7 +353,7 @@ export default {
     }
   }
 
-  .hovered { 
+  .hovered {
       .play-button {
         .btn {
           opacity: 1 !important;

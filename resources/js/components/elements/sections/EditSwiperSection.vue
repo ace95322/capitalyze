@@ -42,6 +42,19 @@
                 </template>
               </song-expo>
             </template>
+
+            <template v-else-if="item.type === 'video'">
+              <video-expo admin="true" :video="item">
+                <template v-slot:control-layer v-if="!section.endpoint">
+                  <edit-item-position
+                    @moveRight="$emit('moveRight', i)"
+                    @moveLeft="$emit('moveLeft', i)"
+                    @delete="$emit('delete', i)"
+                  ></edit-item-position>
+                </template>
+              </video-expo>
+            </template>
+
             <template v-else-if="item.type === 'album'">
               <album-expo admin="true" :album="item">
                 <template v-slot:control-layer v-if="!section.endpoint">
@@ -53,6 +66,7 @@
                 </template>
               </album-expo>
             </template>
+
             <template v-else-if="item.type === 'podcast'">
               <podcast-box admin="true" :podcast="item">
                 <template v-slot:control-layer v-if="!section.endpoint">

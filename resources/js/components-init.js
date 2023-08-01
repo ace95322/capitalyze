@@ -102,6 +102,12 @@ Vue.component(
     "song-expo",
     require("./components/elements/single-items/SongExpo.vue").default
 );
+
+Vue.component(
+    "video-expo",
+    require("./components/elements/single-items/VideoExpo.vue").default
+);
+
 Vue.component(
     "genre",
     require("./components/elements/single-items/Genre.vue").default

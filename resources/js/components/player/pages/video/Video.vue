@@ -83,7 +83,7 @@
             </div>
             <purchase-button :size="'small'" :item="video"></purchase-button>
 
-            <div v-if="!$store.getters.getSettings.disableRegistration">
+            <!-- <div v-if="!$store.getters.getSettings.disableRegistration">
               <div v-if="isLiked" @click="like(video)">
                 <v-btn icon small>
                   <v-icon color="primary">$vuetify.icons.heart</v-icon>
@@ -94,7 +94,7 @@
                   <v-icon color="primary">$vuetify.icons.heart-outline</v-icon>
                 </v-btn>
               </div>
-            </div>
+            </div> -->
 
           </v-sheet>
         </div>

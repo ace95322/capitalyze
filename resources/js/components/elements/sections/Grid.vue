@@ -4,6 +4,10 @@
             <template v-if="item.type === 'song'">
                 <song-expo :song="item" />
             </template>
+            <template v-else-if="item.type === 'video'">
+                <video-expo :video="item" />
+            </template>
+
             <template v-else-if="item.type === 'podcast'">
                 <podcast-box :podcast="item" />
             </template>

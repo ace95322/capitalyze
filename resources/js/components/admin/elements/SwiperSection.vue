@@ -50,6 +50,9 @@
                     <template v-if="asset.type === 'song'">
                         <song-expo :song="asset" />
                     </template>
+                    <template v-else-if="asset.type === 'video'">
+                        <video-expo :video="asset" />
+                    </template>
                     <template v-else-if="asset.type === 'album'">
                         <album-expo :album="asset" />
                     </template>

@@ -232,7 +232,6 @@ export default {
     fetchVideos() {
       axios.get("/api/videos").then((res) => {
         this.videos = res.data;
-        // console.log('this.videos', this.videos)
       });
     },
     ready(event) {

@@ -56,6 +56,7 @@ Route::get('/match-genres', 'GenreController@matchGenres');
 Route::get('/match-artists', 'ArtistController@matchArtists');
 Route::get('/match-users', 'UserController@matchUsers');
 Route::get('/match-songs', 'SongController@matchSongs');
+Route::get('/match-videos', 'VideoController@matchVideos');
 Route::get('/match-radio-stations', 'RadioStationController@matchRadioStations');
 Route::get('/match-albums', 'AlbumController@matchAlbums');
 Route::get('/match-podcasts', 'PodcastController@matchPodcasts');

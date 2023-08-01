@@ -113,7 +113,7 @@
       </v-container>
     </template>
     <template v-slot:dialogs>
-      <v-dialog v-model="attachAssetDialogBoolean" max-width="500">
+      <v-dialog v-model="attachAssetDialogBoolean" max-width="600">
         <attach-asset-dialog
           v-if="assetIndex !== null"
           class="p-3"

@@ -11,6 +11,14 @@
                     {{ $t('Song') }}
                 </v-btn>
                 <v-btn
+                    :outlined="item_type !== 'video'"
+                    color="primary"
+                    small
+                    @click="item_type = 'video'"
+                >
+                    {{ $t('Video') }}
+                </v-btn>
+                <v-btn
                     :outlined="item_type !== 'album'"
                     color="primary"
                     small
@@ -127,27 +135,27 @@ export default {
     },
     computed: {
         imgSource(){
-            let itemsWhoHasCover = ['song', 'album', 'podcast', 'playlist', 'radio-station', 'genre'];
+            let itemsWhoHasCover = ['song', 'video', 'album', 'podcast', 'playlist', 'radio-station', 'genre'];
             let itemsWhoHasAvatar = ['user', 'artist'];
             if ( itemsWhoHasCover.includes(this.item_type) ) {
                 return 'cover'
-            } else 
+            } else
             if ( itemsWhoHasAvatar.includes(this.item_type) )
             {
                 return 'avatar'
             }
         },
         name() {
-            let itemsWhoHasTitle = ['song', 'album', 'podcast', 'playlist'];
+            let itemsWhoHasTitle = ['song', 'video', 'album', 'podcast', 'playlist'];
             let itemsWhoHasName = ['radio-station', 'user', 'genre'];
             let itemsWhoHasDisplayname = ['artist'];
             if ( itemsWhoHasTitle.includes(this.item_type) ) {
                 return 'title'
-            } else 
+            } else
             if ( itemsWhoHasName.includes(this.item_type) )
             {
                 return 'name'
-             }else 
+             }else
             if ( itemsWhoHasDisplayname.includes(this.item_type) )
             {
                 return 'displayname'
@@ -158,7 +166,7 @@ export default {
         searchAssets(val) {
             if (val) {
                 if (this.isSearchAssetLoading) return;
-                this.isSearchAssetLoading = true;  
+                this.isSearchAssetLoading = true;
                 axios
                     .get("/api/match-" + this.item_type + 's' + "?query=" +  val +  "&engines=" + (this.engines ? JSON.stringify([this.engines]) : JSON.stringify(['*'])))
                     .then(res => {
