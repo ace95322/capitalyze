@@ -488,6 +488,48 @@
               ></empty-page>
             </div>
           </template>
+          <template v-if="currentPage === 'videos'">
+            <div class="search-results" v-if="searchResults.videos.length">
+              <div
+                class="search-result"
+                v-for="video in searchResults.videos"
+                :key="video.id"
+                @click.stop="
+                  goToSearchRoute({
+                    id: video.id,
+                    name: 'video',
+                  })
+                "
+              >
+                <div class="cover">
+                  <v-img :src="video.cover" width="50" height="50">
+                    <template v-slot:placeholder>
+                      <content-placeholders :rounded="true">
+                        <content-placeholders-img
+                          class="small-image-skeleton"
+                        />
+                      </content-placeholders>
+                    </template>
+                  </v-img>
+                </div>
+                <div class="body">
+                  <div class="asset-title">
+                    {{ video.title }}
+                  </div>
+                  <!-- <div class="asset-artists" v-if="video.artist">
+                    {{ video.artist.displayname }}
+                  </div> -->
+                </div>
+              </div>
+            </div>
+            <div class="no-results" v-else>
+              <empty-page
+                :headline="$t('No Results!')"
+                :sub="$t('There are no results found for this search keyword.')"
+              ></empty-page>
+            </div>
+          </template>
+
           <template v-if="currentPage === 'albums'">
             <div class="search-results" v-if="searchResults.albums.length">
               <div
@@ -713,7 +755,6 @@ export default {
           .get("/api/search/" + this.keyword)
           .then((res) => {
             this.searchResults = res.data;
-            console.log(this.searchResults);
           })
           .finally(() => (this.loading = false));
       }
@@ -732,14 +773,16 @@ export default {
         case 1:
           return "songs";
         case 2:
-          return "albums";
+          return "videos";
         case 3:
-          return "artists";
+          return "albums";
         case 4:
-          return "users";
+          return "artists";
         case 5:
-          return "playlists";
+          return "users";
         case 6:
+          return "playlists";
+        case 7:
           return "podcasts";
       }
     },
