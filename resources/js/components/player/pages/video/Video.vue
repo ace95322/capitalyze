@@ -213,6 +213,9 @@
       });
       //   this.createPlayCount();
     },
+    isCurrentlyPlaying(video) {
+
+    },
 
       share() {
         this.$store.commit("shareItem", {
@@ -235,6 +238,11 @@
   </script>
 
   <style lang="scss">
+  .op-wrapper.ovenplayer {
+        width: 65% !important;
+        left: 15% !important;
+    }
+
   .hlf-page-container {
     margin: -12px;
     padding-bottom: 3em;

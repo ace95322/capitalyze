@@ -42,6 +42,7 @@ export default new Vuex.Store({
         currentlyPlayingType: null,
         currentPageId: 0,
         songMenu: null,
+        videoMenu: null,
         // songContextMenu is a value to determine which song dialog should show
         songContextMenu: null,
         ads: null,
@@ -95,6 +96,11 @@ export default new Vuex.Store({
             state.songMenu == id
                 ? (state.songMenu = null)
                 : (state.songMenu = id);
+        },
+        setVideoMenu(state, id) {
+            state.videoMenu == id
+                ? (state.videoMenu = null)
+                : (state.videoMenu = id);
         },
         /**
          * this setter makes sure that only one song dialog-box is oppened at a time
@@ -243,6 +249,9 @@ export default new Vuex.Store({
         },
         getSongMenu(state) {
             return state.songMenu;
+        },
+        getVideoMenu(state) {
+            return state.videoMenu;
         },
         getSongContextMenu(state) {
             return state.songContextMenu;

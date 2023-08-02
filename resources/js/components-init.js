@@ -179,6 +179,11 @@ Vue.component(
     "song-menu",
     require("./components/elements/menus/Song.vue").default
 );
+// menus
+Vue.component(
+    "video-menu",
+    require("./components/elements/menus/Video.vue").default
+);
 // Vue.component(
 //     "user-menu",
 //     require("./components/elements/menus/User.vue").default

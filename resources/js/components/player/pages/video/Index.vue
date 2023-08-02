@@ -30,12 +30,12 @@
                   </button>
 
                   <div class="button button-dots">
-                    <song-menu
+                    <video-menu
                       :item="video"
                       :dark="true"
                       :closeOnContentClick="true"
-                      @close="$store.commit('setSongMenu', null)"
-                    ></song-menu>
+                      @close="$store.commit('setVideoMenu', null)"
+                    ></video-menu>
                   </div>
                 </div>
               </div>
