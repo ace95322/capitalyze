@@ -23,41 +23,7 @@
       v-if="item"
       :class="{ 'dark-background': $vuetify.theme.dark }"
     >
-      <div class="header" v-if="!isOnPlayer">
-        <div class="text-information">
-          <div class="title">
-            {{ item.title }}
-          </div>
-          <div class="artist" v-if="item.artist">
-            {{
-              item.artist.displayname
-                ? item.artist.displayname
-                : item.artist.name
-            }}
-          </div>
-          <div class="stats">
-            <div class="likes" v-if="item.likes">
-              {{ item.likes }} {{ $t("likes") }}
-            </div>
-            <div class="separator-2" v-if="item.plays">|</div>
-            <div class="plays" v-if="item.plays">
-              {{ item.plays }} {{ $t("plays") }}
-            </div>
-          </div>
-        </div>
-        <!-- <div class="actions d-flex justify-space-around align-center">
-          <v-icon
-            small
-            v-if="
-              item.source_format == 'file' &&
-              item.origin === 'local' &&
-              !$store.getters.getSettings.hideDownloadButton
-            "
-            @click="$store.dispatch('downloadAudio', item)"
-            >$vuetify.icons.cloud-download-outline</v-icon
-          >
-        </div> -->
-      </div>
+
       <v-divider></v-divider>
       <div class="body">
         <v-list

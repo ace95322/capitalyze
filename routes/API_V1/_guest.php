@@ -1,6 +1,6 @@
 <?php
 
-
+use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -96,3 +96,4 @@ Route::group(['middleware' => ['auth:api']], function () {
 });
 
 Route::get('/videos', 'VideoController@index');
+Route::get('suggested-videos', 'VideoController@suggestedVideos');

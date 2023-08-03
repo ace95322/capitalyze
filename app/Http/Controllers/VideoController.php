@@ -14,6 +14,7 @@ use App\Exports\VideosExport;
 use App\Helpers\FileManager;
 use App\Helpers\YoutubeAPI;
 use App\Http\Resources\Spotify\VideoResource as SpotifyVideoResource;
+use App\Http\Resources\Video\VideoResourceBasic;
 use App\Price;
 use App\Product;
 use App\Setting;
@@ -685,5 +686,9 @@ class VideoController extends Controller
     {
         $export = new VideosExport($request->get('start_date', null),  $request->get('end_date', null), $request->get('search', null));
         return Excel::download($export, 'Video.csv');
+    }
+
+    function suggestedVideos() {
+        return VideoResourceBasic::collection(Video::inRandomOrder()->take(5)->get());
     }
 }
