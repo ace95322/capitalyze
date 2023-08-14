@@ -1,0 +1,30 @@
+/*!
+ * FilePond 4.30.4
+ * Licensed under MIT, https://opensource.org/licenses/MIT/
+ * Please visit https://pqina.nl/filepond/ for details.
+ */
+
+/*!
+ * FilePondPluginFileValidateType 1.2.8
+ * Licensed under MIT, https://opensource.org/licenses/MIT/
+ * Please visit https://pqina.nl/filepond/ for details.
+ */
+
+/*!
+ * vue-filepond v6.0.3
+ * A handy FilePond adapter component for Vue
+ * 
+ * Copyright (c) 2020 PQINA
+ * https://pqina.nl/filepond
+ * 
+ * Licensed under the MIT license.
+ */
+
+/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
+
+/**!
+ * Sortable 1.10.2
+ * @author	RubaXa   <trash@rubaxa.org>
+ * @author	owenm    <owen23355@gmail.com>
+ * @license MIT
+ */
