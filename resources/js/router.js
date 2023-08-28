@@ -551,6 +551,10 @@ const router = new VueRouter({
                         import(
                             /* webpackChunkName: "browse" */ "./components/player/pages/video/Index.vue"
                         ),
+                        name: "videos",
+                        meta: {
+                            requiresAuth: true
+                        }
                 },
                 {
                     path: "/video/:id",
@@ -558,7 +562,10 @@ const router = new VueRouter({
                         import(
                             /* webpackChunkName: "player" */ "./components/player/pages/video/Video.vue"
                         ),
-                    name: "video"
+                    name: "video",
+                    meta: {
+                        requiresAuth: true
+                    }
                 },
                 {
                     path: "genre/:id/:genre_name",

@@ -97,7 +97,7 @@ define(['./workbox-b7445681'], (function (workbox) { 'use strict';
     "revision": "22a7e9917661efd2fdc0091b683b77ac"
   }, {
     "url": "//js/app.js",
-    "revision": "d0e04f4e196b83eb59a4526350c11a83"
+    "revision": "4980cd83fc2d9a2cd5e322281681863f"
   }, {
     "url": "/css/app.css",
     "revision": "117dedc210becf4efc64342706c7d758"
