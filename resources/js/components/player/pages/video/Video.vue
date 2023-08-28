@@ -196,6 +196,7 @@ import "swiper/css/swiper.css";
 
 import OvenPlayer from "ovenplayer";
 import axios from "axios";
+import Vue from "vue";
 
 export default {
   components: {
@@ -390,14 +391,6 @@ export default {
         });
     },
   },
-
-  mounted() {
-    console.log('Compnent has been mounted');
-    console.log(this.video);
-  },
-  updated() {
-    console.log('updated', this.video);
-  }
 };
 </script>
 

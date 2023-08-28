@@ -85,6 +85,7 @@
 </template>
 <script>
 import OvenPlayer from "ovenplayer";
+import Vue from "vue";
 
 export default {
   data() {
@@ -123,7 +124,7 @@ export default {
       if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
         await this.loginOrCancel();
       }
-      console.log(this.$store.getters.getUser.plan);
+      
       if (this.$store.getters.getUser && this.$store.getters.isLogged && !this.$store.getters.getUser.is_admin) {
         return new Promise((res, rej) => {
           Vue.$confirm({
