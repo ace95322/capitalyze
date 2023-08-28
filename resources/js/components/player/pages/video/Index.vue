@@ -22,20 +22,13 @@
               <div class="control-layer">
                 <div class="buttons">
                   <!-- Play/Pause Music -->
-                  <button
-                    class="button button-play mx-3"
-                    @click="playVideo(video)"
-                  >
+                  <button class="button button-play mx-3" @click="playVideo(video)">
                     <v-icon size="55" dark>$vuetify.icons.play-circle</v-icon>
                   </button>
 
                   <div class="button button-dots">
-                    <video-menu
-                      :item="video"
-                      :dark="true"
-                      :closeOnContentClick="true"
-                      @close="$store.commit('setVideoMenu', null)"
-                    ></video-menu>
+                    <video-menu :item="video" :dark="true" :closeOnContentClick="true"
+                      @close="$store.commit('setVideoMenu', null)"></video-menu>
                   </div>
                 </div>
               </div>
@@ -51,25 +44,13 @@
                 </v-img>
                 <div class="badges-layer">
                   <div class="badges">
-                    <div
-                      class="premium"
-                      :title="$t('Premium')"
-                      v-if="video.isProduct"
-                    >
+                    <div class="premium" :title="$t('Premium')" v-if="video.isProduct">
                       <v-icon color="#FFA500">$vuetify.icons.crown</v-icon>
                     </div>
-                    <div
-                      class="explicit"
-                      :title="$t('Explicit')"
-                      v-if="video.isExplicit"
-                    >
+                    <div class="explicit" :title="$t('Explicit')" v-if="video.isExplicit">
                       <div class="explicit__sign">E</div>
                     </div>
-                    <div
-                      class="exclusive"
-                      :title="$t('Exclusive')"
-                      v-if="video.isExclusive"
-                    >
+                    <div class="exclusive" :title="$t('Exclusive')" v-if="video.isExclusive">
                       <v-btn x-small dense depressed color="primary">{{
                         $t("Exclusive")
                       }}</v-btn>
@@ -79,10 +60,7 @@
               </div>
             </div>
             <div class="content-item__body">
-              <router-link
-                class="content-item__body__title__container"
-                :to="{ name: 'video', params: { id: video.id } }"
-              >
+              <router-link class="content-item__body__title__container" :to="{ name: 'video', params: { id: video.id } }">
                 <div class="content-item__body__type">
                   {{ $t("Video") }}
                 </div>
@@ -99,21 +77,16 @@
       </div>
 
       <div class="empty" v-if="videos && !videos.length">
-        <empty-page
-          :headline="$t('No Content!')"
-          :sub="$t('Looks like there is no content yet for this genre.')"
-          img="peep-68.png"
-        />
+        <empty-page :headline="$t('No Content!')" :sub="$t('Looks like there is no content yet for this genre.')"
+          img="peep-68.png" />
       </div>
     </div>
   </div>
 </template>
 <script>
-import videoEventHandlers from "../../../../mixins/player/videoEventHandlers";
 import OvenPlayer from "ovenplayer";
 
 export default {
-  mixins: [videoEventHandlers],
   data() {
     return {
       hls: null,
@@ -146,18 +119,50 @@ export default {
     this.fetchVideos();
   },
   methods: {
-    playVideo(video) {
-      this.videoPlayer = OvenPlayer.create("video_player", {
-        title : video.title,
-        image : video.cover,
-        file : video.source,
-        autoStart : true
-      });
-      //   this.createPlayCount();
+    async playVideo(video) {
+      if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
+        await this.loginOrCancel();
+      }
+      console.log(this.$store.getters.getUser.plan);
+      if (this.$store.getters.getUser && this.$store.getters.isLogged && !this.$store.getters.getUser.is_admin) {
+        return new Promise((res, rej) => {
+          Vue.$confirm({
+            message: `You need to subscribe to play this song.`,
+            button: {
+              no: "Cancel",
+              yes: "Subscribe"
+            },
+            callback: confirm => {
+              if (confirm) {
+                res(this.$router.push({ name: "subscription" }));
+              } else {
+                rej();
+              }
+            }
+          });
+        });
+      } else {
+        this.videoPlayer = OvenPlayer.create("video_player", {
+          title: video.title,
+          image: video.cover,
+          file: video.source,
+          autoStart: true
+        });
+        this.createPlayCount(video);
+      }
+
+
     },
 
-    createPlayCount() {
-        //
+    createPlayCount(video) {
+      this.$store.dispatch("registerPlayAndRoyaltyCount", {
+        id: video.id,
+        type: "video",
+        label: video.title,
+        duration: 0,
+        origin: 'file',
+        artist_id: video.artist
+      });
     },
     fetchVideos() {
       axios.get("/api/videos").then((res) => {
@@ -170,8 +175,8 @@ export default {
 </script>
 
 <style>
-    .op-wrapper.ovenplayer {
-        width: 65% !important;
-        left: 15% !important;
-    }
+.op-wrapper.ovenplayer {
+  width: 65% !important;
+  left: 15% !important;
+}
 </style>

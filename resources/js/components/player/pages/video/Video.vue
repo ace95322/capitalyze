@@ -318,16 +318,49 @@ export default {
       this.nextBtn = !this.$refs.mySwiper.swiper.isEnd;
     },
 
-    playVideo(video) {
-      this.videoPlayer = OvenPlayer.create("video_player", {
-        title: video.title,
-        image: video.cover,
-        file: video.source,
-        autoStart: true,
-      });
-      //   this.createPlayCount();
+    async playVideo(video) {
+      if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
+        await this.loginOrCancel();
+      }
+      console.log(this.$store.getters.getUser.plan);
+      if (this.$store.getters.getUser && this.$store.getters.isLogged && !this.$store.getters.getUser.is_admin) {
+        return new Promise((res, rej) => {
+          Vue.$confirm({
+            message: `You need to subscribe to play this song.`,
+            button: {
+              no: "Cancel",
+              yes: "Subscribe"
+            },
+            callback: confirm => {
+              if (confirm) {
+                res(this.$router.push({ name: "subscription" }));
+              } else {
+                rej();
+              }
+            }
+          });
+        });
+      } else {
+        this.videoPlayer = OvenPlayer.create("video_player", {
+          title: video.title,
+          image: video.cover,
+          file: video.source,
+          autoStart: true
+        });
+        this.createPlayCount(video);
+      }
     },
     isCurrentlyPlaying(video) {},
+    createPlayCount(video) {
+      this.$store.dispatch("registerPlayAndRoyaltyCount", {
+        id: video.id,
+        type: "video",
+        label: video.title,
+        duration: 0,
+        origin: 'file',
+        artist_id: video.artist
+      });
+    },
 
     share() {
       this.$store.commit("shareItem", {
