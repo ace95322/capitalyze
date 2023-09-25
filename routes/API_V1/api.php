@@ -19,7 +19,7 @@ Route::name('')->group(__DIR__ . '/_auth.php');
 Route::middleware('auth:api')
     ->group(__DIR__ . '/_user.php');
 
-Route::middleware(['auth:api', 'scope:manage_own_content'])
+Route::middleware(['auth:api'])
     ->group(__DIR__ . '/_artist.php');
 
 Route::name('admin.')->prefix('admin')

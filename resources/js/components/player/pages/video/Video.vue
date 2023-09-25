@@ -323,8 +323,7 @@ export default {
       if (!this.$store.getters.getUser && !this.$store.getters.isLogged) {
         await this.loginOrCancel();
       }
-      console.log(this.$store.getters.getUser.plan);
-      if (this.$store.getters.getUser && this.$store.getters.isLogged && !this.$store.getters.getUser.is_admin) {
+      if (this.$store.getters.getUser && this.$store.getters.isLogged && video.is_only_for_subscriber && this.$store.getters.getUser.plan.free && !this.$store.getters.getUser.is_admin) {
         return new Promise((res, rej) => {
           Vue.$confirm({
             message: `You need to subscribe to play this song.`,
